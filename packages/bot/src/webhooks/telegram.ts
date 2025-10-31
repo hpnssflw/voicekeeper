@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
 import fs from 'node:fs';
 import path from 'node:path';
-import { Context, Telegraf } from 'telegraf';
+import { Context, Markup, Telegraf } from 'telegraf';
 import { env } from '../config/env';
 import { BotsService } from '../services/bots.service';
 
@@ -33,10 +33,22 @@ function configureBot(bot: Telegraf<Context>) {
       `Создатель: <a href="${env.CREATOR_LINK}">${env.CREATOR_LINK}</a>`
     ].join('\n');
 
+    const webAppUrl = env.WEBAPP_URL || 'http://localhost:3000/mini';
+    const isHttps = webAppUrl.startsWith('https://');
+    const kb = isHttps
+      ? Markup.inlineKeyboard([
+          [Markup.button.webApp('Открыть Mini App', webAppUrl)],
+          [Markup.button.url('Открыть в браузере', webAppUrl)],
+        ])
+      : Markup.inlineKeyboard([]);
+
     if (hasImage) {
-      await ctx.replyWithPhoto({ source: fs.createReadStream(imagePath) }, { caption, parse_mode: 'HTML' });
+      await ctx.replyWithPhoto(
+        { source: fs.createReadStream(imagePath) },
+        { caption: isHttps ? caption : `${caption}\n\n(Установите HTTPS WEBAPP_URL для кнопки Mini App)`, parse_mode: 'HTML', reply_markup: kb.reply_markup }
+      );
     } else {
-      await ctx.reply(caption, { parse_mode: 'HTML' });
+      await ctx.reply(isHttps ? caption : `${caption}\n\n(Установите HTTPS WEBAPP_URL для кнопки Mini App)`, { parse_mode: 'HTML', reply_markup: kb.reply_markup });
     }
   });
 

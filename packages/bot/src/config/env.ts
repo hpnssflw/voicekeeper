@@ -12,6 +12,7 @@ type Env = {
   TELEGRAM_BOT_TOKEN?: string; // single-bot mode token (optional)
   ENABLE_POLLING: boolean;
   CREATOR_LINK: string;
+  WEBAPP_URL?: string;
 };
 
 function requireEnv(name: string, fallback?: string): string {
@@ -30,6 +31,7 @@ export const env: Env = {
   TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
   ENABLE_POLLING: String(process.env.ENABLE_POLLING || '').toLowerCase() === 'true',
   CREATOR_LINK: process.env.CREATOR_LINK || 'https://github.com/hpnssflw',
+  WEBAPP_URL: process.env.WEBAPP_URL,
 };
 
 
