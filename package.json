@@ -1,0 +1,12 @@
+{
+  "name": "telegram-funnel-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "echo 'define build scripts in packages'",
+    "dev": "echo 'use package-level dev scripts'",
+    "lint": "echo 'add eslint later'"
+  }
+}

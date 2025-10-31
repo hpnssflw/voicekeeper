@@ -1,0 +1,49 @@
+version: '3.9'
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+  bot:
+    build: ../packages/bot
+    container_name: bot
+    depends_on:
+      - mongodb
+      - redis
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/app
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "8080:8080"
+    command: ["node", "dist/index.js"]
+
+  frontend:
+    build: ../packages/webapp
+    container_name: frontend
+    ports:
+      - "3000:3000"
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+    depends_on:
+      - frontend
+      - bot
+
+volumes:
+  mongodb_data:
