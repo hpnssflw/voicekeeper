@@ -3,8 +3,14 @@
   captures the public URL from stdout, then calls Telegram setWebhook using
   TELEGRAM_BOT_TOKEN and WEBHOOK_SECRET.
 */
-import { spawn } from 'node:child_process';
+import dotenv from 'dotenv';
+import { spawn, spawnSync } from 'node:child_process';
+import fs from 'node:fs';
 import https from 'node:https';
+import path from 'node:path';
+
+// Load env from packages/bot/.env when running via npm script
+dotenv.config();
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const secret = process.env.WEBHOOK_SECRET || '';
@@ -32,7 +38,32 @@ function setWebhook(publicUrl: string) {
   req.end();
 }
 
-const cf = spawn('cloudflared', ['tunnel', '--url', 'http://127.0.0.1:8080']);
+function resolveCloudflared(): string {
+  if (process.env.CLOUDFLARED_PATH && fs.existsSync(process.env.CLOUDFLARED_PATH)) {
+    return process.env.CLOUDFLARED_PATH;
+  }
+  if (process.platform === 'win32') {
+    try {
+      const out = spawnSync('where', ['cloudflared'], { encoding: 'utf-8' });
+      const found = out.stdout?.split(/\r?\n/).find(p => p.toLowerCase().endsWith('cloudflared.exe'));
+      if (found && fs.existsSync(found)) return found;
+    } catch {}
+    const candidates = [
+      'C\\\\Program Files\\\
+Cloudflare\\\\cloudflared\\\\cloudflared.exe',
+      'C\\\\Program Files\\\\cloudflared\\\\cloudflared.exe',
+      path.join(process.env.LOCALAPPDATA || '', 'Programs', 'cloudflared', 'cloudflared.exe'),
+    ];
+    for (const c of candidates) {
+      if (c && fs.existsSync(c)) return c;
+    }
+  }
+  return 'cloudflared';
+}
+
+const cfPath = resolveCloudflared();
+console.log('Using cloudflared at:', cfPath);
+const cf = spawn(cfPath, ['tunnel', '--url', 'http://127.0.0.1:8080']);
 
 cf.stdout.on('data', (data: Buffer) => {
   const text = data.toString();

@@ -1,4 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
+import fs from 'node:fs';
+import path from 'node:path';
 import { Context, Telegraf } from 'telegraf';
 import { env } from '../config/env';
 import { BotsService } from '../services/bots.service';
@@ -17,7 +19,25 @@ export function getTelegramBot(): Telegraf<Context> | null {
 function configureBot(bot: Telegraf<Context>) {
 
   bot.start(async (ctx) => {
-    await ctx.reply('Welcome!');
+    const imagePath = path.join(__dirname, '..', '..', 'assets', 'start.jpg');
+    const hasImage = fs.existsSync(imagePath);
+    const caption = [
+      '<b>Telegram Funnel Starter</b>\n',
+      'Готовая основа для контент‑воронок: бот + админка + рассылки + аналитика.\n',
+      '',
+      '<b>Что внутри</b>:\n',
+      '• Express Telegram Bot (вебхуки, рассылки, события)\n',
+      '• Next.js Mini App (управление постами/ботами/аналитикой)\n',
+      '• MongoDB + Redis + BullMQ (хранилище, кеш, очереди)\n',
+      '',
+      `Создатель: <a href="${env.CREATOR_LINK}">${env.CREATOR_LINK}</a>`
+    ].join('\n');
+
+    if (hasImage) {
+      await ctx.replyWithPhoto({ source: fs.createReadStream(imagePath) }, { caption, parse_mode: 'HTML' });
+    } else {
+      await ctx.reply(caption, { parse_mode: 'HTML' });
+    }
   });
 
   bot.on('callback_query', async (ctx) => {
