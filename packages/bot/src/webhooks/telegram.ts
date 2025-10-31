@@ -38,7 +38,6 @@ function configureBot(bot: Telegraf<Context>) {
     const kb = isHttps
       ? Markup.inlineKeyboard([
           [Markup.button.webApp('Открыть Mini App', webAppUrl)],
-          [Markup.button.url('Открыть в браузере', webAppUrl)],
         ])
       : Markup.inlineKeyboard([]);
 
