@@ -72,28 +72,48 @@ export function setFingerprint(profile: StyleProfile): void {
 
 // Gemini API call
 async function callGemini(prompt: string, apiKey: string): Promise<string> {
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.8,
-          maxOutputTokens: 2048,
-        },
-      }),
-    }
-  );
+  // Try different model endpoints in order
+  const endpoints = [
+    `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
+  ];
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error?.message || "Gemini API error");
+  let lastError: Error | null = null;
+
+  for (const endpoint of endpoints) {
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.8,
+            maxOutputTokens: 2048,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        lastError = new Error(error.error?.message || "Gemini API error");
+        continue; // Try next endpoint
+      }
+
+      const data = await response.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      if (text) {
+        return text;
+      }
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      continue; // Try next endpoint
+    }
   }
 
-  const data = await response.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  // If all endpoints failed, throw the last error
+  throw lastError || new Error("Gemini API error: All endpoints failed");
 }
 
 // Analyze style from text
@@ -205,24 +225,31 @@ ${fingerprintContext}
 // Test API key
 export async function testApiKey(provider: "gemini" | "openai", key: string): Promise<boolean> {
   if (provider === "gemini") {
-    try {
-      await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
-        {
+    // Try different model endpoints
+    const endpoints = [
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${key}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${key}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${key}`,
+    ];
+
+    for (const endpoint of endpoints) {
+      try {
+        const response = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: "Hi" }] }],
+            contents: [{ parts: [{ text: "Test" }] }],
           }),
+        });
+        if (response.ok) {
+          await response.json();
+          return true;
         }
-      ).then(r => {
-        if (!r.ok) throw new Error();
-        return r.json();
-      });
-      return true;
-    } catch {
-      return false;
+      } catch {
+        continue; // Try next endpoint
+      }
     }
+    return false;
   }
   // OpenAI test would go here
   return false;
