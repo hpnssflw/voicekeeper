@@ -78,23 +78,23 @@ export default function SettingsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Настройки</h1>
+        <h1 className="text-2xl font-bold tracking-tight font-display">Настройки</h1>
         <p className="text-muted-foreground">
           Управление аккаунтом и конфигурация
         </p>
       </div>
 
       {/* Current Plan Banner */}
-      <Card className="border-violet-500/20 bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10">
+      <Card className="glass-panel-glow bg-gradient-to-r from-red-500/10 to-emerald-500/10">
         <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-emerald-500 shadow-lg shadow-red-500/25">
                 <Crown className="h-6 w-6 text-white" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="font-semibold">Текущий план: {currentPlan.name}</h3>
+                  <h3 className="font-semibold font-display">Текущий план: {currentPlan.name}</h3>
                   <Badge variant="secondary">{currentPlan.generations}/{currentPlan.maxGenerations} генераций</Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">
@@ -103,7 +103,7 @@ export default function SettingsPage() {
               </div>
             </div>
             <Link href="/dashboard/settings/subscription">
-              <Button className="gap-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 border-0">
+              <Button className="gap-2 bg-gradient-to-r from-red-500 to-emerald-500 hover:from-red-600 hover:to-emerald-600 border-0 shadow-lg shadow-red-500/25">
                 <Zap className="h-4 w-4" />
                 Улучшить план
               </Button>
@@ -118,7 +118,7 @@ export default function SettingsPage() {
           const Icon = section.icon;
           return (
             <Link key={section.href} href={section.href}>
-              <Card className="border-border/50 bg-card/50 hover:bg-accent/30 transition-colors cursor-pointer h-full">
+              <Card className="glass-panel hover:bg-white/[0.03] transition-colors cursor-pointer h-full">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-4">
@@ -145,9 +145,9 @@ export default function SettingsPage() {
       </div>
 
       {/* Quick Stats */}
-      <Card className="border-border/50 bg-card/50">
+      <Card className="glass-panel-glow">
         <CardHeader>
-          <CardTitle>Использование ресурсов</CardTitle>
+          <CardTitle className="font-display">Использование ресурсов</CardTitle>
           <CardDescription>
             Текущий период: Январь 2026
           </CardDescription>
@@ -159,9 +159,9 @@ export default function SettingsPage() {
                 <span className="text-muted-foreground">AI генерации</span>
                 <span>{currentPlan.generations}/{currentPlan.maxGenerations}</span>
               </div>
-              <div className="h-2 rounded-full bg-muted overflow-hidden">
+              <div className="h-2 rounded-full bg-white/5 overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500"
+                  className="h-full rounded-full bg-gradient-to-r from-red-500 to-emerald-500 shadow-[0_0_10px_hsl(0,72%,51%,0.5)]"
                   style={{ width: `${(currentPlan.generations / currentPlan.maxGenerations) * 100}%` }}
                 />
               </div>
@@ -171,7 +171,7 @@ export default function SettingsPage() {
                 <span className="text-muted-foreground">Конкуренты</span>
                 <span>{currentPlan.competitors}/{currentPlan.maxCompetitors || "∞"}</span>
               </div>
-              <div className="h-2 rounded-full bg-muted overflow-hidden">
+              <div className="h-2 rounded-full bg-white/5 overflow-hidden">
                 <div
                   className="h-full rounded-full bg-amber-500"
                   style={{ width: currentPlan.maxCompetitors ? `${(currentPlan.competitors / currentPlan.maxCompetitors) * 100}%` : "0%" }}
@@ -183,7 +183,7 @@ export default function SettingsPage() {
                 <span className="text-muted-foreground">API запросы</span>
                 <span>247/∞</span>
               </div>
-              <div className="h-2 rounded-full bg-muted overflow-hidden">
+              <div className="h-2 rounded-full bg-white/5 overflow-hidden">
                 <div className="h-full rounded-full bg-emerald-500" style={{ width: "15%" }} />
               </div>
             </div>

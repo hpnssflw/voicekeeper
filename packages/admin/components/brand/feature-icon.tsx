@@ -13,8 +13,8 @@ interface FeatureIconProps {
 
 const variants = {
   primary: {
-    bg: "from-violet-500 to-purple-600",
-    glow: "from-violet-500/30 to-purple-600/30",
+    bg: "from-red-500 to-rose-600",
+    glow: "from-red-500/30 to-rose-600/30",
   },
   secondary: {
     bg: "from-slate-500 to-slate-600",
@@ -60,7 +60,7 @@ export function FeatureIcon({
       )}
       <div className={cn(
         "relative flex items-center justify-center rounded-xl",
-        "bg-gradient-to-br",
+        "bg-gradient-to-br shadow-lg",
         v.bg,
         s.container
       )}>

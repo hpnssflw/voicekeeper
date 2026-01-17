@@ -128,7 +128,7 @@ export default function PostsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Посты</h1>
+          <h1 className="text-2xl font-bold tracking-tight font-display">Посты</h1>
           <p className="text-muted-foreground">
             Управление контентом всех ваших каналов
           </p>
@@ -170,9 +170,9 @@ export default function PostsPage() {
       </div>
 
       {/* Posts List */}
-      <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+      <Card>
         <CardContent className="p-0">
-          <div className="divide-y divide-border/50">
+          <div className="divide-y divide-white/[0.03]">
             {filteredPosts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <FileText className="h-12 w-12 text-muted-foreground" />
@@ -209,7 +209,7 @@ export default function PostsPage() {
                     <div className="flex items-center gap-2">
                       <h3 className="font-medium truncate">{post.title}</h3>
                       {post.isAiGenerated && (
-                        <Badge variant="outline" className="gap-1 shrink-0 border-violet-500/30 text-violet-400">
+                        <Badge variant="gradient" className="gap-1 shrink-0">
                           <Sparkles className="h-3 w-3" />
                           AI
                         </Badge>
@@ -290,39 +290,39 @@ export default function PostsPage() {
 
       {/* Quick stats */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card className="border-border/50 bg-card/50">
+        <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Всего постов</span>
-              <span className="text-2xl font-bold">{mockPosts.length}</span>
+              <span className="text-2xl font-bold font-display">{mockPosts.length}</span>
             </div>
           </CardContent>
         </Card>
-        <Card className="border-border/50 bg-card/50">
+        <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Опубликовано</span>
-              <span className="text-2xl font-bold text-emerald-500">
+              <span className="text-2xl font-bold font-display text-emerald-400">
                 {mockPosts.filter((p) => p.status === "published").length}
               </span>
             </div>
           </CardContent>
         </Card>
-        <Card className="border-border/50 bg-card/50">
+        <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Запланировано</span>
-              <span className="text-2xl font-bold text-amber-500">
+              <span className="text-2xl font-bold font-display text-amber-400">
                 {mockPosts.filter((p) => p.status === "scheduled").length}
               </span>
             </div>
           </CardContent>
         </Card>
-        <Card className="border-border/50 bg-card/50">
+        <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Черновики</span>
-              <span className="text-2xl font-bold">
+              <span className="text-2xl font-bold font-display">
                 {mockPosts.filter((p) => p.status === "draft").length}
               </span>
             </div>

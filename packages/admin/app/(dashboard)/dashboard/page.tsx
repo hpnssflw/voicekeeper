@@ -121,13 +121,13 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-tight font-display">Dashboard</h1>
           <p className="text-muted-foreground">
             Обзор ваших Telegram-каналов и контента
           </p>
         </div>
         <Link href="/dashboard/voicekeeper/generate">
-          <Button className="gap-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 border-0">
+          <Button variant="gradient" className="gap-2">
             <Sparkles className="h-4 w-4" />
             Создать с AI
           </Button>
@@ -137,12 +137,12 @@ export default function DashboardPage() {
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <Card key={stat.name} className="card-hover border-border/50 bg-card/50 backdrop-blur-sm">
+          <Card key={stat.name} className="card-hover">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">{stat.name}</p>
-                  <p className="mt-1 text-2xl font-bold">{stat.value}</p>
+                  <p className="mt-1 text-2xl font-bold font-display">{stat.value}</p>
                   <p className={`mt-1 text-xs ${
                     stat.changeType === "positive" ? "text-emerald-400" : "text-red-400"
                   }`}>
@@ -158,7 +158,7 @@ export default function DashboardPage() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Recent Posts */}
-        <Card className="lg:col-span-2 border-border/50 bg-card/50 backdrop-blur-sm">
+        <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle>Последние посты</CardTitle>
@@ -176,13 +176,13 @@ export default function DashboardPage() {
               {recentPosts.map((post) => (
                 <div
                   key={post.id}
-                  className="flex items-center justify-between rounded-xl border border-border/50 bg-background/50 p-4 hover:bg-accent/50 transition-colors cursor-pointer"
+                  className="flex items-center justify-between rounded-xl bg-white/[0.02] p-4 hover:bg-white/[0.04] transition-colors cursor-pointer"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <h4 className="font-medium truncate">{post.title}</h4>
                       {post.isAi && (
-                        <Badge variant="outline" className="gap-1 border-violet-500/30 text-violet-400">
+                        <Badge variant="gradient" className="gap-1">
                           <Sparkles className="h-3 w-3" />
                           AI
                         </Badge>
@@ -228,10 +228,10 @@ export default function DashboardPage() {
         </Card>
 
         {/* AI Insights */}
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+        <Card>
           <CardHeader>
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-emerald-500 shadow-lg shadow-red-500/25">
                 <Zap className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -246,14 +246,14 @@ export default function DashboardPage() {
               return (
                 <div
                   key={idx}
-                  className="rounded-xl border border-violet-500/20 bg-violet-500/5 p-4 hover:bg-violet-500/10 transition-colors"
+                  className="rounded-xl bg-red-500/[0.06] p-4 hover:bg-red-500/[0.1] transition-colors"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/20">
-                      <Icon className="h-4 w-4 text-violet-400" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/15">
+                      <Icon className="h-4 w-4 text-red-400" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-sm">{insight.title}</h4>
+                      <h4 className="font-medium text-sm font-display">{insight.title}</h4>
                       <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">
                         {insight.description}
                       </p>
@@ -263,7 +263,7 @@ export default function DashboardPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="mt-3 h-7 w-full justify-start text-violet-400 hover:text-violet-300 hover:bg-violet-500/10 px-0"
+                      className="mt-3 h-7 w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-500/10 px-0"
                     >
                       {insight.action}
                       <ArrowRight className="ml-1 h-3 w-3" />
@@ -273,7 +273,7 @@ export default function DashboardPage() {
               );
             })}
             <Link href="/dashboard/voicekeeper">
-              <Button variant="outline" className="w-full gap-2 mt-2 border-violet-500/30 text-violet-400 hover:bg-violet-500/10 hover:text-violet-300">
+              <Button variant="outline" className="w-full gap-2 mt-2 text-red-400 hover:bg-red-500/10 hover:text-red-300">
                 <Sparkles className="h-4 w-4" />
                 Открыть VoiceKeeper
               </Button>
@@ -285,13 +285,13 @@ export default function DashboardPage() {
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-3">
         <Link href="/dashboard/voicekeeper/generate" className="group">
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm card-hover h-full">
+          <Card className="card-hover h-full">
             <CardContent className="p-6 flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 group-hover:scale-110 transition-transform">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-emerald-500 group-hover:scale-110 transition-transform shadow-lg shadow-red-500/25">
                 <Sparkles className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold">Сгенерировать пост</h3>
+                <h3 className="font-semibold font-display">Сгенерировать пост</h3>
                 <p className="text-sm text-muted-foreground">Создайте контент с AI</p>
               </div>
               <ArrowRight className="h-5 w-5 text-muted-foreground ml-auto group-hover:translate-x-1 transition-transform" />
@@ -300,13 +300,13 @@ export default function DashboardPage() {
         </Link>
         
         <Link href="/dashboard/trends" className="group">
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm card-hover h-full">
+          <Card className="card-hover h-full">
             <CardContent className="p-6 flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 group-hover:scale-110 transition-transform">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 group-hover:scale-110 transition-transform shadow-lg shadow-amber-500/25">
                 <BarChart3 className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold">Trend Radar</h3>
+                <h3 className="font-semibold font-display">Trend Radar</h3>
                 <p className="text-sm text-muted-foreground">Анализ конкурентов</p>
               </div>
               <ArrowRight className="h-5 w-5 text-muted-foreground ml-auto group-hover:translate-x-1 transition-transform" />
@@ -315,13 +315,13 @@ export default function DashboardPage() {
         </Link>
         
         <Link href="/dashboard/bots" className="group">
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm card-hover h-full">
+          <Card className="card-hover h-full">
             <CardContent className="p-6 flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 group-hover:scale-110 transition-transform">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 group-hover:scale-110 transition-transform shadow-lg shadow-blue-500/25">
                 <Bot className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold">Добавить бота</h3>
+                <h3 className="font-semibold font-display">Добавить бота</h3>
                 <p className="text-sm text-muted-foreground">Подключите Telegram-бота</p>
               </div>
               <ArrowRight className="h-5 w-5 text-muted-foreground ml-auto group-hover:translate-x-1 transition-transform" />
@@ -332,4 +332,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-

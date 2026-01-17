@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth";
 import { Logo, LogoIcon } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +21,9 @@ import {
   Crown,
   Zap,
   X,
+  Radio,
+  LogOut,
+  User,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -33,6 +37,11 @@ const navigation = [
     name: "Боты",
     href: "/dashboard/bots",
     icon: Bot,
+  },
+  {
+    name: "Каналы",
+    href: "/dashboard/channels",
+    icon: Radio,
   },
   {
     name: "Посты",
@@ -93,7 +102,14 @@ interface SidebarProps {
 
 export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
+  const { user, bots, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    router.push("/landing");
+  };
 
   // Close mobile sidebar on route change
   useEffect(() => {
@@ -102,12 +118,15 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
     }
   }, [pathname]);
 
+  const activeBots = bots.filter((b) => b.isActive).length;
+  const totalGenerations = 47; // Would come from subscription
+
   return (
     <>
       {/* Mobile Overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden"
+          className="fixed inset-0 bg-background/60 backdrop-blur-sm z-40 lg:hidden"
           onClick={onMobileClose}
         />
       )}
@@ -115,7 +134,8 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "flex flex-col border-r border-border/50 bg-card/50 backdrop-blur-xl transition-all duration-300 relative z-50",
+          "flex flex-col bg-card/30 backdrop-blur-2xl transition-all duration-300 relative z-50",
+          "shadow-[1px_0_0_0_hsl(var(--primary)/0.05),8px_0_32px_-8px_hsl(0_0%_0%/0.3)]",
           // Mobile: drawer from left
           "fixed lg:sticky top-0 left-0 h-screen",
           "transform transition-transform duration-300 ease-in-out",
@@ -127,7 +147,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
         )}
       >
       {/* Logo */}
-      <div className="flex h-16 items-center justify-between border-b border-border/50 px-4">
+      <div className="flex h-16 items-center justify-between px-4">
         {!collapsed ? (
           <Link href="/dashboard" className="flex-1">
             <Logo size="md" />
@@ -173,14 +193,14 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
       )}
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 p-2 overflow-y-auto">
+      <nav className="flex-1 space-y-1 p-3 overflow-y-auto">
         {navigation.map((item, idx) => {
           if ("type" in item && item.type === "divider") {
             return (
-              <div key={idx} className="py-3">
-                <div className="h-px bg-border/50" />
+              <div key={idx} className="py-4">
+                <div className="h-px bg-gradient-to-r from-transparent via-primary/10 to-transparent" />
                 {!collapsed && item.label && (
-                  <p className="mt-3 px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <p className="mt-4 px-3 text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider font-display">
                     {item.label}
                   </p>
                 )}
@@ -199,16 +219,16 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                 "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
                 isActive
                   ? item.gradient
-                    ? "bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 text-white"
-                    : "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                    ? "bg-gradient-to-r from-red-500/15 to-emerald-500/15 text-white shadow-[0_0_20px_-5px_hsl(var(--primary)/0.3)]"
+                    : "bg-primary/10 text-primary shadow-[0_0_15px_-5px_hsl(var(--primary)/0.2)]"
+                  : "text-muted-foreground hover:bg-white/5 hover:text-foreground",
                 collapsed && "justify-center px-2"
               )}
               title={collapsed ? item.name : undefined}
             >
               <Icon className={cn(
                 "h-4 w-4 shrink-0 transition-transform group-hover:scale-110",
-                isActive && item.gradient && "text-violet-400"
+                isActive && item.gradient && "text-red-400"
               )} />
               {!collapsed && (
                 <>
@@ -216,10 +236,10 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                   {item.badge && (
                     <span
                       className={cn(
-                        "rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                        "rounded-md px-2 py-0.5 text-[10px] font-semibold",
                         item.badge === "AI"
-                          ? "bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 text-violet-400"
-                          : "bg-amber-500/20 text-amber-400"
+                          ? "bg-gradient-to-r from-red-500/20 to-emerald-500/20 text-red-400"
+                          : "bg-amber-500/15 text-amber-400"
                       )}
                     >
                       {item.badge}
@@ -232,34 +252,75 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
         })}
       </nav>
 
-      {/* Bottom section - Usage */}
+      {/* Bottom section - Usage & User */}
       {!collapsed && (
-        <div className="border-t border-border/50 p-4">
-          <div className="rounded-xl bg-gradient-to-r from-violet-500/10 via-purple-500/10 to-fuchsia-500/10 p-4">
+        <div className="p-4 space-y-3">
+          {/* Usage */}
+          <div className="rounded-2xl bg-gradient-to-br from-red-500/10 via-rose-500/5 to-emerald-500/10 p-4 shadow-[inset_0_1px_0_0_hsla(0,0%,100%,0.05)]">
             <div className="flex items-center gap-2 mb-2">
-              <Zap className="h-4 w-4 text-violet-400" />
-              <span className="text-xs font-semibold text-violet-400">Pro план</span>
+              <Zap className="h-4 w-4 text-red-400" />
+              <span className="text-xs font-semibold text-red-400 font-display capitalize">
+                {user?.plan || "Free"} план
+              </span>
             </div>
             <p className="text-xs text-muted-foreground mb-3">
-              47 генераций осталось
+              {totalGenerations} генераций осталось
             </p>
-            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+            <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 transition-all duration-500"
-                style={{ width: "47%" }}
+                className="h-full rounded-full bg-gradient-to-r from-red-500 to-emerald-500 transition-all duration-500 shadow-[0_0_10px_hsl(0,72%,51%,0.5)]"
+                style={{ width: `${totalGenerations}%` }}
               />
             </div>
             <Button
               variant="ghost"
               size="sm"
-              className="w-full mt-3 text-xs gap-1 text-violet-400 hover:text-violet-300 hover:bg-violet-500/10"
+              className="w-full mt-3 text-xs gap-1 text-red-400 hover:text-red-300 hover:bg-red-500/10"
             >
               <Crown className="h-3 w-3" />
               Улучшить план
             </Button>
           </div>
+
+          {/* User Info */}
+          {user && (
+            <div className="rounded-2xl bg-white/[0.03] p-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-emerald-500 text-white text-sm font-semibold">
+                  {user.firstName?.charAt(0) || <User className="h-4 w-4" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{user.firstName} {user.lastName}</p>
+                  <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="w-full mt-3 text-xs gap-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              >
+                <LogOut className="h-3 w-3" />
+                Выйти
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Collapsed state user avatar */}
+      {collapsed && user && (
+        <div className="p-3">
+          <button
+            onClick={handleLogout}
+            className="flex h-9 w-9 mx-auto items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-emerald-500 text-white text-sm font-semibold hover:opacity-80 transition-opacity"
+            title="Выйти"
+          >
+            {user.firstName?.charAt(0) || <User className="h-4 w-4" />}
+          </button>
         </div>
       )}
     </aside>
+    </>
   );
 }

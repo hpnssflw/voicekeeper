@@ -58,17 +58,17 @@ export default function ApiKeysPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">API Ключи</h1>
+        <h1 className="text-2xl font-bold tracking-tight font-display">API Ключи</h1>
         <p className="text-muted-foreground">
           Настройте ключи для AI-сервисов и интеграций
         </p>
       </div>
 
       {/* AI Provider Selection */}
-      <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+      <Card className="glass-panel-glow">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-violet-500" />
+          <CardTitle className="flex items-center gap-2 font-display">
+            <Sparkles className="h-5 w-5 text-red-500" />
             AI Провайдер
           </CardTitle>
           <CardDescription>
@@ -135,7 +135,7 @@ export default function ApiKeysPage() {
       {/* API Keys */}
       <div className="space-y-4">
         {/* Gemini */}
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+        <Card className="glass-panel-glow">
           <CardContent className="p-6">
             <div className="flex items-start gap-4">
               <FeatureIcon icon={Sparkles} variant={keys.geminiKey ? "primary" : "secondary"} size="lg" glow={!!keys.geminiKey} />
@@ -189,6 +189,13 @@ export default function ApiKeysPage() {
                       Проверить
                     </Button>
                   </div>
+                  {/* Quick hint for testing */}
+                  <p className="text-xs text-emerald-400/80 mt-1">
+                    💡 Тестовый ключ: <code 
+                      className="bg-emerald-500/10 px-1.5 py-0.5 rounded cursor-pointer hover:bg-emerald-500/20 break-all" 
+                      onClick={() => setKeys({ ...keys, geminiKey: "AIzaSyD0dgcfnSg9h96u9rSUQ8POMXAShxwWqUs" })}
+                    >AIzaSyD0dgcfnSg9h96u9rSUQ8POMXAShxwWqUs</code>
+                  </p>
                 </div>
               </div>
             </div>
@@ -196,7 +203,7 @@ export default function ApiKeysPage() {
         </Card>
 
         {/* OpenAI */}
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+        <Card className="glass-panel-glow">
           <CardContent className="p-6">
             <div className="flex items-start gap-4">
               <FeatureIcon icon={Zap} variant={keys.openaiKey ? "warning" : "secondary"} size="lg" glow={!!keys.openaiKey} />
@@ -257,7 +264,7 @@ export default function ApiKeysPage() {
         </Card>
 
         {/* Browserless */}
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+        <Card className="glass-panel-glow">
           <CardContent className="p-6">
             <div className="flex items-start gap-4">
               <FeatureIcon icon={Radio} variant={keys.browserlessUrl ? "info" : "secondary"} size="lg" glow={!!keys.browserlessUrl} />
@@ -300,7 +307,7 @@ export default function ApiKeysPage() {
       </div>
 
       {/* Telegram Bot Tokens Info */}
-      <Card className="border-blue-500/20 bg-blue-500/5">
+      <Card className="glass-panel bg-gradient-to-r from-blue-500/10 to-cyan-500/5">
         <CardContent className="p-6">
           <div className="flex items-start gap-4">
             <FeatureIcon icon={Bot} variant="info" size="lg" />

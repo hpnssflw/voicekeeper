@@ -5,64 +5,65 @@
  * Set NEXT_PUBLIC_DEMO_MODE=true for Vercel preview deployments.
  */
 
-export const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+// PRODUCTION MODE - all features enabled
+export const DEMO_MODE = false;
 
 export const features = {
-  // Core Features
+  // Core Features - All enabled
   auth: {
-    enabled: !DEMO_MODE,
-    telegramLogin: !DEMO_MODE,
-    jwtAuth: !DEMO_MODE,
+    enabled: true,
+    telegramLogin: true,
+    jwtAuth: true,
   },
   
-  // Bot Management
+  // Bot Management - All enabled
   bots: {
-    enabled: true, // UI always visible
-    canCreate: !DEMO_MODE,
-    canDelete: !DEMO_MODE,
-    canEditToken: !DEMO_MODE,
+    enabled: true,
+    canCreate: true,
+    canDelete: true,
+    canEditToken: true,
   },
   
-  // Posts
+  // Posts - All enabled
   posts: {
     enabled: true,
-    canCreate: !DEMO_MODE,
-    canPublish: !DEMO_MODE,
-    canSchedule: !DEMO_MODE,
+    canCreate: true,
+    canPublish: true,
+    canSchedule: true,
   },
   
-  // VoiceKeeper AI
+  // VoiceKeeper AI - All enabled
   voiceKeeper: {
     enabled: true,
-    canGenerate: !DEMO_MODE,
-    canAnalyzeFingerprint: !DEMO_MODE,
-    maxGenerationsDemo: 0,
+    canGenerate: true,
+    canAnalyzeFingerprint: true,
+    maxGenerationsDemo: 50,
   },
   
-  // Trend Radar
+  // Trend Radar - All enabled
   trendRadar: {
     enabled: true,
-    canScan: !DEMO_MODE,
-    canAddCompetitors: !DEMO_MODE,
+    canScan: true,
+    canAddCompetitors: true,
   },
   
-  // Broadcasts
+  // Broadcasts - All enabled
   broadcasts: {
     enabled: true,
-    canCreate: !DEMO_MODE,
-    canSend: !DEMO_MODE,
+    canCreate: true,
+    canSend: true,
   },
   
-  // Subscriptions
+  // Subscriptions - All enabled
   subscriptions: {
-    enabled: !DEMO_MODE,
-    canPurchase: !DEMO_MODE,
+    enabled: true,
+    canPurchase: true,
   },
   
-  // API Keys
+  // API Keys - All enabled
   apiKeys: {
     enabled: true,
-    canSave: !DEMO_MODE,
+    canSave: true,
   },
 } as const;
 
@@ -91,10 +92,9 @@ export function isFeatureEnabled(
 /**
  * Hook-friendly feature check (for use in components)
  */
-export function useFeature(feature: keyof Features) {
+export function useFeature<K extends keyof Features>(feature: K): Features[K] & { isDemoMode: boolean } {
   return {
     ...features[feature],
     isDemoMode: DEMO_MODE,
   };
 }
-
