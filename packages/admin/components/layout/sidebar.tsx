@@ -26,15 +26,17 @@ import {
   LogOut,
   User,
   BookOpen,
+  Menu,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
 interface SidebarProps {
   mobileOpen?: boolean;
   onMobileClose?: () => void;
+  onMenuClick?: () => void;
 }
 
-export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
+export function Sidebar({ mobileOpen = false, onMobileClose, onMenuClick }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
@@ -46,8 +48,8 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
     { name: t("navigation.bots"), href: "/dashboard/bots", icon: Bot },
     { name: t("navigation.channels"), href: "/dashboard/channels", icon: Radio },
     { name: t("navigation.posts"), href: "/dashboard/posts", icon: FileText },
-    { name: t("navigation.broadcasts"), href: "/dashboard/broadcasts", icon: Megaphone },
-    { name: t("navigation.subscribers"), href: "/dashboard/subscribers", icon: Users },
+    { name: t("navigation.broadcasts"), href: "/dashboard/broadcasts", icon: Megaphone, badge: "Pro" },
+    { name: t("navigation.subscribers"), href: "/dashboard/subscribers", icon: Users, badge: "Pro" },
     { type: "divider" as const, label: "AI Tools" },
     { name: t("navigation.voicekeeper"), href: "/dashboard/voicekeeper", icon: Sparkles, badge: "AI", gradient: true },
     { name: t("navigation.generate"), href: "/dashboard/voicekeeper/generate", icon: Zap },
@@ -98,7 +100,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
         )}
       >
         {/* Logo */}
-        <div className="flex h-14 items-center justify-between px-3">
+        <div className="flex h-12 items-center justify-between px-2">
           {!collapsed ? (
             <Link href="/dashboard" className="flex-1">
               <Logo size="sm" />
@@ -108,14 +110,14 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
               <LogoIcon size="sm" />
             </Link>
           )}
-          {mobileOpen && (
+          {mobileOpen && onMobileClose && (
             <Button
               variant="ghost"
               size="icon"
               onClick={onMobileClose}
-              className="h-7 w-7 lg:hidden text-muted-foreground"
+              className="h-6 w-6 lg:hidden text-muted-foreground"
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-3 w-3" />
             </Button>
           )}
           {!collapsed && !mobileOpen && (
@@ -123,12 +125,26 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
               variant="ghost"
               size="icon"
               onClick={() => setCollapsed(!collapsed)}
-              className="h-7 w-7 hidden lg:flex text-muted-foreground"
+              className="h-6 w-6 hidden lg:flex text-muted-foreground"
             >
-              <ChevronLeft className="h-3.5 w-3.5" />
+              <ChevronLeft className="h-3 w-3" />
             </Button>
           )}
         </div>
+        
+        {/* Mobile menu button */}
+        {!mobileOpen && onMenuClick && (
+          <div className="lg:hidden px-2 pb-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onMenuClick}
+              className="h-7 w-7 text-muted-foreground"
+            >
+              <Menu className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
 
         {collapsed && !mobileOpen && (
           <Button

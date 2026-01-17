@@ -86,7 +86,7 @@ async function getAvailableModels(apiKey: string): Promise<string[]> {
     // Fallback to default models if list fails
   }
   // Default fallback models (most common)
-  return ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
+  return ['gemma-3-1b-it', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
 }
 
 // Gemini API call
@@ -94,8 +94,13 @@ async function callGemini(prompt: string, apiKey: string): Promise<string> {
   // Get available models first
   const models = await getAvailableModels(apiKey);
   
+  // Add gemma-3-1b-it to the list if not already present
+  if (!models.includes('gemma-3-1b-it')) {
+    models.unshift('gemma-3-1b-it'); // Prioritize it
+  }
+  
   // Try different API versions and models
-  const apiVersions = ['v1', 'v1beta'];
+  const apiVersions = ['v1beta', 'v1']; // Prioritize v1beta for gemma
   let lastError: Error | null = null;
 
   for (const version of apiVersions) {
@@ -248,7 +253,13 @@ export async function testApiKey(provider: "gemini" | "openai", key: string): Pr
     try {
       // First try to get available models
       const models = await getAvailableModels(key);
-      const apiVersions = ['v1', 'v1beta'];
+      
+      // Add gemma-3-1b-it to the list if not already present
+      const modelsToTest = models.includes('gemma-3-1b-it') 
+        ? models 
+        : ['gemma-3-1b-it', ...models];
+      
+      const apiVersions = ['v1beta', 'v1']; // Prioritize v1beta for gemma
       
       for (const version of apiVersions) {
         for (const model of models.slice(0, 3)) { // Try first 3 models

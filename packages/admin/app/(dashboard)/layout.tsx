@@ -34,10 +34,10 @@ export default function DashboardLayout({
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[hsl(15,20%,4%)]">
+      <div className="flex h-screen items-center justify-center bg-background">
         <div className="fixed inset-0 pointer-events-none opacity-30 bg-mesh" />
         <div className="text-center relative z-10">
-          <Loader2 className="h-6 w-6 animate-spin mx-auto mb-3 text-orange-500" />
+          <Loader2 className="h-6 w-6 animate-spin mx-auto mb-3 text-primary" />
           <p className="text-xs text-muted-foreground">Загрузка...</p>
         </div>
       </div>
@@ -46,10 +46,10 @@ export default function DashboardLayout({
 
   if (!isAuthenticated && !DEMO_MODE) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[hsl(15,20%,4%)]">
+      <div className="flex h-screen items-center justify-center bg-background">
         <div className="fixed inset-0 pointer-events-none opacity-30 bg-mesh" />
         <div className="text-center relative z-10">
-          <Loader2 className="h-6 w-6 animate-spin mx-auto mb-3 text-orange-500" />
+          <Loader2 className="h-6 w-6 animate-spin mx-auto mb-3 text-primary" />
           <p className="text-xs text-muted-foreground">Перенаправление...</p>
         </div>
       </div>
@@ -57,17 +57,17 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[hsl(15,20%,4%)]">
+    <div className="flex h-screen overflow-hidden bg-background">
       {/* Subtle background */}
       <div className="fixed inset-0 pointer-events-none opacity-20 bg-mesh" />
       
       <Sidebar 
         mobileOpen={mobileMenuOpen}
         onMobileClose={() => setMobileMenuOpen(false)}
+        onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)}
       />
       <div className="flex flex-1 flex-col overflow-hidden relative lg:ml-0">
-        <Header onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)} />
-        <main className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 relative">
+        <main className="flex-1 overflow-y-auto p-2 sm:p-3 relative">
           <div className="relative z-10">
             {children}
           </div>

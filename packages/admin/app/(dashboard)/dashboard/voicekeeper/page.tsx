@@ -36,40 +36,40 @@ export default function VoiceKeeperPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-pink-500 shadow-lg shadow-orange-500/25">
-            <Sparkles className="h-6 w-6 text-white" />
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-pink-500">
+            <Sparkles className="h-4 w-4 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight font-display">VoiceKeeper</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-sm font-bold tracking-tight font-display">VoiceKeeper</h1>
+            <p className="text-[10px] text-muted-foreground">
               AI-стратег для вашего контента
             </p>
           </div>
         </div>
         <Link href="/dashboard/voicekeeper/generate">
-          <Button variant="gradient" className="gap-2">
-            <Wand2 className="h-4 w-4" />
-            Создать пост
+          <Button variant="gradient" size="sm" className="gap-1.5 h-7 text-[10px]">
+            <Wand2 className="h-3 w-3" />
+            Создать
           </Button>
         </Link>
       </div>
 
       {/* Check for bots */}
       {!hasBots ? (
-        <Card className="py-12">
-          <CardContent className="text-center">
-            <Bot className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium font-display mb-2">Сначала добавьте бота</h3>
-            <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+        <Card className="py-6">
+          <CardContent className="text-center p-4">
+            <Bot className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+            <h3 className="text-sm font-medium font-display mb-1">Сначала добавьте бота</h3>
+            <p className="text-[10px] text-muted-foreground mb-3 max-w-md mx-auto">
               Для использования VoiceKeeper необходим подключенный Telegram-бот
             </p>
             <Link href="/dashboard/bots">
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
+              <Button size="sm" className="gap-1.5 h-7 text-[10px]">
+                <Plus className="h-3 w-3" />
                 Добавить бота
               </Button>
             </Link>
@@ -78,16 +78,16 @@ export default function VoiceKeeperPage() {
       ) : (
         <>
           {/* Quick Stats */}
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-2 md:grid-cols-3">
             <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <FeatureIcon icon={Fingerprint} variant="primary" size="lg" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Voice Fingerprint</p>
-                    <div className="flex items-center gap-2">
-                      <p className="text-2xl font-bold font-display">—</p>
-                      <Badge variant="secondary">Не настроен</Badge>
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2">
+                  <FeatureIcon icon={Fingerprint} variant="primary" size="sm" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] text-muted-foreground">Voice Fingerprint</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-base font-bold font-display">—</p>
+                      <Badge variant="secondary" className="text-[9px] px-1 py-0">Не настроен</Badge>
                     </div>
                   </div>
                 </div>
@@ -95,14 +95,14 @@ export default function VoiceKeeperPage() {
             </Card>
 
             <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <FeatureIcon icon={Zap} variant="success" size="lg" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Генераций использовано</p>
-                    <div className="flex items-center gap-2">
-                      <p className="text-2xl font-bold font-display">{generationsUsed}</p>
-                      <span className="text-sm text-muted-foreground">/ {generationsLimit}</span>
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2">
+                  <FeatureIcon icon={Zap} variant="success" size="sm" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] text-muted-foreground">Генераций</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-base font-bold font-display">{generationsUsed}</p>
+                      <span className="text-[10px] text-muted-foreground">/ {generationsLimit}</span>
                     </div>
                   </div>
                 </div>
@@ -110,13 +110,13 @@ export default function VoiceKeeperPage() {
             </Card>
 
             <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <FeatureIcon icon={Target} variant="warning" size="lg" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Ваш план</p>
-                    <div className="flex items-center gap-2">
-                      <p className="text-2xl font-bold font-display capitalize">{user?.plan || "free"}</p>
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2">
+                  <FeatureIcon icon={Target} variant="warning" size="sm" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] text-muted-foreground">План</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-base font-bold font-display capitalize">{user?.plan || "free"}</p>
                     </div>
                   </div>
                 </div>
@@ -124,97 +124,92 @@ export default function VoiceKeeperPage() {
             </Card>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-3">
+          <div className="grid gap-3 lg:grid-cols-3">
             {/* Voice Fingerprint Card */}
             <Card className="lg:col-span-2">
-              <CardHeader>
+              <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <Fingerprint className="h-5 w-5 text-red-400" />
+                    <CardTitle className="flex items-center gap-1.5 text-sm">
+                      <Fingerprint className="h-3.5 w-3.5 text-red-400" />
                       Digital Voice Fingerprint
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-[10px]">
                       Профиль вашего уникального стиля письма
                     </CardDescription>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleAnalyze}
-                    className="gap-2"
-                  >
-                    Анализировать
-                  </Button>
+                  <Link href="/dashboard/voicekeeper/fingerprint">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5 h-7 text-[10px]"
+                    >
+                      Настроить
+                    </Button>
+                  </Link>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="py-8 text-center">
-                  <Fingerprint className="h-16 w-16 mx-auto text-gray-600 mb-4" />
-                  <h3 className="font-medium mb-2">Профиль не настроен</h3>
-                  <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-4">
+              <CardContent className="space-y-3 p-4">
+                <div className="py-4 text-center">
+                  <Fingerprint className="h-10 w-10 mx-auto text-gray-600 mb-2" />
+                  <h3 className="text-xs font-medium mb-1">Профиль не настроен</h3>
+                  <p className="text-[10px] text-muted-foreground max-w-sm mx-auto mb-3">
                     Проанализируйте ваши существующие посты, чтобы AI мог имитировать ваш уникальный стиль письма
                   </p>
-                  <Button onClick={handleAnalyze} className="gap-2">
-                    <Sparkles className="h-4 w-4" />
-                    Начать анализ
-                  </Button>
+                  <Link href="/dashboard/voicekeeper/fingerprint">
+                    <Button onClick={handleAnalyze} size="sm" className="gap-1.5 h-7 text-[10px]">
+                      <Sparkles className="h-3 w-3" />
+                      Начать анализ
+                    </Button>
+                  </Link>
                 </div>
-
-                <Link href="/dashboard/voicekeeper/fingerprint">
-                  <Button variant="outline" className="w-full gap-2">
-                    Настройки профиля
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
               </CardContent>
             </Card>
 
             {/* Quick Actions */}
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Действия</CardTitle>
-                <CardDescription>Что можно сделать с VoiceKeeper</CardDescription>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs">Действия</CardTitle>
+                <CardDescription className="text-[10px]">Что можно сделать с VoiceKeeper</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-2 p-3">
                 <Link href="/dashboard/voicekeeper/generate" className="block">
-                  <div className="rounded-xl bg-red-500/[0.06] p-4 hover:bg-red-500/[0.1] transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/15">
-                        <Wand2 className="h-5 w-5 text-red-400" />
+                  <div className="rounded-lg bg-red-500/[0.06] p-2.5 hover:bg-red-500/[0.1] transition-colors">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-md bg-red-500/15">
+                        <Wand2 className="h-3.5 w-3.5 text-red-400" />
                       </div>
                       <div>
-                        <h4 className="font-medium">Создать пост</h4>
-                        <p className="text-xs text-muted-foreground">AI-генерация контента</p>
+                        <h4 className="text-xs font-medium">Создать пост</h4>
+                        <p className="text-[9px] text-muted-foreground">AI-генерация контента</p>
                       </div>
                     </div>
                   </div>
                 </Link>
                 
-                <div 
-                  className="rounded-xl bg-emerald-500/[0.06] p-4 hover:bg-emerald-500/[0.1] transition-colors cursor-pointer"
-                  onClick={handleAnalyze}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/15">
-                      <Fingerprint className="h-5 w-5 text-emerald-400" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium">Анализ стиля</h4>
-                      <p className="text-xs text-muted-foreground">Voice Fingerprint</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <Link href="/dashboard/trends" className="block">
-                  <div className="rounded-xl bg-amber-500/[0.06] p-4 hover:bg-amber-500/[0.1] transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/15">
-                        <TrendingUp className="h-5 w-5 text-amber-400" />
+                <Link href="/dashboard/voicekeeper/fingerprint" className="block">
+                  <div className="rounded-lg bg-emerald-500/[0.06] p-2.5 hover:bg-emerald-500/[0.1] transition-colors">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-md bg-emerald-500/15">
+                        <Fingerprint className="h-3.5 w-3.5 text-emerald-400" />
                       </div>
                       <div>
-                        <h4 className="font-medium">Trend Radar</h4>
-                        <p className="text-xs text-muted-foreground">Анализ трендов</p>
+                        <h4 className="text-xs font-medium">Анализ стиля</h4>
+                        <p className="text-[9px] text-muted-foreground">Voice Fingerprint</p>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+                
+                <Link href="/dashboard/trends" className="block">
+                  <div className="rounded-lg bg-amber-500/[0.06] p-2.5 hover:bg-amber-500/[0.1] transition-colors">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-md bg-amber-500/15">
+                        <TrendingUp className="h-3.5 w-3.5 text-amber-400" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-medium">Trend Radar</h4>
+                        <p className="text-[9px] text-muted-foreground">Анализ трендов</p>
                       </div>
                     </div>
                   </div>
@@ -226,18 +221,18 @@ export default function VoiceKeeperPage() {
           {/* Plan Upgrade Banner */}
           {user?.plan === "free" && (
             <Card className="bg-gradient-to-r from-orange-500/10 via-transparent to-pink-500/10">
-              <CardContent className="p-6">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <CardContent className="p-3">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                   <div>
-                    <h3 className="font-semibold font-display mb-1">Увеличьте лимит генераций</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <h3 className="text-xs font-semibold font-display mb-0.5">Увеличьте лимит генераций</h3>
+                    <p className="text-[10px] text-muted-foreground">
                       Pro план даёт 50 генераций в месяц и доступ к Voice Fingerprint
                     </p>
                   </div>
                   <Link href="/dashboard/settings/subscription">
-                    <Button className="gap-2">
-                      <Zap className="h-4 w-4" />
-                      Улучшить план
+                    <Button size="sm" className="gap-1.5 h-7 text-[10px]">
+                      <Zap className="h-3 w-3" />
+                      Улучшить
                     </Button>
                   </Link>
                 </div>

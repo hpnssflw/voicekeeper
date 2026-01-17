@@ -37,19 +37,19 @@ export default function DashboardPage() {
   const hasData = bots.length > 0 || channels.length > 0;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold tracking-tight font-display">
+          <h1 className="text-sm font-bold tracking-tight font-display">
             {user?.firstName ? t("dashboard.greeting", { name: user.firstName }) : t("dashboard.title")}
           </h1>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[10px] text-muted-foreground">
             {hasData ? t("dashboard.overview") : t("dashboard.startWithBot")}
           </p>
         </div>
         <Link href="/dashboard/voicekeeper/generate">
-          <Button variant="gradient" size="sm" className="gap-1.5">
+          <Button variant="gradient" size="sm" className="gap-1.5 h-7 text-[10px]">
             <Sparkles className="h-3 w-3" />
             AI
           </Button>
@@ -57,13 +57,13 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats */}
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      <div className="flex gap-1.5 overflow-x-auto pb-1">
         {stats.map((stat) => (
-          <Link key={stat.name} href={stat.href} className="flex-1 min-w-[80px]">
-            <div className="flex items-center gap-2 p-2 rounded-lg bg-[hsl(15,12%,8%)] hover:bg-[hsl(15,12%,10%)] transition-colors">
-              <stat.icon className="h-4 w-4 text-muted-foreground shrink-0" />
+          <Link key={stat.name} href={stat.href} className="flex-1 min-w-[70px]">
+            <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-[hsl(15,12%,8%)] hover:bg-[hsl(15,12%,10%)] transition-colors">
+              <stat.icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
               <div className="min-w-0">
-                <p className="text-sm font-bold font-display">{stat.value}</p>
+                <p className="text-xs font-bold font-display">{stat.value}</p>
                 <p className="text-[9px] text-muted-foreground truncate">{stat.name}</p>
               </div>
             </div>

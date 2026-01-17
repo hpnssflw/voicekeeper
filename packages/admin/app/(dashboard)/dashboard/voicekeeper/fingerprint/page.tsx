@@ -95,34 +95,34 @@ export default function FingerprintPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Link href="/dashboard/voicekeeper">
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <ArrowLeft className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className="h-7 w-7">
+              <ArrowLeft className="h-3 w-3" />
             </Button>
           </Link>
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-pink-500">
-            <Fingerprint className="h-5 w-5 text-white" />
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-pink-500">
+            <Fingerprint className="h-3.5 w-3.5 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold font-display">Voice Fingerprint</h1>
-            <p className="text-xs text-muted-foreground">Ваш авторский стиль</p>
+            <h1 className="text-sm font-bold font-display">Voice Fingerprint</h1>
+            <p className="text-[10px] text-muted-foreground">Ваш авторский стиль</p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-1.5">
           {isEditing ? (
             <>
-              <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>Отмена</Button>
-              <Button size="sm" onClick={handleSaveManual} className="gap-1">
+              <Button variant="outline" size="sm" onClick={() => setIsEditing(false)} className="h-7 text-[10px]">Отмена</Button>
+              <Button size="sm" onClick={handleSaveManual} className="gap-1 h-7 text-[10px]">
                 <Save className="h-3 w-3" />
                 Сохранить
               </Button>
             </>
           ) : (
-            <Button variant="outline" size="sm" onClick={() => setIsEditing(true)} className="gap-1">
+            <Button variant="outline" size="sm" onClick={() => setIsEditing(true)} className="gap-1 h-7 text-[10px]">
               <Pencil className="h-3 w-3" />
               {hasFingerprint ? "Изменить" : "Вручную"}
             </Button>
@@ -132,14 +132,14 @@ export default function FingerprintPage() {
 
       {/* API Key Warning */}
       {!hasApiKey && (
-        <Card className="bg-amber-500/10 p-3">
+        <Card className="bg-amber-500/10 p-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Key className="h-4 w-4 text-amber-400" />
-              <span className="text-xs">Настройте Gemini API ключ для AI-анализа</span>
+            <div className="flex items-center gap-1.5">
+              <Key className="h-3 w-3 text-amber-400" />
+              <span className="text-[10px]">Настройте Gemini API ключ для AI-анализа</span>
             </div>
             <Link href="/dashboard/settings/api-keys">
-              <Button size="sm" variant="outline" className="h-7 text-[10px]">Настроить</Button>
+              <Button size="sm" variant="outline" className="h-6 text-[9px] px-2">Настроить</Button>
             </Link>
           </div>
         </Card>
@@ -147,20 +147,20 @@ export default function FingerprintPage() {
 
       {/* Status */}
       {hasFingerprint ? (
-        <Card className="bg-emerald-500/5 p-3">
+        <Card className="bg-emerald-500/5 p-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Fingerprint className="h-4 w-4 text-emerald-400" />
-              <span className="text-xs font-medium">Fingerprint активен</span>
+            <div className="flex items-center gap-1.5">
+              <Fingerprint className="h-3 w-3 text-emerald-400" />
+              <span className="text-[10px] font-medium">Fingerprint активен</span>
             </div>
-            <Badge variant="success">✓</Badge>
+            <Badge variant="success" className="text-[9px] px-1 py-0">✓</Badge>
           </div>
         </Card>
       ) : (
-        <Card className="bg-orange-500/5 p-3">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 text-orange-400" />
-            <span className="text-xs">Настройте стиль для персонализированной генерации</span>
+        <Card className="bg-orange-500/5 p-2">
+          <div className="flex items-center gap-1.5">
+            <AlertCircle className="h-3 w-3 text-orange-400" />
+            <span className="text-[10px]">Настройте стиль для персонализированной генерации</span>
           </div>
         </Card>
       )}
@@ -186,42 +186,27 @@ export default function FingerprintPage() {
         ))}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-2 lg:grid-cols-2">
         {/* Input Section */}
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">
+          <CardHeader className="pb-1.5 p-3">
+            <CardTitle className="text-xs">
               {activeTab === "text" ? "Анализ текста с AI" : "Ручная настройка"}
             </CardTitle>
-            <CardDescription className="text-xs">
+            <CardDescription className="text-[10px]">
               {activeTab === "text" 
                 ? "Вставьте примеры постов — Gemini определит ваш стиль" 
                 : "Опишите свой стиль вручную"}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-2 p-3">
             {activeTab === "text" && (
               <>
                 <textarea
                   value={textToAnalyze}
                   onChange={(e) => setTextToAnalyze(e.target.value)}
-                  placeholder="Вставьте 3-5 примеров ваших постов для анализа стиля...
-
-Пример:
-🔥 Как я увеличил конверсию на 300%
-
-Всё началось с простого A/B теста...
-
----
-
-💡 Топ-3 ошибки начинающих маркетологов
-
-1. Не тестируют гипотезы
-2. Копируют конкурентов
-3. Игнорируют аналитику
-
-Что добавите в список? 👇"
-                  className="w-full h-44 rounded-lg bg-[hsl(15,15%,6%)] px-3 py-2 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-orange-500/30"
+                  placeholder="Вставьте 3-5 примеров ваших постов для анализа стиля..."
+                  className="w-full h-32 rounded-lg bg-[hsl(15,15%,6%)] px-2.5 py-2 text-[11px] resize-none focus:outline-none focus:ring-2 focus:ring-orange-500/30"
                 />
                 <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                   <span>{textToAnalyze.length} символов (мин. 100)</span>
@@ -274,13 +259,13 @@ export default function FingerprintPage() {
 
         {/* Style Profile Display */}
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Профиль стиля</CardTitle>
-            <CardDescription className="text-xs">
+          <CardHeader className="pb-1.5 p-3">
+            <CardTitle className="text-xs">Профиль стиля</CardTitle>
+            <CardDescription className="text-[10px]">
               {hasFingerprint ? "Используется при генерации" : "Будет определён после анализа"}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-1.5 p-3">
             {Object.entries(styleProfile).map(([key, value]) => {
               const labels: Record<string, string> = {
                 tone: "Тональность",

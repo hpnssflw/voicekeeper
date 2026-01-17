@@ -70,15 +70,121 @@
 @layer base {
   html {
     @apply scroll-smooth;
+    color-scheme: dark;
+  }
+  
+  html.dark {
+    /* Force CSS variables to apply on mobile */
+    --brand-primary: 25 95% 53%;
+    --brand-secondary: 330 80% 55%;
+    --brand-accent: 50 100% 50%;
+    --background: 15 20% 4%;
+    --foreground: 30 20% 95%;
+    --card: 15 15% 7%;
+    --card-foreground: 30 20% 95%;
+    --primary: 25 95% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 15 12% 12%;
+    --secondary-foreground: 30 20% 95%;
+    --muted: 15 10% 14%;
+    --muted-foreground: 20 10% 50%;
+    --accent: 25 40% 12%;
+    --accent-foreground: 30 20% 95%;
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 15 10% 14%;
+    --input: 15 15% 6%;
+    --ring: 25 95% 53%;
+    --success: 160 84% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 45 93% 50%;
+    --warning-foreground: 0 0% 0%;
+    --info: 210 100% 60%;
+    --info-foreground: 0 0% 100%;
   }
   
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    background-color: hsl(var(--background)) !important;
+    color: hsl(var(--foreground)) !important;
     @apply antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
     overflow-x: hidden;
-    font-size: 14px;
+    font-size: 12px;
+  }
+  
+  /* Mobile-specific color fixes */
+  @media (max-width: 768px) {
+    body {
+      background-color: hsl(15, 20%, 4%) !important;
+      color: hsl(30, 20%, 95%) !important;
+    }
+    
+    /* Ensure cards have proper background on mobile */
+    [class*="bg-card"],
+    [class*="bg-surface"],
+    [class*="bg-\[hsl\(15,15%,7%\)\]"] {
+      background-color: hsl(15, 15%, 7%) !important;
+    }
+    
+    /* Ensure text colors work on mobile */
+    [class*="text-foreground"],
+    [class*="text-card-foreground"],
+    [class*="text-muted-foreground"] {
+      color: hsl(30, 20%, 95%) !important;
+    }
+    
+    /* Fix all hsl inline colors on mobile */
+    [class*="bg-\[hsl\(15,12%,8%\)\]"] {
+      background-color: hsl(15, 12%, 8%) !important;
+    }
+    
+    [class*="bg-\[hsl\(15,12%,10%\)\]"] {
+      background-color: hsl(15, 12%, 10%) !important;
+    }
+    
+    [class*="bg-\[hsl\(15,18%,6%\)\]"] {
+      background-color: hsl(15, 18%, 6%) !important;
+    }
+    
+    [class*="bg-\[hsl\(15,20%,5%\)\]"] {
+      background-color: hsl(15, 20%, 5%) !important;
+    }
+    
+    [class*="bg-\[hsl\(15,15%,8%\)\]"] {
+      background-color: hsl(15, 15%, 8%) !important;
+    }
+    
+    [class*="bg-\[hsl\(15,15%,9%\)\]"] {
+      background-color: hsl(15, 15%, 9%) !important;
+    }
+    
+    [class*="bg-\[hsl\(15,15%,6%\)\]"] {
+      background-color: hsl(15, 15%, 6%) !important;
+    }
+    
+    [class*="hover:bg-\[hsl\(15,12%,10%\)\]"]:hover {
+      background-color: hsl(15, 12%, 10%) !important;
+    }
+    
+    [class*="hover:bg-\[hsl\(15,12%,14%\)\]"]:hover {
+      background-color: hsl(15, 12%, 14%) !important;
+    }
+    
+    [class*="hover:bg-\[hsl\(15,15%,10%\)\]"]:hover {
+      background-color: hsl(15, 15%, 10%) !important;
+    }
+    
+    /* Border colors */
+    [class*="border-\[hsl\(15,12%,10%\)\]"],
+    [class*="border-\[hsl\(15,12%,12%\)\]"] {
+      border-color: hsl(15, 12%, 12%) !important;
+    }
+    
+    /* Text colors */
+    [class*="text-orange-500"],
+    [class*="text-primary"] {
+      color: hsl(25, 95%, 53%) !important;
+    }
   }
   
   /* Headings - Comfortaa */
@@ -107,61 +213,61 @@
 /* --- Compact Typography --- */
 @layer utilities {
   .text-display {
-    @apply text-2xl font-bold tracking-tight;
+    @apply text-xl font-bold tracking-tight;
     font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
   }
   
   @media (min-width: 640px) {
-    .text-display { @apply text-3xl; }
+    .text-display { @apply text-2xl; }
   }
   @media (min-width: 768px) {
-    .text-display { @apply text-4xl; }
+    .text-display { @apply text-3xl; }
   }
   
   .text-headline {
-    @apply text-lg font-bold tracking-tight;
+    @apply text-base font-bold tracking-tight;
     font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
   }
   
   @media (min-width: 640px) {
-    .text-headline { @apply text-xl; }
+    .text-headline { @apply text-lg; }
   }
   @media (min-width: 768px) {
-    .text-headline { @apply text-2xl; }
+    .text-headline { @apply text-xl; }
   }
   
   .text-title {
-    @apply text-base font-semibold;
+    @apply text-sm font-semibold;
     font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
   }
   
   @media (min-width: 640px) {
-    .text-title { @apply text-lg; }
+    .text-title { @apply text-base; }
   }
   
   .text-body-lg {
-    @apply text-sm leading-relaxed;
-  }
-  
-  @media (min-width: 640px) {
-    .text-body-lg { @apply text-base; }
-  }
-  
-  .text-body {
     @apply text-xs leading-relaxed;
   }
   
   @media (min-width: 640px) {
-    .text-body { @apply text-sm; }
+    .text-body-lg { @apply text-sm; }
+  }
+  
+  .text-body {
+    @apply text-[11px] leading-relaxed;
+  }
+  
+  @media (min-width: 640px) {
+    .text-body { @apply text-xs; }
   }
   
   .text-caption {
-    @apply text-[10px];
+    @apply text-[9px];
     color: hsl(var(--muted-foreground));
   }
   
   @media (min-width: 640px) {
-    .text-caption { @apply text-xs; }
+    .text-caption { @apply text-[10px]; }
   }
   
   .font-display {
