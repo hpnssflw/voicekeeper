@@ -10,7 +10,9 @@ export async function getPost(req: Request, res: Response) {
 }
 
 export async function createPost(req: Request, res: Response) {
+  console.log('📥 Received POST /api/posts request:', JSON.stringify(req.body, null, 2));
   const data = await service.create(req.body);
+  console.log('📤 Response data:', JSON.stringify(data, null, 2));
   res.status(201).json({ data, error: null });
 }
 

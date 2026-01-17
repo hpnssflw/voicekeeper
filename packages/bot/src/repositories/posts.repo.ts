@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 import { BaseRepository } from '../core/BaseRepository';
 import { PostModel } from '../models/Post';
 
@@ -11,7 +12,10 @@ export class PostsRepository extends BaseRepository<typeof PostModel> {
   }
 
   async create(doc: any) {
-    const created = await PostModel.create(doc);
+    const clean: any = { ...doc };
+    if (doc.botId && typeof doc.botId === 'string') clean.botId = new Types.ObjectId(doc.botId);
+    if (doc.authorId && typeof doc.authorId === 'string') clean.authorId = new Types.ObjectId(doc.authorId);
+    const created = await PostModel.create(clean);
     return created.toObject();
   }
 

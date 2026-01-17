@@ -13,6 +13,9 @@ type Env = {
   ENABLE_POLLING: boolean;
   CREATOR_LINK: string;
   WEBAPP_URL?: string;
+  CLOUDFLARED_PATH?: string;
+  TELEGRAM_CHANNEL_ID?: string; // Channel ID, @username, or URL (https://t.me/channel) for publishing posts
+  PUBLISH_MODE?: 'channel' | 'subscribers'; // How to publish: 'channel' or 'subscribers'
 };
 
 function requireEnv(name: string, fallback?: string): string {
@@ -32,6 +35,24 @@ export const env: Env = {
   ENABLE_POLLING: String(process.env.ENABLE_POLLING || '').toLowerCase() === 'true',
   CREATOR_LINK: process.env.CREATOR_LINK || 'https://github.com/hpnssflw',
   WEBAPP_URL: process.env.WEBAPP_URL,
+  CLOUDFLARED_PATH: process.env.CLOUDFLARED_PATH,
+  // Support both TELEGRAM_CHANNEL_ID and TELEGRAM_CHANNEL_LINK
+  // Extract username from URL if provided (e.g., https://t.me/hf_develop -> @hf_develop)
+  TELEGRAM_CHANNEL_ID: (() => {
+    const channelId = process.env.TELEGRAM_CHANNEL_ID;
+    const channelLink = process.env.TELEGRAM_CHANNEL_LINK;
+    const value = channelId || channelLink;
+    if (!value) return undefined;
+    // If it's a URL, extract username
+    const urlMatch = value.match(/t\.me\/([@\w]+)/);
+    if (urlMatch) {
+      const username = urlMatch[1];
+      return username.startsWith('@') ? username : `@${username}`;
+    }
+    // If it already starts with @ or is a numeric ID, use as-is
+    return value;
+  })(),
+  PUBLISH_MODE: (process.env.PUBLISH_MODE as 'channel' | 'subscribers' | undefined) || 'channel',
 };
 
 

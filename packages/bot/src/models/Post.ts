@@ -25,6 +25,7 @@ const PostSchema = new Schema(
     media: [MediaSchema],
     buttons: [ButtonSchema],
     status: { type: String, default: 'draft' },
+    publishTarget: { type: String, enum: ['channel', 'subscribers'], default: 'channel' },
     scheduledAt: Date,
     metrics: {
       views: { type: Number, default: 0 },

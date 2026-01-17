@@ -1,0 +1,167 @@
+import { Markup, Telegraf } from 'telegraf';
+import { env } from '../config/env';
+import type { PublishJob } from '../queues/publish.queue';
+import { BotsRepository } from '../repositories/bots.repo';
+import { PostsRepository } from '../repositories/posts.repo';
+import { SubscribersRepository } from '../repositories/subscribers.repo';
+
+export async function handlePublishJob(data: PublishJob): Promise<void> {
+  const { botId, postId } = data;
+  
+  console.log(`Processing publish job: postId=${postId}, botId=${botId}`);
+  
+  // Get post
+  const postsRepo = new PostsRepository();
+  const post = await postsRepo.findById(postId);
+  if (!post) {
+    throw new Error(`Post not found: ${postId}`);
+  }
+
+  // Get bot token: try from DB first, fallback to env (single-bot mode)
+  let botToken: string | null = null;
+  const botsRepo = new BotsRepository();
+  const bot = await botsRepo.findById(botId);
+  
+  if (bot?.tokenPlain) {
+    botToken = bot.tokenPlain;
+    console.log(`Using bot token from DB for botId=${botId}`);
+  } else if (env.TELEGRAM_BOT_TOKEN) {
+    botToken = env.TELEGRAM_BOT_TOKEN;
+    console.log(`Bot not found in DB, using TELEGRAM_BOT_TOKEN from env (single-bot mode)`);
+  } else {
+    throw new Error(`Bot not found (${botId}) and TELEGRAM_BOT_TOKEN not set`);
+  }
+
+  // Create Telegraf instance
+  const telegrafBot = new Telegraf(botToken);
+
+  // Format post content (escape Markdown special chars if needed)
+  const title = post.title || '';
+  const content = post.content || '';
+  const text = title && content 
+    ? `*${title}*\n\n${content}`
+    : title || content;
+
+  if (!text.trim()) {
+    throw new Error(`Post ${postId} has no content to publish`);
+  }
+
+  // Determine publish mode: use publishTarget from post, fallback to env
+  const publishMode = post.publishTarget || env.PUBLISH_MODE || 'channel';
+  const channelId = env.TELEGRAM_CHANNEL_ID;
+  
+  console.log(`Publish settings: mode=${publishMode} (from post), channelId=${channelId || 'NOT SET'}, botToken=${botToken.substring(0, 10)}...`);
+  
+  try {
+    if (publishMode === 'channel') {
+      // Send to channel (requires bot to be admin in channel)
+      if (!channelId) {
+        console.warn(`⚠️ TELEGRAM_CHANNEL_ID not set, skipping publish for post ${postId}`);
+        console.warn(`   Set TELEGRAM_CHANNEL_ID=@hf_develop in .env`);
+        return; // Don't throw, just skip silently for MVP
+      }
+      
+      console.log(`📨 Sending message to channel: ${channelId}`);
+      console.log(`📝 Message preview: ${text.substring(0, 50)}...`);
+      
+      // Add button to open Mini App if WEBAPP_URL is set and HTTPS
+      const webAppUrl = env.WEBAPP_URL;
+      const hasWebAppButton = webAppUrl && webAppUrl.startsWith('https://');
+      
+      let replyMarkup: any = undefined;
+      if (hasWebAppButton) {
+        // Try Web App button - if it fails, Telegram will return error and we'll handle it
+        // Note: Domain must be registered via BotFather /setdomain command
+        replyMarkup = Markup.inlineKeyboard([
+          [Markup.button.webApp('📱 Открыть Mini App', webAppUrl)]
+        ]).reply_markup;
+        console.log(`🔗 Adding Web App button: ${webAppUrl}`);
+        console.log(`ℹ️ Note: Domain must be registered via BotFather: /setdomain`);
+      }
+      
+      try {
+        await telegrafBot.telegram.sendMessage(channelId, text, {
+          parse_mode: 'Markdown',
+          reply_markup: replyMarkup,
+        });
+      } catch (sendErr: any) {
+        // If Web App button fails (BUTTON_TYPE_INVALID), fallback to URL button
+        if (hasWebAppButton && sendErr.message?.includes('BUTTON_TYPE_INVALID')) {
+          console.warn(`⚠️ Web App button not supported, falling back to URL button`);
+          replyMarkup = Markup.inlineKeyboard([
+            [Markup.button.url('📱 Открыть Mini App', webAppUrl)]
+          ]).reply_markup;
+          
+          await telegrafBot.telegram.sendMessage(channelId, text, {
+            parse_mode: 'Markdown',
+            reply_markup: replyMarkup,
+          });
+          console.log(`✅ Post published with URL button (opens in browser)`);
+          return; // Exit early since we already sent
+        }
+        throw sendErr; // Re-throw if it's a different error
+      }
+      
+      console.log(`✅ Post ${postId} published to channel ${channelId}${hasWebAppButton ? ' with Web App button' : ''}`);
+    } else if (publishMode === 'subscribers') {
+      // Send to all bot subscribers (broadcast)
+      const subscribersRepo = new SubscribersRepository();
+      const subscribers = await subscribersRepo.findActiveByBotId(botId);
+      
+      if (!subscribers || subscribers.length === 0) {
+        console.warn(`⚠️ No active subscribers found for botId=${botId}`);
+        return;
+      }
+      
+      console.log(`📬 Broadcasting to ${subscribers.length} subscribers...`);
+      
+      let successCount = 0;
+      let failCount = 0;
+      
+      // Send to each subscriber (with rate limiting - Telegram allows 30 messages/second)
+      for (const sub of subscribers) {
+        try {
+          await telegrafBot.telegram.sendMessage(sub.telegramId, text, {
+            parse_mode: 'Markdown',
+          });
+          successCount++;
+          
+          // Rate limiting: ~20 messages/second to be safe
+          if (successCount % 20 === 0) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        } catch (err: any) {
+          failCount++;
+          const errorMsg = err.response?.description || err.message || 'Unknown error';
+          
+          // Mark as blocked if user blocked the bot
+          if (errorMsg.includes('blocked') || errorMsg.includes('Forbidden')) {
+            console.warn(`  → Subscriber ${sub.telegramId} blocked the bot, marking as blocked`);
+            // TODO: Update subscriber status to 'blocked'
+          } else {
+            console.error(`  → Failed to send to ${sub.telegramId}:`, errorMsg);
+          }
+        }
+      }
+      
+      console.log(`✅ Broadcast completed: ${successCount} sent, ${failCount} failed`);
+    } else {
+      throw new Error(`Invalid PUBLISH_MODE: ${publishMode}. Use 'channel' or 'subscribers'`);
+    }
+  } catch (err: any) {
+    const errorMsg = err.response?.description || err.message || 'Unknown error';
+    console.error(`✗ Failed to publish post ${postId}:`, errorMsg);
+    
+    // Common errors:
+    if (errorMsg.includes('chat not found') || errorMsg.includes('CHAT_NOT_FOUND')) {
+      console.error(`  → Make sure bot is admin in channel or channel ID is correct`);
+    }
+    if (errorMsg.includes('Forbidden') || errorMsg.includes('bot was blocked')) {
+      console.error(`  → Bot might be blocked or doesn't have permission`);
+    }
+    
+    throw err;
+  }
+  // Note: Telegraf instance is fine to leave as-is (not in polling mode)
+}
+

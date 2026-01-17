@@ -6,6 +6,8 @@ export const createPostSchema = z.object({
   title: z.string().min(1).max(100),
   content: z.string().min(1).max(4096),
   type: z.enum(['text', 'image', 'gallery', 'poll']).default('text'),
+  status: z.enum(['draft', 'scheduled', 'published', 'archived']).default('draft'),
+  publishTarget: z.enum(['channel', 'subscribers']).default('channel'),
   media: z
     .array(
       z.object({

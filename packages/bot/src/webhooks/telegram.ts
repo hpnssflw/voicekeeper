@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { Context, Markup, Telegraf } from 'telegraf';
 import { env } from '../config/env';
+import { SubscribersRepository } from '../repositories/subscribers.repo';
 import { BotsService } from '../services/bots.service';
 
 let singletonBot: Telegraf<Context> | null = null;
@@ -19,6 +20,23 @@ export function getTelegramBot(): Telegraf<Context> | null {
 function configureBot(bot: Telegraf<Context>) {
 
   bot.start(async (ctx) => {
+    // Register subscriber
+    if (ctx.from) {
+      const subscribersRepo = new SubscribersRepository();
+      // For MVP: use hardcoded botId, in future get from bot token
+      const HARDCODED_BOT_ID = '507f1f77bcf86cd799439011';
+      try {
+        await subscribersRepo.createOrUpdate(HARDCODED_BOT_ID, ctx.from.id, {
+          username: ctx.from.username,
+          firstName: ctx.from.first_name,
+          lastName: ctx.from.last_name,
+        });
+        console.log(`✓ Subscriber registered: ${ctx.from.id} (@${ctx.from.username || 'no_username'})`);
+      } catch (err: any) {
+        console.error('Failed to register subscriber:', err.message);
+      }
+    }
+
     const imagePath = path.join(__dirname, '..', '..', 'assets', 'start.jpg');
     const hasImage = fs.existsSync(imagePath);
     const caption = [

@@ -9,6 +9,10 @@ export class BotsRepository extends BaseRepository<typeof BotModel> {
   async findActiveByUsername(username: string) {
     return BotModel.findOne({ botUsername: username, isActive: true }).lean();
   }
+
+  async findById(id: string) {
+    return BotModel.findById(id).lean();
+  }
 }
 
 

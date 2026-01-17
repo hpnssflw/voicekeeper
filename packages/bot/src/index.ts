@@ -3,7 +3,9 @@ import { buildContainer } from './bootstrap/container';
 import { env } from './config/env';
 import { connectMongo, disconnectMongo } from './infra/mongo';
 import { closeRedis, getRedis } from './infra/redis';
+import { createPublishWorker } from './queues/publish.queue';
 import { getTelegramBot } from './webhooks/telegram';
+import { handlePublishJob } from './workers/publish.worker';
 
 async function start() {
   try {
@@ -20,6 +22,10 @@ async function start() {
     } else {
       console.warn('Warning: TELEGRAM_BOT_TOKEN not set, bot handlers disabled');
     }
+
+    // Start BullMQ workers
+    const publishWorker = createPublishWorker(handlePublishJob);
+    console.log('Publish worker started');
 
     const server = app.listen(env.PORT, () => {
       // eslint-disable-next-line no-console
@@ -39,6 +45,7 @@ async function start() {
       console.log(`\nReceived ${signal}. Shutting down...`);
       await new Promise<void>(resolve => server.close(() => resolve()));
       if (stopPolling) stopPolling();
+      await publishWorker.close();
       await disconnectMongo();
       await closeRedis();
       // eslint-disable-next-line no-console

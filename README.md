@@ -1,22 +1,128 @@
-# Telegram Funnel Platform (Monorepo)
+# VoiceKeeper: Персональный AI-стратег для контента в Telegram
 
-This repository contains the admin Mini App (Next.js) and the Telegram Bot (Express) for managing content, broadcasts, and analytics.
+Монорепо для платформы управления контентом в Telegram с AI-генерацией постов.
 
-- See `docs/TECHNICAL_SPEC.md` for the full product spec
-- See `docs/ARCHITECTURE.md` for the project architecture and structure
+## 📦 Структура монорепо
 
-## Packages
+```
+telegram-voronka/
+├── packages/
+│   ├── bot/         # Express API + Telegram Bot + Workers
+│   ├── webapp/      # Next.js Mini App для Telegram
+│   └── admin/       # Next.js Admin Panel
+├── infra/           # Docker конфигурации и скрипты
+└── docs/            # Документация
+```
 
-- `packages/bot` — Express Telegram Bot + REST API + workers
-- `packages/frontend` — Next.js 14 Mini App (admin)
+## 🚀 Быстрый старт
 
-## Infra
+### Локальная разработка
 
-- `infra/docker-compose.yml` — local/dev stack
-- `infra/nginx/` — reverse proxy configs (templates)
+```bash
+# Установка зависимостей
+npm install
 
-## Development
+# Запуск инфраструктуры (MongoDB + Redis)
+cd infra
+docker compose up -d mongodb redis
 
-Steps to initialize will be added after bootstrapping workspaces.
+# Запуск bot
+cd ../packages/bot
+npm run dev
+
+# Запуск admin (в другом терминале)
+cd packages/admin
+npm run dev
+```
+
+### Docker (полный стек)
+
+```bash
+cd infra
+docker compose up -d
+```
+
+## 📚 Документация
+
+- **[Архитектура](docs/ARCHITECTURE.md)** — структура проекта и компоненты
+- **[Техническая спецификация](docs/TECHNICAL_SPEC.md)** — полная спецификация системы
+- **[VoiceKeeper Spec](docs/VOICEKEEPER_SPEC.md)** — спецификация AI-функционала
+- **[Docker Guide](docs/DOCKER_GUIDE.md)** — запуск отдельных компонентов через Docker
+- **[Деплой на Vercel](docs/DEPLOYMENT_VERCEL.md)** — деплой Next.js приложений на Vercel
+- **[Деплой на VPS](docs/DEPLOYMENT_VPS.md)** — деплой на VPS через Docker
+- **[Mobile-First Design](docs/MOBILE_FIRST.md)** — руководство по mobile-first подходу
+
+## 🌐 Деплой
+
+### Vercel (Frontend)
+
+**Webapp** и **Admin** деплоятся отдельно на Vercel:
+
+1. Создайте два проекта в Vercel
+2. Укажите Root Directory: `packages/webapp` и `packages/admin`
+3. Настройте переменные окружения
+
+Подробнее: [DEPLOYMENT_VERCEL.md](docs/DEPLOYMENT_VERCEL.md)
+
+### VPS (Backend)
+
+**Bot**, **MongoDB**, **Redis**, **Chromium** деплоятся на VPS через Docker:
+
+```bash
+cd infra
+docker compose up -d
+```
+
+Подробнее: [DEPLOYMENT_VPS.md](docs/DEPLOYMENT_VPS.md)
+
+### Гибридный деплой (Рекомендуется)
+
+- **VPS:** Bot API, MongoDB, Redis, Chromium
+- **Vercel:** Webapp, Admin Panel
+
+## 🛠️ Технологии
+
+- **Frontend:** Next.js 14, React, TypeScript, Tailwind CSS
+- **Backend:** Node.js, Express, TypeScript
+- **Database:** MongoDB, Redis
+- **Queue:** Bull (Redis)
+- **AI:** Gemini 1.5 Flash / OpenAI GPT-4o
+- **Infrastructure:** Docker, Docker Compose, Nginx
+
+## 📱 Mobile-First
+
+Проект использует mobile-first подход. Все компоненты адаптивны и оптимизированы для мобильных устройств.
+
+Подробнее: [MOBILE_FIRST.md](docs/MOBILE_FIRST.md)
+
+## 🔧 Разработка
+
+### Структура пакетов
+
+- `packages/bot/` — Express сервер, Telegram Bot, Workers
+- `packages/webapp/` — Next.js Mini App для Telegram
+- `packages/admin/` — Next.js Admin Panel с полным функционалом
+
+### Скрипты
+
+```bash
+# В корне монорепо
+npm install          # Установка всех зависимостей
+
+# В каждом пакете
+npm run dev          # Запуск в режиме разработки
+npm run build        # Сборка для продакшена
+npm run start        # Запуск продакшен версии
+```
+
+## 📖 Дополнительные ресурсы
+
+- [Docker Quick Start](infra/DOCKER_QUICKSTART.md) — быстрая шпаргалка по Docker
+- [Bot Structure](docs/BOT_STRUCTURE.md) — структура bot пакета
+- [Deployment Guide](docs/DEPLOYMENT.md) — общий гайд по деплою
+
+## 📝 Лицензия
+
+Private project
 
 
