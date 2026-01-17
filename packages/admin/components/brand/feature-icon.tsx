@@ -13,8 +13,8 @@ interface FeatureIconProps {
 
 const variants = {
   primary: {
-    bg: "from-red-500 to-rose-600",
-    glow: "from-red-500/30 to-rose-600/30",
+    bg: "from-orange-500 to-pink-500",
+    glow: "from-orange-500/30 to-pink-500/30",
   },
   secondary: {
     bg: "from-slate-500 to-slate-600",

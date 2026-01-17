@@ -103,7 +103,7 @@ export default function ProfilePage() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
             {/* Avatar */}
             <div className="relative">
-              <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-emerald-500 text-3xl font-bold text-white shadow-lg shadow-red-500/25">
+              <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-pink-500 text-3xl font-bold text-white shadow-lg shadow-orange-500/25">
                 {formData.firstName?.charAt(0) || <User className="h-10 w-10" />}
               </div>
               <button className="absolute -bottom-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full bg-background border border-white/10 shadow-lg hover:bg-white/10 transition-colors">
@@ -281,11 +281,11 @@ export default function ProfilePage() {
       </Card>
 
       {/* Subscription Info */}
-      <Card className="glass-panel-glow bg-gradient-to-br from-red-500/5 via-transparent to-emerald-500/5">
+      <Card className="glass-panel-glow bg-gradient-to-br from-orange-500/5 via-transparent to-pink-500/5">
         <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-emerald-500">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-pink-500">
                 <Crown className="h-6 w-6 text-white" />
               </div>
               <div>

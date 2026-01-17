@@ -13,8 +13,8 @@ export default function OnboardingLayout({
       <div className="fixed inset-0 bg-dots pointer-events-none opacity-20" />
       
       {/* Decorative blurs */}
-      <div className="fixed top-0 left-1/4 w-80 h-80 bg-red-500/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="fixed bottom-0 right-1/4 w-80 h-80 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="fixed top-0 left-1/4 w-80 h-80 bg-orange-500/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="fixed bottom-0 right-1/4 w-80 h-80 bg-pink-500/15 rounded-full blur-3xl pointer-events-none" />
       
       {/* Header */}
       <header className="relative z-10 bg-card/20 backdrop-blur-2xl shadow-[0_1px_0_0_hsl(var(--primary)/0.05)]">

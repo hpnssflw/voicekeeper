@@ -273,7 +273,7 @@ export default function NewPostPage() {
                       : "bg-white/[0.02] hover:bg-white/[0.05]"
                   }`}
                 >
-                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-red-500 to-emerald-500 flex items-center justify-center">
+                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center">
                     <span className="text-white text-xs font-bold">
                       {bot.name.charAt(0)}
                     </span>
@@ -335,7 +335,7 @@ export default function NewPostPage() {
           <Card className="bg-gradient-to-br from-primary/5 to-transparent">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
-                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-red-500 to-emerald-500 flex items-center justify-center shrink-0">
+                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center shrink-0">
                   <Sparkles className="h-4 w-4 text-white" />
                 </div>
                 <div>

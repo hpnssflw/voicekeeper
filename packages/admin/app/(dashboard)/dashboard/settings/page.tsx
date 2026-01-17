@@ -75,11 +75,11 @@ export default function SettingsPage() {
       </div>
 
       {/* Current Plan Banner */}
-      <Card className="bg-gradient-to-r from-red-500/10 via-transparent to-emerald-500/10">
+      <Card className="bg-gradient-to-r from-orange-500/10 via-transparent to-pink-500/10">
         <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-emerald-500 shadow-lg shadow-red-500/25">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-pink-500 shadow-lg shadow-orange-500/25">
                 <Crown className="h-6 w-6 text-white" />
               </div>
               <div>
@@ -98,7 +98,7 @@ export default function SettingsPage() {
             </div>
             {plan !== "business" && (
               <Link href="/dashboard/settings/subscription">
-                <Button className="gap-2 bg-gradient-to-r from-red-500 to-emerald-500 hover:from-red-600 hover:to-emerald-600 border-0 shadow-lg shadow-red-500/25">
+                <Button className="gap-2 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-red-600 hover:to-emerald-600 border-0 shadow-lg shadow-orange-500/25">
                   <Zap className="h-4 w-4" />
                   Улучшить план
                 </Button>
@@ -157,7 +157,7 @@ export default function SettingsPage() {
               </div>
               <div className="h-2 rounded-full bg-white/5 overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-red-500 to-emerald-500"
+                  className="h-full rounded-full bg-gradient-to-r from-orange-500 to-pink-500"
                   style={{ width: `${Math.min((generationsUsed / generationsLimit) * 100, 100)}%` }}
                 />
               </div>

@@ -40,7 +40,7 @@ export default function VoiceKeeperPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-emerald-500 shadow-lg shadow-red-500/25">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-pink-500 shadow-lg shadow-orange-500/25">
             <Sparkles className="h-6 w-6 text-white" />
           </div>
           <div>
@@ -225,7 +225,7 @@ export default function VoiceKeeperPage() {
 
           {/* Plan Upgrade Banner */}
           {user?.plan === "free" && (
-            <Card className="bg-gradient-to-r from-red-500/10 via-transparent to-emerald-500/10">
+            <Card className="bg-gradient-to-r from-orange-500/10 via-transparent to-pink-500/10">
               <CardContent className="p-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div>

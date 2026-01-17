@@ -178,11 +178,14 @@ export default function BotsPage() {
     try {
       const response = await botsApi.update(botId, { channelId });
       
-      // Update local state
-      updateBot(botId, {
-        channelId: response.channelId,
-        channelUsername: response.channelUsername,
-      });
+      // Update local state from response.channel
+      if (response.channel) {
+        updateBot(botId, {
+          channelId: response.channel.id,
+          channelUsername: response.channel.username,
+          channelTitle: response.channel.title,
+        });
+      }
       
       // Refresh details
       await loadBotDetails(botId);
@@ -200,12 +203,7 @@ export default function BotsPage() {
     }
   };
 
-  const botColors: Record<string, string> = {
-    "demo-1": "from-blue-500 to-cyan-500",
-    "default": "from-red-500 to-emerald-500",
-  };
-
-  const getColor = (botId: string) => botColors[botId] || botColors["default"];
+  const getColor = () => "from-orange-500 to-pink-500";
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -287,7 +285,7 @@ export default function BotsPage() {
                 <div className="flex items-center gap-3">
                   <div
                     className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br shadow-lg ${
-                      bot.isActive ? getColor(bot.id) : "from-muted to-muted"
+                      bot.isActive ? getColor() : "from-muted to-muted"
                     }`}
                   >
                     <Bot className="h-6 w-6 text-white" />
