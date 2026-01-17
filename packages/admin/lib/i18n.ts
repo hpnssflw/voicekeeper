@@ -1,4 +1,3 @@
-import { createTranslator } from 'next-intl';
 import { getLocale } from './locale';
 
 // Load messages for a locale
@@ -15,16 +14,28 @@ export async function getMessages(locale: string) {
 export async function getTranslations(namespace?: string) {
   const locale = await getLocale();
   const messages = await getMessages(locale);
-  return createTranslator({ locale, messages, namespace });
-}
-
-// Client-side hook (will be used in client components)
-export function useTranslations(namespace?: string) {
-  // This will be implemented in client components
-  // For now, return a mock function
-  return (key: string, values?: Record<string, any>) => {
-    // This is a placeholder - actual implementation will use next-intl's useTranslations
-    return key;
+  
+  // Simple translator function
+  const getNestedValue = (obj: any, path: string): string => {
+    return path.split('.').reduce((current, key) => current?.[key], obj) || path;
+  };
+  
+  const formatMessage = (template: string, values?: Record<string, any>): string => {
+    if (!values) return template;
+    return template.replace(/\{(\w+)\}/g, (match, key) => {
+      return values[key]?.toString() || match;
+    });
+  };
+  
+  return (key: string, values?: Record<string, any>): string => {
+    const fullKey = namespace ? `${namespace}.${key}` : key;
+    const message = getNestedValue(messages, fullKey);
+    
+    if (typeof message === 'string') {
+      return formatMessage(message, values);
+    }
+    
+    return fullKey;
   };
 }
 
