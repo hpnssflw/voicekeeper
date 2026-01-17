@@ -32,8 +32,8 @@ export const metadata: Metadata = {
     width: "device-width",
     initialScale: 1,
     maximumScale: 5,
-    themeColor: "hsl(15, 20%, 4%)",
   },
+  themeColor: "hsl(15, 20%, 4%)",
 };
 
 export default function RootLayout({
