@@ -70,50 +70,70 @@ export function setFingerprint(profile: StyleProfile): void {
   localStorage.setItem(STORAGE_KEYS.FINGERPRINT, JSON.stringify(profile));
 }
 
+// Get available Gemini models
+async function getAvailableModels(apiKey: string): Promise<string[]> {
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`
+    );
+    if (response.ok) {
+      const data = await response.json();
+      return (data.models || [])
+        .filter((m: any) => m.supportedGenerationMethods?.includes('generateContent'))
+        .map((m: any) => m.name.replace('models/', ''));
+    }
+  } catch {
+    // Fallback to default models if list fails
+  }
+  // Default fallback models (most common)
+  return ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
+}
+
 // Gemini API call
 async function callGemini(prompt: string, apiKey: string): Promise<string> {
-  // Try different model endpoints in order
-  const endpoints = [
-    `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
-  ];
-
+  // Get available models first
+  const models = await getAvailableModels(apiKey);
+  
+  // Try different API versions and models
+  const apiVersions = ['v1', 'v1beta'];
   let lastError: Error | null = null;
 
-  for (const endpoint of endpoints) {
-    try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.8,
-            maxOutputTokens: 2048,
-          },
-        }),
-      });
+  for (const version of apiVersions) {
+    for (const model of models) {
+      try {
+        const endpoint = `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${apiKey}`;
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              temperature: 0.8,
+              maxOutputTokens: 2048,
+            },
+          }),
+        });
 
-      if (!response.ok) {
-        const error = await response.json();
-        lastError = new Error(error.error?.message || "Gemini API error");
-        continue; // Try next endpoint
-      }
+        if (!response.ok) {
+          const error = await response.json();
+          lastError = new Error(error.error?.message || "Gemini API error");
+          continue; // Try next model/version
+        }
 
-      const data = await response.json();
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-      if (text) {
-        return text;
+        const data = await response.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+        if (text) {
+          return text;
+        }
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        continue; // Try next model/version
       }
-    } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error));
-      continue; // Try next endpoint
     }
   }
 
-  // If all endpoints failed, throw the last error
-  throw lastError || new Error("Gemini API error: All endpoints failed");
+  // If all attempts failed, throw the last error
+  throw lastError || new Error("Gemini API error: All models and versions failed. Please check your API key and available models.");
 }
 
 // Analyze style from text
@@ -225,31 +245,35 @@ ${fingerprintContext}
 // Test API key
 export async function testApiKey(provider: "gemini" | "openai", key: string): Promise<boolean> {
   if (provider === "gemini") {
-    // Try different model endpoints
-    const endpoints = [
-      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${key}`,
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${key}`,
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${key}`,
-    ];
-
-    for (const endpoint of endpoints) {
-      try {
-        const response = await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: "Test" }] }],
-          }),
-        });
-        if (response.ok) {
-          await response.json();
-          return true;
+    try {
+      // First try to get available models
+      const models = await getAvailableModels(key);
+      const apiVersions = ['v1', 'v1beta'];
+      
+      for (const version of apiVersions) {
+        for (const model of models.slice(0, 3)) { // Try first 3 models
+          try {
+            const endpoint = `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${key}`;
+            const response = await fetch(endpoint, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: "Test" }] }],
+              }),
+            });
+            if (response.ok) {
+              await response.json();
+              return true;
+            }
+          } catch {
+            continue; // Try next model/version
+          }
         }
-      } catch {
-        continue; // Try next endpoint
       }
+      return false;
+    } catch {
+      return false;
     }
-    return false;
   }
   // OpenAI test would go here
   return false;
