@@ -24,6 +24,7 @@ import {
   Radio,
   LogOut,
   User,
+  BookOpen,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -42,6 +43,8 @@ const navigation = [
   { type: "divider" as const, label: "Настройки" },
   { name: "API Ключи", href: "/dashboard/settings/api-keys", icon: Key },
   { name: "Настройки", href: "/dashboard/settings", icon: Settings },
+  { type: "divider" as const, label: "Помощь" },
+  { name: "Функционал", href: "/dashboard/features", icon: BookOpen },
 ];
 
 interface SidebarProps {
@@ -153,7 +156,11 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
             }
 
             const Icon = item.icon;
-            const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+            // Special case for Dashboard - only exact match
+            // For other routes, check if pathname starts with href
+            const isActive = item.href === "/dashboard" 
+              ? pathname === "/dashboard"
+              : pathname === item.href || pathname.startsWith(item.href + "/");
 
             return (
               <Link

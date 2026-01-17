@@ -1,21 +1,20 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FeatureIcon } from "@/components/brand/feature-icon";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth";
 import {
+  ArrowRight,
+  BarChart3,
   Bot,
   FileText,
-  Users,
-  Sparkles,
-  ArrowRight,
-  Zap,
-  BarChart3,
-  Radio,
   Plus,
+  Radio,
+  Sparkles,
   TrendingUp,
+  Users,
+  Zap,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -27,10 +26,10 @@ export default function DashboardPage() {
   const totalSubscribers = bots.reduce((sum, b) => sum + b.subscriberCount, 0);
   
   const stats = [
-    { name: "Боты", value: activeBots.toString(), subtitle: `из ${bots.length}`, icon: Bot, variant: "info" as const, href: "/dashboard/bots" },
-    { name: "Посты", value: totalPosts.toString(), subtitle: "опубликовано", icon: FileText, variant: "primary" as const, href: "/dashboard/posts" },
-    { name: "Подписчики", value: totalSubscribers > 1000 ? `${(totalSubscribers / 1000).toFixed(1)}K` : totalSubscribers.toString(), subtitle: "всего", icon: Users, variant: "success" as const, href: "/dashboard/subscribers" },
-    { name: "Каналы", value: channels.length.toString(), subtitle: "парсинг", icon: Radio, variant: "warning" as const, href: "/dashboard/channels" },
+    { name: "Боты", value: activeBots.toString(), icon: Bot, href: "/dashboard/bots" },
+    { name: "Посты", value: totalPosts.toString(), icon: FileText, href: "/dashboard/posts" },
+    { name: "Подписчики", value: totalSubscribers > 1000 ? `${(totalSubscribers / 1000).toFixed(1)}K` : totalSubscribers.toString(), icon: Users, href: "/dashboard/subscribers" },
+    { name: "Каналы", value: channels.length.toString(), icon: Radio, href: "/dashboard/channels" },
   ];
 
   const hasData = bots.length > 0 || channels.length > 0;
@@ -56,21 +55,16 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+      <div className="flex gap-2 overflow-x-auto pb-1">
         {stats.map((stat) => (
-          <Link key={stat.name} href={stat.href}>
-            <Card className="card-hover h-full">
-              <CardContent className="p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[10px] text-muted-foreground">{stat.name}</p>
-                    <p className="text-lg font-bold font-display">{stat.value}</p>
-                    <p className="text-[10px] text-muted-foreground">{stat.subtitle}</p>
-                  </div>
-                  <FeatureIcon icon={stat.icon} variant={stat.variant} size="md" />
-                </div>
-              </CardContent>
-            </Card>
+          <Link key={stat.name} href={stat.href} className="flex-1 min-w-[80px]">
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-[hsl(15,12%,8%)] hover:bg-[hsl(15,12%,10%)] transition-colors">
+              <stat.icon className="h-4 w-4 text-muted-foreground shrink-0" />
+              <div className="min-w-0">
+                <p className="text-sm font-bold font-display">{stat.value}</p>
+                <p className="text-[9px] text-muted-foreground truncate">{stat.name}</p>
+              </div>
+            </div>
           </Link>
         ))}
       </div>
