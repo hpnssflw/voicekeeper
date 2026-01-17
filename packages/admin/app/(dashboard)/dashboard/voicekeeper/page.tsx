@@ -150,7 +150,7 @@ export default function VoiceKeeperPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="py-8 text-center">
-                  <Fingerprint className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" />
+                  <Fingerprint className="h-16 w-16 mx-auto text-gray-600 mb-4" />
                   <h3 className="font-medium mb-2">Профиль не настроен</h3>
                   <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-4">
                     Проанализируйте ваши существующие посты, чтобы AI мог имитировать ваш уникальный стиль письма

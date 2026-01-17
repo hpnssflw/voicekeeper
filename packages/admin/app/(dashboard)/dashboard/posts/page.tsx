@@ -201,7 +201,7 @@ export default function PostsPage() {
                             ? "bg-emerald-500"
                             : post.status === "scheduled"
                             ? "bg-amber-500"
-                            : "bg-muted-foreground"
+                            : "bg-gray-500"
                         }`}
                       />
 

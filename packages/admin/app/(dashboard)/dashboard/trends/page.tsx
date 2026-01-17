@@ -173,7 +173,7 @@ export default function TrendsPage() {
             </CardHeader>
             <CardContent>
               <div className="py-12 text-center">
-                <TrendingUp className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
+                <TrendingUp className="h-12 w-12 mx-auto text-gray-600 mb-4" />
                 <h3 className="font-medium mb-2">Нет данных</h3>
                 <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-4">
                   Запустите сканирование, чтобы проанализировать контент отслеживаемых каналов

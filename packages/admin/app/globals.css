@@ -451,6 +451,6 @@
   }
   
   .status-dot-muted {
-    @apply bg-muted-foreground/50;
+    background-color: hsl(var(--muted-foreground) / 0.5);
   }
 }
