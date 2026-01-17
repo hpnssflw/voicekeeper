@@ -1,91 +1,68 @@
 @import "tailwindcss";
 
 /* ============================================
-   VOICEKEEPER DESIGN SYSTEM v3
-   Contrast-based separation (no borders)
-   Fonts: Comfortaa (display) + Rubik (body)
-   Colors: Red + Emerald (Premium Aggressive)
+   VOICEKEEPER DESIGN SYSTEM
+   Theme: Sunset Glow (Orange/Pink/Magenta)
+   Compact UI, Dark surfaces
    ============================================ */
 
 /* --- CSS Variables --- */
 @layer base {
   :root {
-    /* Brand Colors - Red & Emerald Premium */
-    --brand-primary: 0 72% 51%;
-    --brand-secondary: 160 84% 39%;
-    --brand-accent: 45 93% 47%;
+    /* Brand Colors - Sunset Glow */
+    --brand-primary: 25 95% 53%;
+    --brand-secondary: 330 80% 55%;
+    --brand-accent: 50 100% 50%;
     
-    /* Gradients - Red to Emerald */
-    --gradient-brand: linear-gradient(135deg, hsl(0, 72%, 51%) 0%, hsl(350, 80%, 45%) 40%, hsl(160, 84%, 39%) 100%);
-    --gradient-glow: radial-gradient(ellipse at center, hsl(0, 72%, 51%, 0.15) 0%, transparent 70%);
+    /* Gradients */
+    --gradient-brand: linear-gradient(135deg, hsl(25, 95%, 53%) 0%, hsl(350, 85%, 50%) 40%, hsl(330, 80%, 55%) 100%);
+    --gradient-glow: radial-gradient(ellipse at center, hsl(25, 95%, 53%, 0.12) 0%, transparent 70%);
     --gradient-mesh: 
-      radial-gradient(at 40% 20%, hsl(0, 72%, 51%, 0.08) 0px, transparent 50%),
-      radial-gradient(at 80% 0%, hsl(160, 84%, 39%, 0.06) 0px, transparent 50%),
-      radial-gradient(at 0% 50%, hsl(45, 93%, 47%, 0.03) 0px, transparent 50%),
-      radial-gradient(at 80% 50%, hsl(350, 80%, 45%, 0.05) 0px, transparent 50%),
-      radial-gradient(at 0% 100%, hsl(160, 84%, 39%, 0.06) 0px, transparent 50%);
+      radial-gradient(at 40% 20%, hsl(25, 95%, 53%, 0.06) 0px, transparent 50%),
+      radial-gradient(at 80% 0%, hsl(330, 80%, 55%, 0.05) 0px, transparent 50%),
+      radial-gradient(at 0% 50%, hsl(50, 100%, 50%, 0.02) 0px, transparent 50%),
+      radial-gradient(at 80% 50%, hsl(350, 85%, 50%, 0.04) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, hsl(330, 80%, 55%, 0.05) 0px, transparent 50%);
     
     /* 
-     * Surface System - Layered backgrounds for depth
-     * Base: 6% -> Cards: 13% -> Elevated: 16% -> Inset: 10%
+     * Surface System - DARK
+     * Much darker cards for better contrast
      */
-    --surface-base: 240 15% 6%;
-    --surface-card: 240 10% 13%;
-    --surface-elevated: 240 10% 16%;
-    --surface-inset: 240 10% 10%;
-    --surface-overlay: 240 12% 14%;
+    --surface-base: 15 20% 4%;
+    --surface-card: 15 15% 7%;
+    --surface-elevated: 15 12% 10%;
+    --surface-inset: 15 18% 5%;
+    --surface-overlay: 15 15% 9%;
     
-    /* Semantic Colors - Dark Theme */
-    --background: 240 15% 6%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 13%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 12% 14%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 72% 51%;
+    /* Semantic Colors */
+    --background: 15 20% 4%;
+    --foreground: 30 20% 95%;
+    --card: 15 15% 7%;
+    --card-foreground: 30 20% 95%;
+    --popover: 15 15% 9%;
+    --popover-foreground: 30 20% 95%;
+    --primary: 25 95% 53%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 10% 18%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 8% 16%;
-    --muted-foreground: 240 5% 55%;
-    --accent: 0 30% 18%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62% 50%;
+    --secondary: 15 12% 12%;
+    --secondary-foreground: 30 20% 95%;
+    --muted: 15 10% 14%;
+    --muted-foreground: 20 10% 50%;
+    --accent: 25 40% 12%;
+    --accent-foreground: 30 20% 95%;
+    --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 8% 20%;
-    --input: 240 10% 10%;
-    --ring: 0 72% 51%;
-    --radius: 1rem;
+    --border: 15 10% 14%;
+    --input: 15 15% 6%;
+    --ring: 25 95% 53%;
+    --radius: 0.75rem;
     
-    /* Success/Warning/Info */
+    /* Status Colors */
     --success: 160 84% 45%;
     --success-foreground: 0 0% 100%;
     --warning: 45 93% 50%;
     --warning-foreground: 0 0% 0%;
     --info: 210 100% 60%;
     --info-foreground: 0 0% 100%;
-  }
-
-  .light {
-    --background: 0 0% 98%;
-    --foreground: 240 10% 4%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 4%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 4%;
-    --primary: 0 72% 51%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 240 6% 10%;
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 46%;
-    --accent: 0 30% 96%;
-    --accent-foreground: 0 72% 51%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 6% 90%;
-    --input: 240 6% 94%;
-    --ring: 0 72% 51%;
   }
 }
 
@@ -101,9 +78,10 @@
     @apply antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
     overflow-x: hidden;
+    font-size: 14px;
   }
   
-  /* Headings use Comfortaa (display font) */
+  /* Headings - Comfortaa */
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
   }
@@ -115,82 +93,75 @@
     input:not(.no-touch-target),
     select:not(.no-touch-target),
     textarea:not(.no-touch-target) {
-      min-height: 44px;
-      min-width: 44px;
+      min-height: 40px;
+      min-width: 40px;
     }
   }
   
-  /* Selection */
   ::selection {
     background-color: hsl(var(--primary) / 0.3);
     color: hsl(var(--foreground));
   }
 }
 
-/* --- Typography Scale (Mobile First) --- */
+/* --- Compact Typography --- */
 @layer utilities {
   .text-display {
-    @apply text-4xl font-bold tracking-tight;
-    font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
-  }
-  
-  @media (min-width: 640px) {
-    .text-display { @apply text-5xl; }
-  }
-  @media (min-width: 768px) {
-    .text-display { @apply text-6xl; }
-  }
-  @media (min-width: 1024px) {
-    .text-display { @apply text-7xl; }
-  }
-  
-  .text-headline {
     @apply text-2xl font-bold tracking-tight;
     font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
   }
   
   @media (min-width: 640px) {
-    .text-headline { @apply text-3xl; }
+    .text-display { @apply text-3xl; }
   }
   @media (min-width: 768px) {
-    .text-headline { @apply text-4xl; }
+    .text-display { @apply text-4xl; }
   }
   
-  .text-title {
-    @apply text-lg font-semibold;
+  .text-headline {
+    @apply text-lg font-bold tracking-tight;
     font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
   }
   
   @media (min-width: 640px) {
-    .text-title { @apply text-xl; }
+    .text-headline { @apply text-xl; }
   }
   @media (min-width: 768px) {
-    .text-title { @apply text-2xl; }
+    .text-headline { @apply text-2xl; }
   }
   
-  .text-body-lg {
-    @apply text-base leading-relaxed;
+  .text-title {
+    @apply text-base font-semibold;
+    font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
   }
   
   @media (min-width: 640px) {
-    .text-body-lg { @apply text-lg; }
+    .text-title { @apply text-lg; }
   }
   
-  .text-body {
+  .text-body-lg {
     @apply text-sm leading-relaxed;
   }
   
   @media (min-width: 640px) {
-    .text-body { @apply text-base; }
+    .text-body-lg { @apply text-base; }
+  }
+  
+  .text-body {
+    @apply text-xs leading-relaxed;
+  }
+  
+  @media (min-width: 640px) {
+    .text-body { @apply text-sm; }
   }
   
   .text-caption {
-    @apply text-xs;
+    @apply text-[10px];
     color: hsl(var(--muted-foreground));
   }
   
   @media (min-width: 640px) {
-    .text-caption { @apply text-sm; }
+    .text-caption { @apply text-xs; }
   }
   
   .font-display {
@@ -215,14 +186,14 @@
     inset: -2px;
     background: var(--gradient-brand);
     border-radius: inherit;
-    filter: blur(24px);
-    opacity: 0.3;
+    filter: blur(20px);
+    opacity: 0.25;
     z-index: -1;
     transition: opacity 0.3s ease;
   }
   
   .gradient-glow:hover::after {
-    opacity: 0.5;
+    opacity: 0.4;
   }
   
   .bg-mesh {
@@ -231,49 +202,34 @@
   
   .bg-grid {
     background-image: 
-      linear-gradient(hsl(var(--primary) / 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--primary) / 0.03) 1px, transparent 1px);
-    background-size: 64px 64px;
+      linear-gradient(hsl(var(--primary) / 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--primary) / 0.02) 1px, transparent 1px);
+    background-size: 48px 48px;
   }
   
   .bg-dots {
-    background-image: radial-gradient(hsl(var(--muted-foreground) / 0.1) 1px, transparent 1px);
-    background-size: 24px 24px;
+    background-image: radial-gradient(hsl(var(--muted-foreground) / 0.08) 1px, transparent 1px);
+    background-size: 20px 20px;
   }
   
   .bg-aurora {
     background: 
-      radial-gradient(ellipse 80% 50% at 20% 40%, hsl(0, 72%, 51%, 0.06), transparent),
-      radial-gradient(ellipse 60% 60% at 80% 20%, hsl(160, 84%, 39%, 0.05), transparent),
-      radial-gradient(ellipse 40% 80% at 50% 80%, hsl(45, 93%, 47%, 0.03), transparent);
+      radial-gradient(ellipse 80% 50% at 20% 40%, hsl(25, 95%, 53%, 0.04), transparent),
+      radial-gradient(ellipse 60% 60% at 80% 20%, hsl(330, 80%, 55%, 0.03), transparent),
+      radial-gradient(ellipse 40% 80% at 50% 80%, hsl(50, 100%, 50%, 0.02), transparent);
   }
 }
 
 /* --- Animation Utilities --- */
 @layer utilities {
   .animate-in {
-    animation: animate-in 0.5s ease-out forwards;
+    animation: animate-in 0.4s ease-out forwards;
   }
   
-  .animate-in-delay-1 {
-    animation-delay: 0.1s;
-    opacity: 0;
-  }
-  
-  .animate-in-delay-2 {
-    animation-delay: 0.2s;
-    opacity: 0;
-  }
-  
-  .animate-in-delay-3 {
-    animation-delay: 0.3s;
-    opacity: 0;
-  }
-  
-  .animate-in-delay-4 {
-    animation-delay: 0.4s;
-    opacity: 0;
-  }
+  .animate-in-delay-1 { animation-delay: 0.1s; opacity: 0; }
+  .animate-in-delay-2 { animation-delay: 0.15s; opacity: 0; }
+  .animate-in-delay-3 { animation-delay: 0.2s; opacity: 0; }
+  .animate-in-delay-4 { animation-delay: 0.25s; opacity: 0; }
   
   .animate-float {
     animation: float 6s ease-in-out infinite;
@@ -285,12 +241,7 @@
   
   .animate-shimmer {
     animation: shimmer 2s linear infinite;
-    background: linear-gradient(
-      90deg,
-      hsl(var(--muted)) 0%,
-      hsl(var(--muted-foreground) / 0.1) 50%,
-      hsl(var(--muted)) 100%
-    );
+    background: linear-gradient(90deg, hsl(var(--muted)) 0%, hsl(var(--muted-foreground) / 0.1) 50%, hsl(var(--muted)) 100%);
     background-size: 200% 100%;
   }
   
@@ -305,70 +256,48 @@
 }
 
 @keyframes animate-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-20px);
-  }
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-16px); }
 }
 
 @keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 @keyframes gradient {
-  0%, 100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
 @keyframes glow {
-  0%, 100% {
-    box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.3);
-  }
-  50% {
-    box-shadow: 0 0 30px -5px hsl(var(--primary) / 0.5);
-  }
+  0%, 100% { box-shadow: 0 0 16px -4px hsl(var(--primary) / 0.3); }
+  50% { box-shadow: 0 0 24px -4px hsl(var(--primary) / 0.5); }
 }
 
 /* --- Custom Scrollbar --- */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: hsl(240, 10%, 10%);
-  border-radius: 4px;
+  background: hsl(15, 15%, 6%);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(240, 10%, 22%);
-  border-radius: 4px;
+  background: hsl(15, 12%, 18%);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(240, 10%, 28%);
+  background: hsl(15, 12%, 24%);
 }
 
 /* --- Focus Ring --- */
@@ -379,30 +308,30 @@
   }
 }
 
-/* --- Card Hover Effects --- */
+/* --- Card Hover --- */
 @layer utilities {
   .card-hover {
-    @apply transition-all duration-300;
+    @apply transition-all duration-200;
   }
   
   .card-hover:hover {
-    @apply -translate-y-1;
+    @apply -translate-y-0.5;
     box-shadow: 
-      0 20px 40px -10px hsl(var(--primary) / 0.1),
-      0 8px 24px -8px hsla(0, 0%, 0%, 0.5);
+      0 12px 24px -8px hsl(var(--primary) / 0.08),
+      0 4px 16px -4px hsla(0, 0%, 0%, 0.4);
   }
 }
 
-/* --- Interactive Item Styles --- */
+/* --- Interactive Item --- */
 @layer utilities {
   .interactive-item {
-    background: hsl(240, 10%, 16%);
-    border-radius: calc(var(--radius) - 4px);
-    transition: all 0.2s ease;
+    background: hsl(15, 12%, 10%);
+    border-radius: calc(var(--radius) - 2px);
+    transition: all 0.15s ease;
   }
   
   .interactive-item:hover {
-    background: hsl(240, 10%, 20%);
+    background: hsl(15, 12%, 14%);
   }
 }
 
@@ -410,44 +339,39 @@
 @layer utilities {
   .divider {
     height: 1px;
-    background: hsl(240, 10%, 18%);
+    background: hsl(15, 12%, 12%);
   }
   
   .divider-gradient {
     height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      hsl(240, 10%, 22%),
-      transparent
-    );
+    background: linear-gradient(90deg, transparent, hsl(15, 12%, 16%), transparent);
   }
 }
 
-/* --- Status Indicator Dots --- */
+/* --- Status Dots --- */
 @layer utilities {
   .status-dot {
-    @apply w-2 h-2 rounded-full;
+    @apply w-1.5 h-1.5 rounded-full;
   }
   
   .status-dot-success {
     @apply bg-emerald-500;
-    box-shadow: 0 0 8px hsl(160, 84%, 45%, 0.5);
+    box-shadow: 0 0 6px hsl(160, 84%, 45%, 0.5);
   }
   
   .status-dot-warning {
     @apply bg-amber-500;
-    box-shadow: 0 0 8px hsl(45, 93%, 50%, 0.5);
+    box-shadow: 0 0 6px hsl(45, 93%, 50%, 0.5);
   }
   
   .status-dot-danger {
     @apply bg-red-500;
-    box-shadow: 0 0 8px hsl(0, 72%, 51%, 0.5);
+    box-shadow: 0 0 6px hsl(0, 72%, 51%, 0.5);
   }
   
   .status-dot-info {
     @apply bg-blue-500;
-    box-shadow: 0 0 8px hsl(210, 100%, 60%, 0.5);
+    box-shadow: 0 0 6px hsl(210, 100%, 60%, 0.5);
   }
   
   .status-dot-muted {

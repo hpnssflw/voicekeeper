@@ -18,22 +18,37 @@ telegram-voronka/
 
 ### Локальная разработка
 
+**Windows (PowerShell):**
+```powershell
+# Запуск инфраструктуры одной командой
+.\scripts\dev-start.ps1
+```
+
+**Linux/Mac:**
+```bash
+chmod +x scripts/dev-start.sh
+./scripts/dev-start.sh
+```
+
+**Ручной запуск:**
 ```bash
 # Установка зависимостей
 npm install
 
 # Запуск инфраструктуры (MongoDB + Redis)
 cd infra
-docker compose up -d mongodb redis
+docker compose -f docker-compose.dev.yml up -d
 
-# Запуск bot
-cd ../packages/bot
+# Запуск bot (терминал 1)
+cd packages/bot
 npm run dev
 
-# Запуск admin (в другом терминале)
+# Запуск admin (терминал 2)
 cd packages/admin
 npm run dev
 ```
+
+📖 **Полное руководство:** [DEVELOPMENT.md](DEVELOPMENT.md)
 
 ### Docker (полный стек)
 
@@ -44,6 +59,7 @@ docker compose up -d
 
 ## 📚 Документация
 
+- **[🔥 Локальная разработка](DEVELOPMENT.md)** — полное руководство по запуску и тестированию
 - **[Архитектура](docs/ARCHITECTURE.md)** — структура проекта и компоненты
 - **[Техническая спецификация](docs/TECHNICAL_SPEC.md)** — полная спецификация системы
 - **[VoiceKeeper Spec](docs/VOICEKEEPER_SPEC.md)** — спецификация AI-функционала
@@ -82,11 +98,12 @@ docker compose up -d
 
 ## 🛠️ Технологии
 
-- **Frontend:** Next.js 14, React, TypeScript, Tailwind CSS
-- **Backend:** Node.js, Express, TypeScript
-- **Database:** MongoDB, Redis
-- **Queue:** Bull (Redis)
-- **AI:** Gemini 1.5 Flash / OpenAI GPT-4o
+- **Frontend:** Next.js 16, React 19, TypeScript, Tailwind CSS 4
+- **Backend:** Node.js, Express 5, TypeScript
+- **Database:** MongoDB (Mongoose), Redis (ioredis)
+- **Queue:** BullMQ (Redis)
+- **Telegram:** Telegraf (Bot API), gramjs (MTProto для парсинга)
+- **AI:** Gemini / OpenAI GPT-4o
 - **Infrastructure:** Docker, Docker Compose, Nginx
 
 ## 📱 Mobile-First

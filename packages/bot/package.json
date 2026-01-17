@@ -26,10 +26,12 @@
     "bullmq": "^5.62.2",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "input": "^1.0.1",
     "ioredis": "^5.8.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.2",
     "telegraf": "^4.16.3",
+    "telegram": "^2.26.8",
     "zod": "^4.1.12"
   }
 }

@@ -5,18 +5,18 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring/50",
+  "inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold transition-colors focus:outline-none",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-sm",
+          "bg-orange-500 text-white",
         secondary:
-          "bg-[hsl(240,10%,18%)] text-secondary-foreground",
+          "bg-[hsl(15,12%,14%)] text-secondary-foreground",
         destructive:
           "bg-red-500/15 text-red-400",
         outline: 
-          "text-foreground bg-[hsl(240,10%,16%)]",
+          "text-foreground bg-[hsl(15,12%,12%)]",
         success:
           "bg-emerald-500/15 text-emerald-400",
         warning:
@@ -24,7 +24,7 @@ const badgeVariants = cva(
         info:
           "bg-blue-500/15 text-blue-400",
         gradient:
-          "bg-gradient-to-r from-red-500/20 to-emerald-500/20 text-red-300",
+          "bg-gradient-to-r from-orange-500/20 to-pink-500/20 text-orange-300",
       },
     },
     defaultVariants: {

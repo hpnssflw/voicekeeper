@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { botsApi, channelsApi, type BotResponse, type ValidateBotResponse } from "./api";
 
 /**
  * User model - compatible with MongoDB schema
@@ -58,9 +59,11 @@ export interface Bot {
   name: string;
   username: string;
   token: string;
+  telegramId?: number;
   isActive: boolean;
-  channelId?: string;
+  channelId?: string | number;
   channelUsername?: string;
+  channelTitle?: string;
   subscriberCount: number;
   postsCount: number;
 }
@@ -346,34 +349,77 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const addBot = async (token: string): Promise<Bot> => {
-    // Validate token format (relaxed for demo)
+    // Validate token format
     if (!token || token.length < 10) {
       throw new Error("Токен бота слишком короткий");
     }
 
-    // Check if bot already exists
+    // Check if bot already exists locally
     if (bots.some((b) => b.token === token)) {
       throw new Error("Этот бот уже добавлен");
     }
 
-    // In real app, verify with Telegram API
-    const newBot: Bot = {
-      id: "bot-" + Date.now(),
-      name: "My Bot",
-      username: "@bot_" + Date.now().toString().slice(-6),
-      token,
-      isActive: true,
-      subscriberCount: 0,
-      postsCount: 0,
-    };
+    try {
+      // First validate the token with Telegram API
+      const validation: ValidateBotResponse = await botsApi.validate(token);
+      
+      if (!validation.valid || !validation.bot) {
+        throw new Error(validation.error || "Невалидный токен бота");
+      }
 
-    setBots((prev) => [...prev, newBot]);
-    
-    if (!selectedBotId) {
-      setSelectedBotId(newBot.id);
+      // Register bot in backend
+      const registered: BotResponse = await botsApi.create({
+        token,
+        ownerId: user?.id || "anonymous",
+      });
+
+      const newBot: Bot = {
+        id: registered.id,
+        name: validation.bot.firstName || registered.username,
+        username: `@${registered.username}`,
+        token,
+        telegramId: validation.bot.id,
+        isActive: registered.isActive,
+        channelId: registered.channel?.id,
+        channelUsername: registered.channel?.username,
+        channelTitle: registered.channel?.title,
+        subscriberCount: 0,
+        postsCount: registered.stats?.postsCount || 0,
+      };
+
+      setBots((prev) => [...prev, newBot]);
+      
+      if (!selectedBotId) {
+        setSelectedBotId(newBot.id);
+      }
+
+      return newBot;
+    } catch (error: any) {
+      // If backend is not available, fallback to local-only mode
+      if (error.message?.includes('fetch') || error.message?.includes('Network')) {
+        console.warn("Backend not available, using local-only mode");
+        
+        const newBot: Bot = {
+          id: "bot-" + Date.now(),
+          name: "My Bot (offline)",
+          username: "@bot_" + Date.now().toString().slice(-6),
+          token,
+          isActive: true,
+          subscriberCount: 0,
+          postsCount: 0,
+        };
+
+        setBots((prev) => [...prev, newBot]);
+        
+        if (!selectedBotId) {
+          setSelectedBotId(newBot.id);
+        }
+
+        return newBot;
+      }
+      
+      throw error;
     }
-
-    return newBot;
   };
 
   const removeBot = (botId: string) => {
@@ -402,7 +448,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error("Канал уже добавлен");
     }
 
-    const newChannel: Channel = {
+    // Try to get channel info from API if we have a selected bot
+    let channelInfo: Channel | null = null;
+    
+    if (selectedBotId) {
+      const selectedBot = bots.find(b => b.id === selectedBotId);
+      
+      if (selectedBot) {
+        try {
+          const response = await channelsApi.track({
+            botId: selectedBotId,
+            channelId: normalizedUsername,
+            type: 'source',
+          });
+          
+          channelInfo = {
+            id: response.channel.id.toString(),
+            username: response.channel.username ? `@${response.channel.username}` : normalizedUsername,
+            title: response.channel.title || normalizedUsername.replace("@", ""),
+            isTracking: true,
+          };
+        } catch (error) {
+          console.warn("Could not get channel info from API:", error);
+        }
+      }
+    }
+
+    // Fallback to local-only channel
+    const newChannel: Channel = channelInfo || {
       id: "channel-" + Date.now(),
       username: normalizedUsername,
       title: normalizedUsername.replace("@", ""),

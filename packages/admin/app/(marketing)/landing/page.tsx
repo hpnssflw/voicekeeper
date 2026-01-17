@@ -1,252 +1,90 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
-import { useTheme, themes, ThemeName } from "@/lib/themes";
-import {
-  Fingerprint,
-  Zap,
-  Send,
-  ArrowRight,
-  Sparkles,
-  Palette,
-  Check,
-} from "lucide-react";
-import { useState } from "react";
+import { Fingerprint, Zap, Send, ArrowRight, Sparkles } from "lucide-react";
 
 const steps = [
-  {
-    icon: Fingerprint,
-    label: "Анализ стиля",
-  },
-  {
-    icon: Zap,
-    label: "AI генерация",
-  },
-  {
-    icon: Send,
-    label: "Публикация",
-  },
+  { icon: Fingerprint, label: "Анализ стиля" },
+  { icon: Zap, label: "AI генерация" },
+  { icon: Send, label: "Публикация" },
 ];
 
 export default function LandingPage() {
-  const { theme, themeColors, setTheme } = useTheme();
-  const [showThemeSelector, setShowThemeSelector] = useState(false);
-
   return (
-    <div 
-      className="fixed inset-0 flex flex-col overflow-hidden transition-colors duration-500"
-      style={{ backgroundColor: themeColors.surfaceBase }}
-    >
-      {/* Background Effects - Dynamic based on theme */}
-      <div 
-        className="absolute inset-0 opacity-40 pointer-events-none"
-        style={{
-          background: `
-            radial-gradient(at 40% 20%, ${themeColors.primary}15 0px, transparent 50%),
-            radial-gradient(at 80% 0%, ${themeColors.secondary}12 0px, transparent 50%),
-            radial-gradient(at 0% 50%, ${themeColors.accent}08 0px, transparent 50%),
-            radial-gradient(at 80% 50%, ${themeColors.primary}10 0px, transparent 50%)
-          `
-        }}
-      />
-      <div 
-        className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-[120px] pointer-events-none transition-colors duration-500"
-        style={{ backgroundColor: `${themeColors.primary}30` }}
-      />
-      <div 
-        className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full blur-[100px] pointer-events-none transition-colors duration-500"
-        style={{ backgroundColor: `${themeColors.secondary}15` }}
-      />
-      
-      {/* Theme Selector Button - Top Right */}
-      <div className="absolute top-4 right-4 z-50">
-        <button
-          onClick={() => setShowThemeSelector(!showThemeSelector)}
-          className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 hover:scale-105"
-          style={{ 
-            backgroundColor: themeColors.surfaceCard,
-            color: themeColors.foreground 
-          }}
-        >
-          <Palette className="h-4 w-4" />
-          <span className="hidden sm:inline">Тема</span>
-        </button>
-        
-        {/* Theme Dropdown */}
-        {showThemeSelector && (
-          <>
-            <div 
-              className="fixed inset-0 z-40"
-              onClick={() => setShowThemeSelector(false)}
-            />
-            <div 
-              className="absolute right-0 top-full mt-2 w-64 rounded-2xl p-3 shadow-2xl z-50"
-              style={{ backgroundColor: themeColors.surfaceOverlay }}
-            >
-              <p 
-                className="text-xs font-semibold uppercase tracking-wider mb-3 px-2"
-                style={{ color: themeColors.muted }}
-              >
-                Выберите тему
-              </p>
-              <div className="space-y-1">
-                {(Object.keys(themes) as ThemeName[]).map((themeName) => {
-                  const t = themes[themeName];
-                  const isActive = theme === themeName;
-                  return (
-                    <button
-                      key={themeName}
-                      onClick={() => {
-                        setTheme(themeName);
-                        setShowThemeSelector(false);
-                      }}
-                      className="flex w-full items-center gap-3 rounded-xl px-3 py-3 transition-all duration-200"
-                      style={{ 
-                        backgroundColor: isActive ? `${t.primary}20` : 'transparent',
-                      }}
-                    >
-                      {/* Color preview */}
-                      <div 
-                        className="h-8 w-8 rounded-lg shrink-0"
-                        style={{ background: t.gradient }}
-                      />
-                      <div className="flex-1 text-left">
-                        <p 
-                          className="font-medium text-sm"
-                          style={{ color: themeColors.foreground }}
-                        >
-                          {t.displayName}
-                        </p>
-                        <p 
-                          className="text-xs"
-                          style={{ color: themeColors.muted }}
-                        >
-                          {t.description}
-                        </p>
-                      </div>
-                      {isActive && (
-                        <Check 
-                          className="h-4 w-4 shrink-0" 
-                          style={{ color: t.primary }}
-                        />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </>
-        )}
-      </div>
+    <div className="fixed inset-0 flex flex-col overflow-hidden bg-[hsl(15,20%,4%)]">
+      {/* Background Effects */}
+      <div className="absolute inset-0 opacity-40 pointer-events-none bg-mesh" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full blur-[100px] pointer-events-none bg-orange-500/20" />
+      <div className="absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full blur-[80px] pointer-events-none bg-pink-500/10" />
       
       {/* Main Content */}
-      <div className="relative flex-1 flex flex-col items-center justify-center px-6 py-8">
-        {/* Logo Image */}
-        <div className="relative mb-6 animate-in animate-in-delay-1">
-          <div className="relative w-40 h-40 sm:w-52 sm:h-52 md:w-64 md:h-64">
+      <div className="relative flex-1 flex flex-col items-center justify-center px-4 py-6">
+        {/* Logo */}
+        <div className="relative mb-4 animate-in animate-in-delay-1">
+          <div className="relative w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48">
             <Image
               src="/lips.png"
               alt="VoiceKeeper"
               fill
-              className="object-contain transition-all duration-500"
-              style={{ 
-                filter: `drop-shadow(0 0 60px ${themeColors.primary}60)` 
-              }}
+              className="object-contain drop-shadow-[0_0_40px_hsl(25,95%,53%,0.5)]"
               priority
             />
           </div>
         </div>
 
-        {/* Brand Name */}
-        <h1 className="animate-in animate-in-delay-2 text-3xl sm:text-4xl md:text-5xl font-bold font-display tracking-tight mb-3 text-center">
-          <span 
-            className="bg-clip-text text-transparent"
-            style={{ backgroundImage: themeColors.gradient }}
-          >
+        {/* Brand */}
+        <h1 className="animate-in animate-in-delay-2 text-2xl sm:text-3xl md:text-4xl font-bold font-display tracking-tight mb-2 text-center">
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-500 via-rose-500 to-pink-500">
             VoiceKeeper
           </span>
         </h1>
         
         {/* Tagline */}
-        <p 
-          className="animate-in animate-in-delay-3 text-center text-sm sm:text-base max-w-xs sm:max-w-sm mb-8"
-          style={{ color: themeColors.muted }}
-        >
+        <p className="animate-in animate-in-delay-3 text-center text-xs sm:text-sm text-muted-foreground max-w-xs mb-6">
           AI-контент в вашем стиле для Telegram
         </p>
 
         {/* Flow Steps */}
-        <div className="animate-in animate-in-delay-3 flex items-center justify-center gap-2 sm:gap-4 mb-10">
+        <div className="animate-in animate-in-delay-3 flex items-center justify-center gap-2 sm:gap-3 mb-8">
           {steps.map((step, idx) => (
-            <div key={step.label} className="flex items-center gap-2 sm:gap-4">
-              <div className="flex flex-col items-center gap-2">
-                <div 
-                  className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl backdrop-blur-sm transition-colors duration-500"
-                  style={{ backgroundColor: `${themeColors.primary}10` }}
-                >
-                  <step.icon 
-                    className="h-5 w-5 sm:h-6 sm:w-6 transition-colors duration-500" 
-                    style={{ color: themeColors.primary }}
-                  />
+            <div key={step.label} className="flex items-center gap-2 sm:gap-3">
+              <div className="flex flex-col items-center gap-1.5">
+                <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-orange-500/10">
+                  <step.icon className="h-4 w-4 sm:h-5 sm:w-5 text-orange-400" />
                 </div>
-                <span 
-                  className="text-[10px] sm:text-xs text-center whitespace-nowrap"
-                  style={{ color: themeColors.muted }}
-                >
+                <span className="text-[9px] sm:text-[10px] text-muted-foreground text-center whitespace-nowrap">
                   {step.label}
                 </span>
               </div>
               {idx < steps.length - 1 && (
-                <ArrowRight 
-                  className="h-4 w-4 -mt-5 sm:-mt-6 transition-colors duration-500" 
-                  style={{ color: `${themeColors.foreground}20` }}
-                />
+                <ArrowRight className="h-3 w-3 -mt-4 text-foreground/15" />
               )}
             </div>
           ))}
         </div>
 
-        {/* CTA Buttons */}
-        <div className="animate-in animate-in-delay-4 flex flex-col sm:flex-row items-center gap-3 w-full max-w-xs sm:max-w-none sm:w-auto">
+        {/* CTA */}
+        <div className="animate-in animate-in-delay-4 flex flex-col sm:flex-row items-center gap-2 w-full max-w-xs sm:max-w-none sm:w-auto">
           <Link href="/onboarding" className="w-full sm:w-auto">
-            <button 
-              className="w-full sm:w-auto flex items-center justify-center gap-2 h-12 px-8 text-base font-medium rounded-xl text-white shadow-xl transition-all duration-200 hover:scale-105 active:scale-[0.98]"
-              style={{ 
-                background: themeColors.gradientButton,
-                boxShadow: `0 20px 40px -10px ${themeColors.glowColor}40`
-              }}
-            >
-              <Sparkles className="h-4 w-4" />
+            <button className="w-full sm:w-auto flex items-center justify-center gap-2 h-10 px-6 text-sm font-medium rounded-lg text-white bg-gradient-to-r from-orange-500 via-rose-500 to-pink-500 shadow-lg shadow-orange-500/30 hover:scale-105 active:scale-[0.98] transition-transform">
+              <Sparkles className="h-3.5 w-3.5" />
               Начать
             </button>
           </Link>
           <Link href="/login" className="w-full sm:w-auto">
-            <button 
-              className="w-full sm:w-auto flex items-center justify-center h-12 px-8 text-base font-medium rounded-xl transition-all duration-200 hover:scale-105 active:scale-[0.98]"
-              style={{ 
-                backgroundColor: `${themeColors.foreground}08`,
-                color: themeColors.foreground
-              }}
-            >
+            <button className="w-full sm:w-auto flex items-center justify-center h-10 px-6 text-sm font-medium rounded-lg bg-white/[0.06] text-foreground hover:bg-white/[0.08] transition-colors">
               Войти
             </button>
           </Link>
         </div>
       </div>
 
-      {/* Bottom Info */}
-      <div className="relative px-6 pb-6 pt-4">
-        <div 
-          className="flex items-center justify-center gap-6 text-xs"
-          style={{ color: `${themeColors.muted}80` }}
-        >
+      {/* Bottom */}
+      <div className="relative px-4 pb-4 pt-2">
+        <div className="flex items-center justify-center gap-4 text-[10px] text-muted-foreground/60">
           <span>© 2026 VoiceKeeper</span>
-          <span 
-            className="w-1 h-1 rounded-full" 
-            style={{ backgroundColor: `${themeColors.foreground}15` }}
-          />
+          <span className="w-0.5 h-0.5 rounded-full bg-foreground/15" />
           <span>Бесплатный старт</span>
         </div>
       </div>

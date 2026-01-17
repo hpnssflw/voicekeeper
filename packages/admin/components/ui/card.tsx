@@ -10,14 +10,11 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-2xl text-card-foreground",
-      "shadow-[0_4px_24px_-4px_hsla(0,0%,0%,0.4)]",
-      "transition-all duration-300",
+      "rounded-xl bg-[hsl(15,15%,7%)] text-card-foreground",
+      "shadow-[0_2px_12px_-2px_hsla(0,0%,0%,0.4)]",
+      "transition-all duration-200",
       className
     )}
-    style={{
-      backgroundColor: "hsl(240, 10%, 13%)"
-    }}
     {...props}
   />
 ));
@@ -29,7 +26,7 @@ const CardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-5 sm:p-6", className)}
+    className={cn("flex flex-col space-y-1 p-3 sm:p-4", className)}
     {...props}
   />
 ));
@@ -41,7 +38,7 @@ const CardTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn("font-semibold font-display leading-none tracking-tight text-foreground", className)}
+    className={cn("text-sm font-semibold font-display leading-none tracking-tight text-foreground", className)}
     {...props}
   />
 ));
@@ -53,7 +50,7 @@ const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
+    className={cn("text-xs text-muted-foreground", className)}
     {...props}
   />
 ));
@@ -63,7 +60,7 @@ const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("p-5 sm:p-6 pt-0", className)} {...props} />
+  <div ref={ref} className={cn("p-3 sm:p-4 pt-0", className)} {...props} />
 ));
 CardContent.displayName = "CardContent";
 
@@ -73,7 +70,7 @@ const CardFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex items-center p-5 sm:p-6 pt-0", className)}
+    className={cn("flex items-center p-3 sm:p-4 pt-0", className)}
     {...props}
   />
 ));

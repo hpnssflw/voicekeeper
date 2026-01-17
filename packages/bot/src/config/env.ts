@@ -16,6 +16,11 @@ type Env = {
   CLOUDFLARED_PATH?: string;
   TELEGRAM_CHANNEL_ID?: string; // Channel ID, @username, or URL (https://t.me/channel) for publishing posts
   PUBLISH_MODE?: 'channel' | 'subscribers'; // How to publish: 'channel' or 'subscribers'
+  
+  // MTProto (gramjs) settings for full Telegram API access
+  // Get these from https://my.telegram.org/apps
+  TELEGRAM_API_ID?: string;
+  TELEGRAM_API_HASH?: string;
 };
 
 function requireEnv(name: string, fallback?: string): string {
@@ -53,6 +58,10 @@ export const env: Env = {
     return value;
   })(),
   PUBLISH_MODE: (process.env.PUBLISH_MODE as 'channel' | 'subscribers' | undefined) || 'channel',
+  
+  // MTProto settings
+  TELEGRAM_API_ID: process.env.TELEGRAM_API_ID,
+  TELEGRAM_API_HASH: process.env.TELEGRAM_API_HASH,
 };
 
 
