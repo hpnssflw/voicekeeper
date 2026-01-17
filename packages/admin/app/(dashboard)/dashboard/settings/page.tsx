@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/auth";
 import { useUnderDevelopment } from "@/components/ui/under-development-modal";
+import { useTranslations } from "@/lib/use-translations";
 import Link from "next/link";
 import {
   Key,
@@ -18,54 +19,55 @@ import {
   Zap,
 } from "lucide-react";
 
-const settingsSections = [
-  {
-    title: "API ключи",
-    description: "Настройка токенов AI и сервисов",
-    href: "/dashboard/settings/api-keys",
-    icon: Key,
-    available: true,
-  },
-  {
-    title: "Подписка",
-    description: "Управление тарифом и оплатой",
-    href: "/dashboard/settings/subscription",
-    icon: CreditCard,
-    available: true,
-  },
-  {
-    title: "Профиль",
-    description: "Данные аккаунта",
-    href: "/dashboard/settings/profile",
-    icon: User,
-    available: true,
-  },
-  {
-    title: "Уведомления",
-    description: "Настройка оповещений",
-    href: null,
-    icon: Bell,
-    available: false,
-  },
-  {
-    title: "Безопасность",
-    description: "2FA и права доступа",
-    href: null,
-    icon: Shield,
-    available: false,
-  },
-  {
-    title: "Язык и регион",
-    description: "Локализация и часовой пояс",
-    href: null,
-    icon: Globe,
-    available: false,
-  },
-];
-
 export default function SettingsPage() {
   const { user } = useAuth();
+  const t = useTranslations();
   const underDev = useUnderDevelopment();
+  
+  const settingsSections = [
+    {
+      title: t("settings.sections.apiKeys.title"),
+      description: t("settings.sections.apiKeys.description"),
+      href: "/dashboard/settings/api-keys",
+      icon: Key,
+      available: true,
+    },
+    {
+      title: t("settings.sections.subscription.title"),
+      description: t("settings.sections.subscription.description"),
+      href: "/dashboard/settings/subscription",
+      icon: CreditCard,
+      available: true,
+    },
+    {
+      title: t("settings.sections.profile.title"),
+      description: t("settings.sections.profile.description"),
+      href: "/dashboard/settings/profile",
+      icon: User,
+      available: true,
+    },
+    {
+      title: t("settings.sections.notifications.title"),
+      description: t("settings.sections.notifications.description"),
+      href: null,
+      icon: Bell,
+      available: false,
+    },
+    {
+      title: t("settings.sections.security.title"),
+      description: t("settings.sections.security.description"),
+      href: null,
+      icon: Shield,
+      available: false,
+    },
+    {
+      title: t("settings.sections.locale.title"),
+      description: t("settings.sections.locale.description"),
+      href: null,
+      icon: Globe,
+      available: false,
+    },
+  ];
   
   const plan = user?.plan || "free";
   const generationsUsed = user?.generationsUsed || 0;
@@ -79,8 +81,8 @@ export default function SettingsPage() {
     <div className="space-y-4">
       {/* Header */}
       <div>
-        <h1 className="text-lg font-bold font-display">Настройки</h1>
-        <p className="text-xs text-muted-foreground">Управление аккаунтом</p>
+        <h1 className="text-lg font-bold font-display">{t("settings.title")}</h1>
+        <p className="text-xs text-muted-foreground">{t("settings.description")}</p>
       </div>
 
       {/* Current Plan */}
@@ -96,7 +98,7 @@ export default function SettingsPage() {
                 <Badge variant="secondary" className="text-[9px]">{generationsUsed}/{generationsLimit}</Badge>
               </div>
               <p className="text-[10px] text-muted-foreground">
-                {plan === "free" ? "Перейдите на Pro" : "Текущий план"}
+                {plan === "free" ? t("settings.unlockMore") : plan === "pro" ? t("settings.proDescription") : t("settings.businessDescription")}
               </p>
             </div>
           </div>
@@ -104,7 +106,7 @@ export default function SettingsPage() {
             <Link href="/dashboard/settings/subscription">
               <Button size="sm" className="gap-1 bg-gradient-to-r from-orange-500 to-pink-500 border-0 text-xs">
                 <Zap className="h-3 w-3" />
-                Upgrade
+                {t("common.upgrade")}
               </Button>
             </Link>
           )}

@@ -1,0 +1,290 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "search": "Search",
+    "filter": "Filter",
+    "actions": "Actions",
+    "settings": "Settings",
+    "profile": "Profile",
+    "logout": "Logout",
+    "login": "Login",
+    "register": "Register",
+    "upgrade": "Upgrade",
+    "upgradePlan": "Upgrade Plan",
+    "generationsLeft": "generations left",
+    "plan": "plan",
+    "help": "Help"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "bots": "Bots",
+    "channels": "Channels",
+    "posts": "Posts",
+    "broadcasts": "Broadcasts",
+    "subscribers": "Subscribers",
+    "voicekeeper": "VoiceKeeper",
+    "generate": "Generate",
+    "fingerprint": "Fingerprint",
+    "trendRadar": "Trend Radar",
+    "apiKeys": "API Keys",
+    "features": "Features"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "greeting": "Hello, {name}",
+    "overview": "Overview of your channels",
+    "startWithBot": "Start by adding a bot",
+    "createWithAI": "Create with AI",
+    "stats": {
+      "bots": "Bots",
+      "posts": "Posts",
+      "subscribers": "Subscribers",
+      "channels": "Channels",
+      "active": "Active",
+      "of": "of",
+      "published": "published",
+      "total": "total",
+      "parsing": "parsing"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "createPost": "Create post with AI",
+      "trendRadar": "Trend Radar",
+      "fingerprint": "Voice Fingerprint",
+      "description": "Start right now"
+    },
+    "yourBots": {
+      "title": "Your Bots",
+      "description": "Connected Telegram bots",
+      "allBots": "All bots",
+      "noBots": "No connected bots",
+      "addBot": "Add bot",
+      "active": "Active",
+      "inactive": "Off"
+    },
+    "emptyState": {
+      "title": "Start working with VoiceKeeper",
+      "description": "Add a Telegram bot for content publishing or a channel for competitor analysis",
+      "addBot": "Add bot",
+      "addChannel": "Add channel"
+    },
+    "plan": {
+      "free": "3 generations per month",
+      "pro": "50 generations per month",
+      "business": "Unlimited generations"
+    }
+  },
+  "bots": {
+    "title": "Bot Management",
+    "description": "Add and configure Telegram bots for your channels",
+    "addBot": "Add bot",
+    "botToken": "Bot token",
+    "tokenPlaceholder": "7123456789:AAH...",
+    "howToGetToken": "How to get token:",
+    "howToGetSteps": {
+      "step1": "Open @BotFather in Telegram",
+      "step2": "Send command /newbot",
+      "step3": "Follow instructions and copy the token"
+    },
+    "stats": {
+      "subscribers": "subscribers",
+      "posts": "posts"
+    },
+    "channel": {
+      "notConfigured": "Channel not configured",
+      "configure": "Configure",
+      "placeholder": "@channel_username or -100123456789",
+      "configured": "Channel configured",
+      "current": "Current channel"
+    },
+    "posts": {
+      "title": "Recent posts",
+      "allPosts": "All posts",
+      "noPosts": "No posts",
+      "createFirst": "Create first post"
+    },
+    "emptyState": {
+      "title": "Add a bot first",
+      "description": "Voice Fingerprint analyzes your channel content to determine style"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Account management",
+    "currentPlan": "Current plan: {plan}",
+    "generations": "{used}/{limit} generations",
+    "unlockMore": "Unlock more features with Pro or Business",
+    "proDescription": "You have Pro plan. Upgrade to Business for unlimited",
+    "businessDescription": "You have the maximum Business plan",
+    "sections": {
+      "apiKeys": {
+        "title": "API Keys",
+        "description": "Configure AI, Telegram and other service tokens"
+      },
+      "subscription": {
+        "title": "Subscription",
+        "description": "Manage plan and payment"
+      },
+      "notifications": {
+        "title": "Notifications",
+        "description": "Configure alerts and notifications"
+      },
+      "profile": {
+        "title": "Profile",
+        "description": "Account data and personalization"
+      },
+      "security": {
+        "title": "Security",
+        "description": "2FA, sessions and access rights"
+      },
+      "locale": {
+        "title": "Language & Region",
+        "description": "Language settings and timezone"
+      }
+    },
+    "usage": {
+      "title": "Resource Usage",
+      "currentPeriod": "Current period: {period}",
+      "aiGenerations": "AI generations",
+      "trendScans": "Trend Radar scans",
+      "unavailable": "Unavailable"
+    }
+  },
+  "apiKeys": {
+    "title": "API Keys",
+    "description": "Keys are stored locally in browser",
+    "provider": {
+      "gemini": "Gemini",
+      "openai": "OpenAI"
+    },
+    "recommended": "Recommended",
+    "testKey": "Test key",
+    "getKey": "Get",
+    "test": "Test",
+    "saved": "Key saved",
+    "enterKey": "Enter key",
+    "invalidKey": "Invalid key",
+    "testError": "Test error",
+    "apiWorks": "API works!",
+    "storedLocally": "Keys are stored only in your browser and not sent to server"
+  },
+  "voicekeeper": {
+    "generate": {
+      "title": "Create post with AI",
+      "description": "Generation in your style",
+      "topic": "Topic",
+      "topicPlaceholder": "What's the post about?",
+      "tone": "Tone",
+      "toneFriendly": "Friendly",
+      "toneProfessional": "Professional",
+      "toneProvocative": "Provocative",
+      "length": "Length",
+      "lengthShort": "Short",
+      "lengthMedium": "Medium",
+      "lengthLong": "Long",
+      "emoji": "Emoji",
+      "cta": "CTA",
+      "customInstructions": "Additional instructions",
+      "customPlaceholder": "Add story, mention product...",
+      "createPost": "Create post",
+      "generating": "Generating...",
+      "result": "Result",
+      "confidence": "{percent}%",
+      "ready": "Ready",
+      "main": "Main",
+      "variant": "Var. {num}",
+      "copy": "Copy",
+      "again": "Again",
+      "save": "Save",
+      "quality": "Quality?",
+      "good": "Good",
+      "bad": "Bad",
+      "enterTopic": "Enter topic and click «Create»",
+      "fingerprint": {
+        "title": "Voice Fingerprint",
+        "active": "Your style is used",
+        "inactive": "Configure for personalization",
+        "configure": "Configure",
+        "edit": "Edit"
+      },
+      "apiKeyNotSet": "API key not configured",
+      "goToSettings": "Go to Settings → API Keys"
+    },
+    "fingerprint": {
+      "title": "Voice Fingerprint",
+      "description": "Your author style",
+      "active": "Fingerprint active",
+      "inactive": "Configure style for personalized generation",
+      "tabs": {
+        "text": "AI Analysis",
+        "manual": "Manual"
+      },
+      "textAnalysis": {
+        "title": "Text analysis with AI",
+        "description": "Paste post examples — Gemini will determine your style",
+        "placeholder": "Paste 3-5 examples of your posts for style analysis...",
+        "characters": "{count} characters (min. 100)",
+        "recommended": "Recommended 500+",
+        "enough": "✓ Enough",
+        "analyze": "Analyze style",
+        "analyzing": "Analyzing with Gemini...",
+        "minChars": "Add at least 100 characters"
+      },
+      "manual": {
+        "title": "Manual setup",
+        "description": "Describe your style manually",
+        "tone": "Tone",
+        "tonePlaceholder": "Friendly and expert",
+        "structure": "Structure",
+        "structurePlaceholder": "Short paragraphs, lists, headings",
+        "vocabulary": "Vocabulary",
+        "vocabularyPlaceholder": "Technical with simplifications",
+        "signature": "Features",
+        "signaturePlaceholder": "Starts with question",
+        "emoji": "Emoji",
+        "emojiPlaceholder": "🔥 💡 ✅ 📈",
+        "save": "Save profile"
+      },
+      "profile": {
+        "title": "Style profile",
+        "description": "Used in generation",
+        "willBeDetermined": "Will be determined after analysis",
+        "notSet": "Not set"
+      },
+      "apiKeyWarning": "Configure Gemini API key for AI analysis",
+      "configure": "Configure",
+      "edit": "Edit",
+      "analyzed": "Style analyzed!",
+      "saved": "Profile saved",
+      "fillOne": "Fill at least one field",
+      "analysisError": "Analysis error",
+      "tryLater": "Try later"
+    }
+  },
+  "toasts": {
+    "botAdded": "Bot added",
+    "botDeleted": "Bot deleted",
+    "tokenCopied": "Token copied",
+    "channelConfigured": "Channel configured",
+    "postSaved": "Saved as draft",
+    "copied": "Copied",
+    "generated": "Post generated!"
+  },
+  "errors": {
+    "enterToken": "Enter bot token",
+    "enterChannel": "Enter channel username",
+    "enterTopic": "Enter topic",
+    "saveError": "Save error",
+    "generationError": "Generation error"
+  }
+}
+

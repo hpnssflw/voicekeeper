@@ -199,7 +199,7 @@ export default function FeaturesPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="text-sm font-medium">{feature.title}</h3>
-                          {feature.premium && (
+                          {'premium' in feature && feature.premium && (
                             <Badge variant="secondary" className="text-[9px] px-1.5">
                               <Crown className="h-2.5 w-2.5 mr-0.5" />
                               Pro

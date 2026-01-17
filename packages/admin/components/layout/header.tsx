@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, Search, Plus, Command, Menu, LogOut, User } from "lucide-react";
+import { Bell, Search, Plus, Command, Menu, LogOut, User, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BotSelector } from "./bot-selector";
 import { LoginModal } from "@/components/auth/login-modal";
+import { LocaleSwitcher } from "@/components/i18n/locale-switcher";
 import { useAuth } from "@/lib/auth";
+import { useTranslations } from "@/lib/use-translations";
 import Link from "next/link";
 
 interface HeaderProps {
@@ -15,6 +17,7 @@ interface HeaderProps {
 
 export function Header({ onMenuClick }: HeaderProps) {
   const { user, isAuthenticated, logout } = useAuth();
+  const t = useTranslations();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
@@ -39,7 +42,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
-              placeholder="Поиск..."
+              placeholder={t("common.search")}
               className="pl-9 pr-16 h-8 text-xs"
             />
             <kbd className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none hidden lg:inline-flex h-4 select-none items-center gap-0.5 rounded px-1 font-mono text-[9px] font-medium bg-[hsl(15,12%,10%)] text-muted-foreground">
@@ -55,9 +58,11 @@ export function Header({ onMenuClick }: HeaderProps) {
               <Link href="/dashboard/voicekeeper/generate">
                 <button className="flex items-center gap-1.5 h-8 px-3 text-xs font-medium rounded-lg text-white shadow-lg transition-all duration-200 hover:scale-105 active:scale-[0.98] bg-gradient-to-r from-orange-500 via-rose-500 to-pink-500">
                   <Plus className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Создать</span>
+                  <span className="hidden sm:inline">{t("dashboard.createWithAI")}</span>
                 </button>
               </Link>
+              
+              <LocaleSwitcher />
               
               <Button variant="ghost" size="icon" className="relative h-8 w-8">
                 <Bell className="h-3.5 w-3.5" />
@@ -94,7 +99,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                         className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-xs transition-colors hover:bg-white/[0.06]"
                       >
                         <User className="h-3.5 w-3.5" />
-                        Профиль
+                        {t("common.profile")}
                       </Link>
                       <button
                         onClick={() => {
@@ -104,7 +109,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                         className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-xs text-red-400 hover:bg-red-500/10 transition-colors"
                       >
                         <LogOut className="h-3.5 w-3.5" />
-                        Выйти
+                        {t("common.logout")}
                       </button>
                     </div>
                   </>
@@ -116,7 +121,7 @@ export function Header({ onMenuClick }: HeaderProps) {
               onClick={() => setShowLoginModal(true)}
               className="flex items-center gap-2 h-8 px-3 text-xs font-medium rounded-lg text-white bg-gradient-to-r from-orange-500 to-pink-500"
             >
-              Войти
+              {t("common.login")}
             </button>
           )}
         </div>

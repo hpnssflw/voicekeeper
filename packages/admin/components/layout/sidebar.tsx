@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
+import { useTranslations } from "@/lib/use-translations";
 import { Logo, LogoIcon } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,25 +29,6 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
-const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Боты", href: "/dashboard/bots", icon: Bot },
-  { name: "Каналы", href: "/dashboard/channels", icon: Radio },
-  { name: "Посты", href: "/dashboard/posts", icon: FileText },
-  { name: "Рассылки", href: "/dashboard/broadcasts", icon: Megaphone },
-  { name: "Подписчики", href: "/dashboard/subscribers", icon: Users },
-  { type: "divider" as const, label: "AI Tools" },
-  { name: "VoiceKeeper", href: "/dashboard/voicekeeper", icon: Sparkles, badge: "AI", gradient: true },
-  { name: "Генерация", href: "/dashboard/voicekeeper/generate", icon: Zap },
-  { name: "Fingerprint", href: "/dashboard/voicekeeper/fingerprint", icon: Key },
-  { name: "Trend Radar", href: "/dashboard/trends", icon: Radar, badge: "Pro" },
-  { type: "divider" as const, label: "Настройки" },
-  { name: "API Ключи", href: "/dashboard/settings/api-keys", icon: Key },
-  { name: "Настройки", href: "/dashboard/settings", icon: Settings },
-  { type: "divider" as const, label: "Помощь" },
-  { name: "Функционал", href: "/dashboard/features", icon: BookOpen },
-];
-
 interface SidebarProps {
   mobileOpen?: boolean;
   onMobileClose?: () => void;
@@ -57,6 +39,26 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const { user, logout } = useAuth();
+  const t = useTranslations();
+  
+  const navigation = [
+    { name: t("navigation.dashboard"), href: "/dashboard", icon: LayoutDashboard },
+    { name: t("navigation.bots"), href: "/dashboard/bots", icon: Bot },
+    { name: t("navigation.channels"), href: "/dashboard/channels", icon: Radio },
+    { name: t("navigation.posts"), href: "/dashboard/posts", icon: FileText },
+    { name: t("navigation.broadcasts"), href: "/dashboard/broadcasts", icon: Megaphone },
+    { name: t("navigation.subscribers"), href: "/dashboard/subscribers", icon: Users },
+    { type: "divider" as const, label: "AI Tools" },
+    { name: t("navigation.voicekeeper"), href: "/dashboard/voicekeeper", icon: Sparkles, badge: "AI", gradient: true },
+    { name: t("navigation.generate"), href: "/dashboard/voicekeeper/generate", icon: Zap },
+    { name: t("navigation.fingerprint"), href: "/dashboard/voicekeeper/fingerprint", icon: Key },
+    { name: t("navigation.trendRadar"), href: "/dashboard/trends", icon: Radar, badge: "Pro" },
+    { type: "divider" as const, label: t("common.settings") },
+    { name: t("navigation.apiKeys"), href: "/dashboard/settings/api-keys", icon: Key },
+    { name: t("common.settings"), href: "/dashboard/settings", icon: Settings },
+    { type: "divider" as const, label: t("common.help") || "Help" },
+    { name: t("navigation.features"), href: "/dashboard/features", icon: BookOpen },
+  ];
 
   const handleLogout = () => {
     logout();
@@ -206,11 +208,11 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
               <div className="flex items-center gap-1.5 mb-1.5">
                 <Zap className="h-3 w-3 text-orange-400" />
                 <span className="text-[10px] font-semibold font-display text-orange-400 capitalize">
-                  {user?.plan || "Free"} план
+                  {user?.plan || "Free"} {t("common.plan") || "план"}
                 </span>
               </div>
               <p className="text-[10px] text-muted-foreground mb-2">
-                {generationsLeft} генераций осталось
+                {generationsLeft} {t("common.generationsLeft") || "генераций осталось"}
               </p>
               <div className="h-1 rounded-full overflow-hidden bg-[hsl(15,12%,10%)]">
                 <div
@@ -221,7 +223,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
               <Link href="/dashboard/settings/subscription">
                 <Button variant="ghost" size="sm" className="w-full mt-2 text-[10px] gap-1 h-7 text-orange-400">
                   <Crown className="h-3 w-3" />
-                  Улучшить
+                  {t("common.upgrade")}
                 </Button>
               </Link>
             </div>
@@ -245,7 +247,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                   className="w-full mt-2 text-[10px] gap-1 h-6 text-muted-foreground hover:bg-red-500/10 hover:text-red-400"
                 >
                   <LogOut className="h-3 w-3" />
-                  Выйти
+                  {t("common.logout")}
                 </Button>
               </div>
             )}
