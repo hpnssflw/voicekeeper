@@ -1,4 +1,6 @@
-export const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8080';
+// Safe API_BASE with fallback for local development
+// On Vercel, this should be set via environment variables
+export const API_BASE = process.env.NEXT_PUBLIC_API_BASE || '';
 
 interface ApiResponse<T> {
   data?: T;
@@ -26,6 +28,11 @@ class ApiClient {
     path: string,
     body?: unknown
   ): Promise<T> {
+    // Gracefully handle missing API_BASE
+    if (!this.baseUrl || this.baseUrl === 'undefined' || this.baseUrl.trim() === '') {
+      throw new Error('API base URL is not configured. Please set NEXT_PUBLIC_API_BASE environment variable.');
+    }
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
@@ -34,20 +41,39 @@ class ApiClient {
       headers['Authorization'] = `Bearer ${this.token}`;
     }
 
-    const res = await fetch(`${this.baseUrl}${path}`, {
-      method,
-      headers,
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    try {
+      const res = await fetch(`${this.baseUrl}${path}`, {
+        method,
+        headers,
+        body: body ? JSON.stringify(body) : undefined,
+      });
 
-    const json: ApiResponse<T> = await res.json();
+      // Handle network errors
+      if (!res.ok && res.status === 0) {
+        throw new Error('Network error: Unable to reach API server');
+      }
 
-    if (!res.ok || json.error) {
-      const msg = json.error?.message || `API error ${res.status}`;
-      throw new Error(msg);
+      let json: ApiResponse<T>;
+      try {
+        json = await res.json();
+      } catch (parseError) {
+        throw new Error(`Invalid response from API: ${res.status} ${res.statusText}`);
+      }
+
+      if (!res.ok || json.error) {
+        const msg = json.error?.message || `API error ${res.status}`;
+        throw new Error(msg);
+      }
+
+      return json.data as T;
+    } catch (error) {
+      // Re-throw if it's already our Error
+      if (error instanceof Error) {
+        throw error;
+      }
+      // Handle other errors (network, timeout, etc.)
+      throw new Error(`Request failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-
-    return json.data as T;
   }
 
   get<T>(path: string): Promise<T> {
