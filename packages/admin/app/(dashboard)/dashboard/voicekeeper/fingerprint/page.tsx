@@ -7,53 +7,46 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/toaster";
-import { FeatureIcon } from "@/components/brand/feature-icon";
-import { useFeature, DEMO_MODE } from "@/lib/features";
+import { useAuth } from "@/lib/auth";
+import { UnderDevelopmentModal, useUnderDevelopment } from "@/components/ui/under-development-modal";
 import {
   Fingerprint,
   RefreshCw,
-  FileText,
-  Sparkles,
-  CheckCircle,
-  Clock,
-  AlertTriangle,
   Save,
   Pencil,
+  Bot,
+  Plus,
+  ArrowLeft,
+  AlertCircle,
 } from "lucide-react";
+import Link from "next/link";
 
-const mockFingerprint = {
-  status: "active",
-  updatedAt: "2026-01-17T08:00:00Z",
-  postsAnalyzed: 47,
-  metrics: {
-    avgLength: 1200,
-    avgParagraphs: 4,
-    emojiFrequency: "medium",
-    formalityLevel: 72,
-    uniquePhrases: 12,
-  },
-  styleProfile: {
-    tone: "Профессиональный, но дружелюбный",
-    structure: "Короткие абзацы, списки, призыв к действию в конце",
-    vocabulary: "Технический с упрощениями, много английских терминов",
-    signature: "Начинает с вопроса или провокации, заканчивает CTA",
-    emoji: "Умеренное использование: 🔥 💡 ✅ 📈",
-  },
-  samplePhrases: [
-    "Друзья, сегодня разберём...",
-    "Вопрос к вам:",
-    "А что думаете вы?",
-    "Давайте разбираться",
-    "Итак, главный вывод:",
-  ],
-};
+interface StyleProfile {
+  tone: string;
+  structure: string;
+  vocabulary: string;
+  signature: string;
+  emoji: string;
+}
 
 export default function FingerprintPage() {
-  const voicekeeperFeature = useFeature("voiceKeeper");
+  const { bots } = useAuth();
+  const underDev = useUnderDevelopment();
+  
   const [channelToAnalyze, setChannelToAnalyze] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [styleProfile, setStyleProfile] = useState(mockFingerprint.styleProfile);
+  const [hasFingerprint, setHasFingerprint] = useState(false);
+  
+  const [styleProfile, setStyleProfile] = useState<StyleProfile>({
+    tone: "",
+    structure: "",
+    vocabulary: "",
+    signature: "",
+    emoji: "",
+  });
+
+  const hasBots = bots.length > 0;
 
   const handleAnalyze = () => {
     if (!channelToAnalyze.trim()) {
@@ -62,33 +55,87 @@ export default function FingerprintPage() {
     }
 
     setIsAnalyzing(true);
-    toast({ title: "Анализируем канал...", description: "Это займёт 1-2 минуты" });
-
-    setTimeout(() => {
-      setIsAnalyzing(false);
-      toast({
-        title: "Анализ завершён",
-        description: "Voice Fingerprint обновлён",
-        variant: "success",
-      });
-    }, 3000);
+    
+    // Show under development modal
+    underDev.showModal(
+      "Анализ Voice Fingerprint",
+      "AI анализ вашего авторского стиля на основе существующих постов. Требуется минимум 10 опубликованных постов для точного определения стиля."
+    );
+    
+    setIsAnalyzing(false);
   };
 
   const handleSaveManual = () => {
+    const hasAnyValue = Object.values(styleProfile).some(v => v.trim());
+    if (!hasAnyValue) {
+      toast({ title: "Заполните хотя бы одно поле", variant: "destructive" });
+      return;
+    }
+    
     setIsEditing(false);
+    setHasFingerprint(true);
     toast({ title: "Профиль сохранён", variant: "success" });
   };
+
+  if (!hasBots) {
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard/voicekeeper">
+            <Button variant="ghost" size="icon" className="rounded-xl">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-emerald-500 shadow-lg shadow-red-500/25">
+              <Fingerprint className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight font-display">Voice Fingerprint</h1>
+              <p className="text-muted-foreground">
+                Ваш уникальный авторский стиль
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <Card className="py-12">
+          <CardContent className="text-center">
+            <Bot className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium font-display mb-2">Сначала добавьте бота</h3>
+            <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+              Voice Fingerprint анализирует контент вашего канала для определения стиля
+            </p>
+            <Link href="/dashboard/bots">
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Добавить бота
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <underDev.Modal />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500">
+          <Link href="/dashboard/voicekeeper">
+            <Button variant="ghost" size="icon" className="rounded-xl">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-emerald-500 shadow-lg shadow-red-500/25">
             <Fingerprint className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Voice Fingerprint</h1>
+            <h1 className="text-2xl font-bold tracking-tight font-display">Voice Fingerprint</h1>
             <p className="text-muted-foreground">
               Ваш уникальный авторский стиль
             </p>
@@ -112,34 +159,49 @@ export default function FingerprintPage() {
               className="gap-2"
             >
               <Pencil className="h-4 w-4" />
-              Редактировать
+              {hasFingerprint ? "Редактировать" : "Настроить вручную"}
             </Button>
           )}
         </div>
       </div>
 
       {/* Status card */}
-      <Card className="border-emerald-500/20 bg-emerald-500/5">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
+      {hasFingerprint ? (
+        <Card className="bg-emerald-500/5">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Fingerprint className="h-5 w-5 text-emerald-400" />
+                <div>
+                  <p className="font-medium">Fingerprint настроен</p>
+                  <p className="text-sm text-muted-foreground">
+                    Генерация будет использовать ваш стиль
+                  </p>
+                </div>
+              </div>
+              <Badge variant="success">Активен</Badge>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="bg-amber-500/5">
+          <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <CheckCircle className="h-5 w-5 text-emerald-500" />
+              <AlertCircle className="h-5 w-5 text-amber-400" />
               <div>
-                <p className="font-medium">Fingerprint активен</p>
+                <p className="font-medium">Fingerprint не настроен</p>
                 <p className="text-sm text-muted-foreground">
-                  Обновлён: {new Date(mockFingerprint.updatedAt).toLocaleDateString("ru")} •{" "}
-                  Проанализировано {mockFingerprint.postsAnalyzed} постов
+                  Настройте стиль вручную или запустите автоматический анализ
                 </p>
               </div>
             </div>
-            <Badge variant="success">Актуален</Badge>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Style Profile */}
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+        <Card>
           <CardHeader>
             <CardTitle>Профиль стиля</CardTitle>
             <CardDescription>
@@ -148,26 +210,44 @@ export default function FingerprintPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {Object.entries(styleProfile).map(([key, value]) => {
-              const labels: Record<string, string> = {
-                tone: "Тональность",
-                structure: "Структура",
-                vocabulary: "Словарный запас",
-                signature: "Фишки стиля",
-                emoji: "Эмодзи",
+              const labels: Record<string, { label: string; placeholder: string }> = {
+                tone: { 
+                  label: "Тональность", 
+                  placeholder: "Профессиональный, но дружелюбный" 
+                },
+                structure: { 
+                  label: "Структура", 
+                  placeholder: "Короткие абзацы, списки, призыв к действию в конце" 
+                },
+                vocabulary: { 
+                  label: "Словарный запас", 
+                  placeholder: "Технический с упрощениями, много английских терминов" 
+                },
+                signature: { 
+                  label: "Фишки стиля", 
+                  placeholder: "Начинает с вопроса, заканчивает CTA" 
+                },
+                emoji: { 
+                  label: "Эмодзи", 
+                  placeholder: "Умеренное использование: 🔥 💡 ✅ 📈" 
+                },
               };
 
               return (
                 <div key={key} className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">{labels[key]}</Label>
+                  <Label className="text-xs text-muted-foreground">{labels[key].label}</Label>
                   {isEditing ? (
                     <Input
                       value={value}
                       onChange={(e) =>
                         setStyleProfile({ ...styleProfile, [key]: e.target.value })
                       }
+                      placeholder={labels[key].placeholder}
                     />
                   ) : (
-                    <p className="text-sm bg-muted/50 rounded-lg px-3 py-2">{value}</p>
+                    <p className="text-sm bg-white/[0.02] rounded-lg px-3 py-2">
+                      {value || <span className="text-muted-foreground">Не задано</span>}
+                    </p>
                   )}
                 </div>
               );
@@ -175,65 +255,12 @@ export default function FingerprintPage() {
           </CardContent>
         </Card>
 
-        {/* Signature Phrases */}
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+        {/* Auto-analyze */}
+        <Card>
           <CardHeader>
-            <CardTitle>Фирменные фразы</CardTitle>
+            <CardTitle>Автоматический анализ</CardTitle>
             <CardDescription>
-              Часто используемые выражения и обороты
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {mockFingerprint.samplePhrases.map((phrase, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center gap-3 rounded-lg bg-muted/50 px-3 py-2"
-                >
-                  <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <p className="text-sm">&ldquo;{phrase}&rdquo;</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Metrics */}
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle>Метрики контента</CardTitle>
-            <CardDescription>
-              Статистические характеристики ваших постов
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-xl bg-muted/50 p-4 text-center">
-                <p className="text-2xl font-bold">{mockFingerprint.metrics.avgLength}</p>
-                <p className="text-xs text-muted-foreground">Средняя длина (симв.)</p>
-              </div>
-              <div className="rounded-xl bg-muted/50 p-4 text-center">
-                <p className="text-2xl font-bold">{mockFingerprint.metrics.avgParagraphs}</p>
-                <p className="text-xs text-muted-foreground">Абзацев в среднем</p>
-              </div>
-              <div className="rounded-xl bg-muted/50 p-4 text-center">
-                <p className="text-2xl font-bold">{mockFingerprint.metrics.formalityLevel}%</p>
-                <p className="text-xs text-muted-foreground">Формальность</p>
-              </div>
-              <div className="rounded-xl bg-muted/50 p-4 text-center">
-                <p className="text-2xl font-bold">{mockFingerprint.metrics.uniquePhrases}</p>
-                <p className="text-xs text-muted-foreground">Уникальных фраз</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Re-analyze */}
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle>Обновить Fingerprint</CardTitle>
-            <CardDescription>
-              Проанализировать канал заново для обновления профиля
+              AI проанализирует ваши посты и определит стиль
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -247,40 +274,23 @@ export default function FingerprintPage() {
             </div>
             <Button
               onClick={handleAnalyze}
-              disabled={isAnalyzing || !voicekeeperFeature.canAnalyzeFingerprint}
+              disabled={isAnalyzing}
               className="w-full gap-2"
             >
               <RefreshCw className={`h-4 w-4 ${isAnalyzing ? "animate-spin" : ""}`} />
               {isAnalyzing ? "Анализируем..." : "Запустить анализ"}
             </Button>
 
-            <div className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground">
-              <p className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                Анализ занимает 1-2 минуты
-              </p>
-              <p className="mt-1 text-xs">
-                AI проанализирует последние 50 постов и обновит ваш профиль стиля
+            <div className="rounded-lg bg-white/[0.02] p-3 text-sm text-muted-foreground">
+              <p>
+                AI проанализирует последние 50 постов и определит ваш уникальный стиль письма
               </p>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {DEMO_MODE && (
-        <Card className="border-amber-500/20 bg-amber-500/5">
-          <CardContent className="p-4 flex gap-3">
-            <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0" />
-            <div className="text-sm">
-              <p className="font-medium">Демо-режим</p>
-              <p className="text-muted-foreground">
-                Функция анализа канала отключена. Данные на странице — демонстрационные.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <underDev.Modal />
     </div>
   );
 }
-

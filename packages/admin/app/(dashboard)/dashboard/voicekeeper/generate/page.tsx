@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/toaster";
 import { FeatureIcon } from "@/components/brand/feature-icon";
+import { useAuth } from "@/lib/auth";
+import { UnderDevelopmentModal, useUnderDevelopment } from "@/components/ui/under-development-modal";
 import {
   Sparkles,
   Wand2,
@@ -18,19 +20,16 @@ import {
   ThumbsUp,
   ThumbsDown,
   ArrowLeft,
-  Lightbulb,
-  TrendingUp,
   Fingerprint,
+  Bot,
+  Plus,
 } from "lucide-react";
 import Link from "next/link";
 
-const trendSuggestions = [
-  { topic: "AI-инструменты для контент-маркетолога", score: 92 },
-  { topic: "Как автоматизировать Telegram-канал", score: 87 },
-  { topic: "5 ошибок начинающих авторов", score: 84 },
-];
-
 export default function GeneratePage() {
+  const { user, bots } = useAuth();
+  const underDev = useUnderDevelopment();
+  
   const [topic, setTopic] = useState("");
   const [tone, setTone] = useState<"friendly" | "professional" | "provocative">("friendly");
   const [length, setLength] = useState<"short" | "medium" | "long">("medium");
@@ -46,47 +45,35 @@ export default function GeneratePage() {
   } | null>(null);
   const [selectedVersion, setSelectedVersion] = useState(0);
 
+  const generationsUsed = user?.generationsUsed || 0;
+  const generationsLimit = user?.generationsLimit || 3;
+  const canGenerate = generationsUsed < generationsLimit;
+  const hasBots = bots.length > 0;
+
   const handleGenerate = async () => {
     if (!topic.trim()) {
       toast({ title: "Введите тему", variant: "destructive" });
       return;
     }
 
+    if (!canGenerate) {
+      toast({ 
+        title: "Лимит исчерпан", 
+        description: "Перейдите на Pro для большего количества генераций",
+        variant: "destructive" 
+      });
+      return;
+    }
+
     setIsGenerating(true);
     setResult(null);
 
-    setTimeout(() => {
-      setResult({
-        mainVersion: `Друзья, сегодня хочу поделиться мыслями о ${topic.toLowerCase()}. 🚀
-
-На самом деле, это тема, которая волнует многих из вас. И я решил разобраться в ней подробнее.
-
-Вот что я выяснил:
-
-1️⃣ Первый важный момент — нужно понимать контекст и текущие тренды
-
-2️⃣ Второе — не бояться экспериментировать с новыми подходами
-
-3️⃣ Третье — постоянно анализировать результаты и корректировать стратегию
-
-Что думаете? Делитесь в комментариях! 👇`,
-        alternatives: [
-          `А вы знали, что ${topic.toLowerCase()} может кардинально изменить ваш подход к контенту?
-
-Я провёл небольшое исследование и вот что обнаружил...
-
-[Продолжение в следующем посте]`,
-          `Вопрос к вам: как часто вы думаете о ${topic.toLowerCase()}?
-
-Я заметил интересную тенденцию — те, кто уделяет этому внимание, получают в 2-3 раза больше вовлечённости.
-
-Давайте разберёмся почему... 🤔`,
-        ],
-        confidence: 89,
-      });
-      setIsGenerating(false);
-      toast({ title: "Готово!", description: "Контент сгенерирован", variant: "success" });
-    }, 3000);
+    // This would call actual AI API
+    underDev.showModal(
+      "AI Генерация контента",
+      "Генерация постов с использованием Google Gemini AI. Убедитесь, что API ключ настроен в разделе Настройки → API ключи."
+    );
+    setIsGenerating(false);
   };
 
   const copyToClipboard = () => {
@@ -95,6 +82,45 @@ export default function GeneratePage() {
     navigator.clipboard.writeText(text);
     toast({ title: "Скопировано в буфер обмена" });
   };
+
+  if (!hasBots) {
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard/voicekeeper">
+            <Button variant="ghost" size="icon" className="rounded-xl">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight font-display">Создать пост с AI</h1>
+            <p className="text-muted-foreground">
+              Генерация контента в вашем уникальном стиле
+            </p>
+          </div>
+        </div>
+
+        <Card className="py-12">
+          <CardContent className="text-center">
+            <Bot className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium font-display mb-2">Сначала добавьте бота</h3>
+            <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+              Для генерации и публикации контента нужен подключенный Telegram-бот
+            </p>
+            <Link href="/dashboard/bots">
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Добавить бота
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <underDev.Modal />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -106,17 +132,37 @@ export default function GeneratePage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Создать пост с AI</h1>
+          <h1 className="text-2xl font-bold tracking-tight font-display">Создать пост с AI</h1>
           <p className="text-muted-foreground">
             Генерация контента в вашем уникальном стиле
           </p>
         </div>
       </div>
 
+      {/* Generations limit banner */}
+      {!canGenerate && (
+        <Card className="bg-amber-500/10">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div>
+              <p className="font-medium">Лимит генераций исчерпан</p>
+              <p className="text-sm text-muted-foreground">
+                Использовано {generationsUsed} из {generationsLimit} генераций
+              </p>
+            </div>
+            <Link href="/dashboard/settings/subscription">
+              <Button className="gap-2">
+                <Sparkles className="h-4 w-4" />
+                Улучшить план
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Input Form */}
         <div className="space-y-6">
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <Card>
             <CardHeader>
               <CardTitle>Параметры генерации</CardTitle>
               <CardDescription>
@@ -136,29 +182,6 @@ export default function GeneratePage() {
                 />
               </div>
 
-              {/* Trend suggestions */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <TrendingUp className="h-4 w-4" />
-                  Горячие темы в нише
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {trendSuggestions.map((suggestion) => (
-                    <button
-                      key={suggestion.topic}
-                      onClick={() => setTopic(suggestion.topic)}
-                      className="flex items-center gap-2 rounded-xl border border-border/50 bg-background/50 px-3 py-2 text-sm hover:bg-accent hover:border-primary/50 transition-all"
-                    >
-                      <Lightbulb className="h-3 w-3 text-amber-500" />
-                      <span className="truncate max-w-[180px]">{suggestion.topic}</span>
-                      <Badge variant="secondary" className="text-[10px]">
-                        {suggestion.score}%
-                      </Badge>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {/* Tone */}
               <div className="space-y-2">
                 <Label>Тон</Label>
@@ -173,8 +196,8 @@ export default function GeneratePage() {
                       onClick={() => setTone(option.value as typeof tone)}
                       className={`rounded-xl border p-3 text-center transition-all ${
                         tone === option.value
-                          ? "border-primary bg-primary/10 ring-2 ring-primary/20"
-                          : "border-border/50 hover:bg-accent hover:border-muted-foreground/50"
+                          ? "border-red-500 bg-red-500/10 ring-2 ring-red-500/20"
+                          : "border-white/10 hover:bg-white/[0.03] hover:border-white/20"
                       }`}
                     >
                       <span className="text-xl">{option.emoji}</span>
@@ -198,8 +221,8 @@ export default function GeneratePage() {
                       onClick={() => setLength(option.value as typeof length)}
                       className={`rounded-xl border p-3 text-center transition-all ${
                         length === option.value
-                          ? "border-primary bg-primary/10 ring-2 ring-primary/20"
-                          : "border-border/50 hover:bg-accent hover:border-muted-foreground/50"
+                          ? "border-red-500 bg-red-500/10 ring-2 ring-red-500/20"
+                          : "border-white/10 hover:bg-white/[0.03] hover:border-white/20"
                       }`}
                     >
                       <p className="text-sm font-medium">{option.label}</p>
@@ -237,15 +260,16 @@ export default function GeneratePage() {
                   value={customInstructions}
                   onChange={(e) => setCustomInstructions(e.target.value)}
                   placeholder="Добавь личную историю, упомяни конкретный продукт..."
-                  className="w-full h-20 rounded-xl border border-input bg-background px-3 py-2 text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="w-full h-20 rounded-xl border border-white/10 bg-white/[0.02] px-3 py-2 text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50"
                 />
               </div>
 
               {/* Generate button */}
               <Button
                 onClick={handleGenerate}
-                disabled={isGenerating || !topic.trim()}
-                className="w-full gap-2 h-12 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 border-0"
+                disabled={isGenerating || !topic.trim() || !canGenerate}
+                variant="gradient"
+                className="w-full gap-2 h-12"
               >
                 {isGenerating ? (
                   <>
@@ -259,13 +283,18 @@ export default function GeneratePage() {
                   </>
                 )}
               </Button>
+
+              {/* Remaining generations */}
+              <p className="text-center text-sm text-muted-foreground">
+                Осталось {generationsLimit - generationsUsed} генераций
+              </p>
             </CardContent>
           </Card>
         </div>
 
         {/* Result */}
         <div className="space-y-6">
-          <Card className={`border-border/50 bg-card/50 backdrop-blur-sm ${!result ? "opacity-50" : ""}`}>
+          <Card className={!result ? "opacity-50" : ""}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -293,8 +322,8 @@ export default function GeneratePage() {
                       onClick={() => setSelectedVersion(0)}
                       className={`flex-1 rounded-xl border p-2 text-sm font-medium transition-all ${
                         selectedVersion === 0
-                          ? "border-primary bg-primary/10"
-                          : "border-border/50 hover:bg-accent"
+                          ? "border-red-500 bg-red-500/10"
+                          : "border-white/10 hover:bg-white/[0.03]"
                       }`}
                     >
                       Основная
@@ -305,8 +334,8 @@ export default function GeneratePage() {
                         onClick={() => setSelectedVersion(idx + 1)}
                         className={`flex-1 rounded-xl border p-2 text-sm font-medium transition-all ${
                           selectedVersion === idx + 1
-                            ? "border-primary bg-primary/10"
-                            : "border-border/50 hover:bg-accent"
+                            ? "border-red-500 bg-red-500/10"
+                            : "border-white/10 hover:bg-white/[0.03]"
                         }`}
                       >
                         Вариант {idx + 1}
@@ -315,7 +344,7 @@ export default function GeneratePage() {
                   </div>
 
                   {/* Content */}
-                  <div className="rounded-xl border border-border/50 bg-muted/30 p-4">
+                  <div className="rounded-xl bg-white/[0.02] p-4">
                     <pre className="whitespace-pre-wrap text-sm font-sans leading-relaxed">
                       {selectedVersion === 0
                         ? result.mainVersion
@@ -340,7 +369,7 @@ export default function GeneratePage() {
                   </div>
 
                   {/* Feedback */}
-                  <div className="flex items-center justify-between rounded-xl border border-border/50 p-3">
+                  <div className="flex items-center justify-between rounded-xl border border-white/10 p-3">
                     <span className="text-sm text-muted-foreground">
                       Оцените качество генерации
                     </span>
@@ -358,7 +387,7 @@ export default function GeneratePage() {
                 </>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/[0.03]">
                     <Sparkles className="h-8 w-8 text-muted-foreground" />
                   </div>
                   <p className="mt-4 text-muted-foreground">
@@ -370,18 +399,18 @@ export default function GeneratePage() {
           </Card>
 
           {/* Voice Fingerprint Preview */}
-          <Card className="border-violet-500/20 bg-violet-500/5">
+          <Card className="bg-red-500/5">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <FeatureIcon icon={Fingerprint} variant="primary" size="md" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium">Voice Fingerprint активен</p>
+                  <p className="text-sm font-medium">Voice Fingerprint</p>
                   <p className="text-xs text-muted-foreground">
-                    Генерация в вашем стиле: позитивный тон, неформальный, с эмодзи
+                    Настройте стиль генерации под ваш авторский голос
                   </p>
                 </div>
                 <Link href="/dashboard/voicekeeper/fingerprint">
-                  <Button variant="ghost" size="sm" className="text-violet-400 hover:text-violet-300">
+                  <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-300">
                     Настроить
                   </Button>
                 </Link>
@@ -390,7 +419,8 @@ export default function GeneratePage() {
           </Card>
         </div>
       </div>
+
+      <underDev.Modal />
     </div>
   );
 }
-

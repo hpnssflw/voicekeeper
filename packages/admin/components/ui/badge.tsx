@@ -5,26 +5,26 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-lg px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring/50",
+  "inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring/50",
   {
     variants: {
       variant: {
         default:
-          "bg-primary/90 text-primary-foreground shadow-sm shadow-primary/20",
+          "bg-primary text-primary-foreground shadow-sm",
         secondary:
-          "bg-secondary/80 text-secondary-foreground",
+          "bg-[hsl(240,10%,18%)] text-secondary-foreground",
         destructive:
-          "bg-destructive/20 text-red-400 shadow-sm shadow-destructive/10",
+          "bg-red-500/15 text-red-400",
         outline: 
-          "text-foreground bg-card/40 shadow-[0_0_0_1px_hsl(var(--primary)/0.1)]",
+          "text-foreground bg-[hsl(240,10%,16%)]",
         success:
-          "bg-emerald-500/20 text-emerald-400 shadow-sm shadow-emerald-500/10",
+          "bg-emerald-500/15 text-emerald-400",
         warning:
-          "bg-amber-500/20 text-amber-400 shadow-sm shadow-amber-500/10",
+          "bg-amber-500/15 text-amber-400",
         info:
-          "bg-blue-500/20 text-blue-400 shadow-sm shadow-blue-500/10",
+          "bg-blue-500/15 text-blue-400",
         gradient:
-          "bg-gradient-to-r from-red-500/20 to-emerald-500/20 text-red-400 shadow-sm shadow-red-500/10",
+          "bg-gradient-to-r from-red-500/20 to-emerald-500/20 text-red-300",
       },
     },
     defaultVariants: {

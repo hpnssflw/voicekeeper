@@ -1,97 +1,46 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useFeature, DEMO_MODE } from "@/lib/features";
+import { useFeature } from "@/lib/features";
+import { useAuth } from "@/lib/auth";
 import Link from "next/link";
 import {
   FileText,
   Plus,
   Search,
-  Eye,
-  MousePointer,
-  Calendar,
-  Edit,
-  Trash2,
-  Copy,
   Sparkles,
-  Send,
-  Clock,
-  Filter,
+  Bot,
 } from "lucide-react";
 
-const mockPosts = [
-  {
-    id: "1",
-    title: "5 AI-инструментов для контент-маркетолога",
-    content: "Друзья, сегодня хочу поделиться подборкой инструментов...",
-    status: "published",
-    bot: "Content Channel Bot",
-    views: 2340,
-    clicks: 156,
-    publishedAt: "2026-01-17T10:00:00Z",
-    createdAt: "2026-01-16T18:30:00Z",
-    isAiGenerated: true,
-  },
-  {
-    id: "2",
-    title: "Как увеличить вовлеченность в Telegram",
-    content: "Вопрос к вам: как часто вы анализируете статистику канала?...",
-    status: "scheduled",
-    bot: "Content Channel Bot",
-    views: 0,
-    clicks: 0,
-    scheduledAt: "2026-01-18T18:00:00Z",
-    createdAt: "2026-01-17T12:00:00Z",
-    isAiGenerated: true,
-  },
-  {
-    id: "3",
-    title: "Новости индустрии #47",
-    content: "На этой неделе произошло много интересного...",
-    status: "draft",
-    bot: "News Bot",
-    views: 0,
-    clicks: 0,
-    createdAt: "2026-01-17T14:30:00Z",
-    isAiGenerated: false,
-  },
-  {
-    id: "4",
-    title: "Тренды Telegram в 2026",
-    content: "Давайте разберёмся, что ждёт нас в этом году...",
-    status: "published",
-    bot: "Marketing Bot",
-    views: 4520,
-    clicks: 312,
-    publishedAt: "2026-01-15T12:00:00Z",
-    createdAt: "2026-01-14T20:00:00Z",
-    isAiGenerated: false,
-  },
-  {
-    id: "5",
-    title: "Как я автоматизировал создание контента",
-    content: "Расскажу про свой workflow с использованием AI...",
-    status: "published",
-    bot: "Content Channel Bot",
-    views: 3180,
-    clicks: 245,
-    publishedAt: "2026-01-13T14:00:00Z",
-    createdAt: "2026-01-12T22:00:00Z",
-    isAiGenerated: true,
-  },
-];
+export interface Post {
+  id: string;
+  title: string;
+  content: string;
+  status: "published" | "scheduled" | "draft";
+  botId: string;
+  views: number;
+  clicks: number;
+  publishedAt?: string;
+  scheduledAt?: string;
+  createdAt: string;
+  isAiGenerated: boolean;
+}
 
 export default function PostsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const postsFeature = useFeature("posts");
+  const { bots } = useAuth();
+  
+  // Posts would come from API - for now empty array
+  const posts: Post[] = [];
 
-  const filteredPosts = mockPosts.filter((post) => {
+  const filteredPosts = posts.filter((post) => {
     const matchesSearch =
       post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       post.content.toLowerCase().includes(searchQuery.toLowerCase());
@@ -113,15 +62,7 @@ export default function PostsPage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("ru", {
-      day: "numeric",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  const hasBots = bots.length > 0;
 
   return (
     <div className="space-y-6">
@@ -141,7 +82,7 @@ export default function PostsPage() {
             </Button>
           </Link>
           <Link href="/dashboard/posts/new">
-            <Button className="gap-2" disabled={!postsFeature.canCreate}>
+            <Button className="gap-2" disabled={!postsFeature.canCreate || !hasBots}>
               <Plus className="h-4 w-4" />
               Новый пост
             </Button>
@@ -149,193 +90,191 @@ export default function PostsPage() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div className="w-full sm:w-auto sm:flex-1 sm:max-w-sm">
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Поиск по постам..."
-            icon={<Search className="h-4 w-4" />}
-          />
-        </div>
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList>
-            <TabsTrigger value="all">Все</TabsTrigger>
-            <TabsTrigger value="published">Опубликованные</TabsTrigger>
-            <TabsTrigger value="scheduled">Запланированные</TabsTrigger>
-            <TabsTrigger value="draft">Черновики</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
+      {/* Check if bots exist */}
+      {!hasBots ? (
+        <Card className="py-12">
+          <CardContent className="text-center">
+            <Bot className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium font-display mb-2">Сначала добавьте бота</h3>
+            <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+              Чтобы создавать и публиковать посты, нужно подключить Telegram-бота
+            </p>
+            <Link href="/dashboard/bots">
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Добавить бота
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      ) : posts.length === 0 ? (
+        <>
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="w-full sm:w-auto sm:flex-1 sm:max-w-sm">
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Поиск по постам..."
+                icon={<Search className="h-4 w-4" />}
+              />
+            </div>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList>
+                <TabsTrigger value="all">Все</TabsTrigger>
+                <TabsTrigger value="published">Опубликованные</TabsTrigger>
+                <TabsTrigger value="scheduled">Запланированные</TabsTrigger>
+                <TabsTrigger value="draft">Черновики</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
 
-      {/* Posts List */}
-      <Card>
-        <CardContent className="p-0">
-          <div className="divide-y divide-white/[0.03]">
-            {filteredPosts.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <FileText className="h-12 w-12 text-muted-foreground" />
-                <p className="mt-4 text-lg font-medium">Посты не найдены</p>
-                <p className="text-muted-foreground">
-                  Попробуйте изменить фильтры или создайте новый пост
-                </p>
-                <Link href="/dashboard/voicekeeper/generate" className="mt-4">
+          {/* Empty State */}
+          <Card className="py-12">
+            <CardContent className="text-center">
+              <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium font-display mb-2">Нет постов</h3>
+              <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+                Создайте свой первый пост с помощью AI или вручную
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Link href="/dashboard/voicekeeper/generate">
                   <Button className="gap-2">
                     <Sparkles className="h-4 w-4" />
                     Создать с AI
                   </Button>
                 </Link>
+                <Link href="/dashboard/posts/new">
+                  <Button variant="outline" className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Написать вручную
+                  </Button>
+                </Link>
               </div>
-            ) : (
-              filteredPosts.map((post) => (
-                <div
-                  key={post.id}
-                  className="flex items-center gap-4 p-4 hover:bg-accent/50 transition-colors"
-                >
-                  {/* Status indicator */}
-                  <div
-                    className={`h-2 w-2 rounded-full shrink-0 ${
-                      post.status === "published"
-                        ? "bg-emerald-500"
-                        : post.status === "scheduled"
-                        ? "bg-amber-500"
-                        : "bg-muted-foreground"
-                    }`}
-                  />
-
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-medium truncate">{post.title}</h3>
-                      {post.isAiGenerated && (
-                        <Badge variant="gradient" className="gap-1 shrink-0">
-                          <Sparkles className="h-3 w-3" />
-                          AI
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground truncate mt-1">
-                      {post.content}
-                    </p>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                      <span>{post.bot}</span>
-                      {post.status === "scheduled" && post.scheduledAt && (
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {formatDate(post.scheduledAt)}
-                        </span>
-                      )}
-                      {post.status === "published" && post.publishedAt && (
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {formatDate(post.publishedAt)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Stats */}
-                  {post.status === "published" && (
-                    <div className="hidden md:flex items-center gap-6 text-sm">
-                      <div className="flex items-center gap-1.5 text-muted-foreground">
-                        <Eye className="h-4 w-4" />
-                        {post.views.toLocaleString()}
-                      </div>
-                      <div className="flex items-center gap-1.5 text-muted-foreground">
-                        <MousePointer className="h-4 w-4" />
-                        {post.clicks}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Status badge */}
-                  <div className="hidden sm:block">
-                    {getStatusBadge(post.status)}
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-1">
-                    {post.status === "draft" && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="gap-1"
-                        disabled={!postsFeature.canPublish}
-                      >
-                        <Send className="h-3 w-3" />
-                        <span className="hidden lg:inline">Опубликовать</span>
-                      </Button>
-                    )}
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
+            </CardContent>
+          </Card>
+        </>
+      ) : (
+        <>
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="w-full sm:w-auto sm:flex-1 sm:max-w-sm">
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Поиск по постам..."
+                icon={<Search className="h-4 w-4" />}
+              />
+            </div>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList>
+                <TabsTrigger value="all">Все</TabsTrigger>
+                <TabsTrigger value="published">Опубликованные</TabsTrigger>
+                <TabsTrigger value="scheduled">Запланированные</TabsTrigger>
+                <TabsTrigger value="draft">Черновики</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Quick stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Всего постов</span>
-              <span className="text-2xl font-bold font-display">{mockPosts.length}</span>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Опубликовано</span>
-              <span className="text-2xl font-bold font-display text-emerald-400">
-                {mockPosts.filter((p) => p.status === "published").length}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Запланировано</span>
-              <span className="text-2xl font-bold font-display text-amber-400">
-                {mockPosts.filter((p) => p.status === "scheduled").length}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Черновики</span>
-              <span className="text-2xl font-bold font-display">
-                {mockPosts.filter((p) => p.status === "draft").length}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          {/* Posts List - will be populated from API */}
+          <Card>
+            <CardContent className="p-0">
+              <div className="divide-y divide-white/[0.03]">
+                {filteredPosts.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <FileText className="h-12 w-12 text-muted-foreground" />
+                    <p className="mt-4 text-lg font-medium">Посты не найдены</p>
+                    <p className="text-muted-foreground">
+                      Попробуйте изменить фильтры или создайте новый пост
+                    </p>
+                  </div>
+                ) : (
+                  filteredPosts.map((post) => (
+                    <div
+                      key={post.id}
+                      className="flex items-center gap-4 p-4 hover:bg-accent/50 transition-colors"
+                    >
+                      {/* Status indicator */}
+                      <div
+                        className={`h-2 w-2 rounded-full shrink-0 ${
+                          post.status === "published"
+                            ? "bg-emerald-500"
+                            : post.status === "scheduled"
+                            ? "bg-amber-500"
+                            : "bg-muted-foreground"
+                        }`}
+                      />
 
-      {DEMO_MODE && (
-        <p className="text-center text-sm text-muted-foreground">
-          В демо-режиме функции создания и публикации отключены
-        </p>
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium truncate">{post.title}</h3>
+                          {post.isAiGenerated && (
+                            <Badge variant="gradient" className="gap-1 shrink-0">
+                              <Sparkles className="h-3 w-3" />
+                              AI
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground truncate mt-1">
+                          {post.content}
+                        </p>
+                      </div>
+
+                      {/* Status badge */}
+                      <div className="hidden sm:block">
+                        {getStatusBadge(post.status)}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Quick stats */}
+          <div className="grid gap-4 md:grid-cols-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Всего постов</span>
+                  <span className="text-2xl font-bold font-display">{posts.length}</span>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Опубликовано</span>
+                  <span className="text-2xl font-bold font-display text-emerald-400">
+                    {posts.filter((p) => p.status === "published").length}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Запланировано</span>
+                  <span className="text-2xl font-bold font-display text-amber-400">
+                    {posts.filter((p) => p.status === "scheduled").length}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Черновики</span>
+                  <span className="text-2xl font-bold font-display">
+                    {posts.filter((p) => p.status === "draft").length}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </>
       )}
     </div>
   );
 }
-

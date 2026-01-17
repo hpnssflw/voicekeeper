@@ -5,148 +5,67 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/toaster";
-import { FeatureIcon } from "@/components/brand/feature-icon";
-import { useFeature, DEMO_MODE } from "@/lib/features";
+import { useAuth } from "@/lib/auth";
+import { UnderDevelopmentModal, useUnderDevelopment } from "@/components/ui/under-development-modal";
 import {
   Radar,
   Plus,
   TrendingUp,
-  TrendingDown,
-  Minus,
-  Eye,
-  Users,
   Trash2,
   RefreshCw,
   ExternalLink,
-  Sparkles,
   Lock,
   Crown,
+  Radio,
 } from "lucide-react";
 import Link from "next/link";
 
-const mockCompetitors = [
-  {
-    id: "1",
-    username: "@marketing_pro",
-    title: "Marketing Pro",
-    subscribers: 45200,
-    avgEngagement: 4.2,
-    lastScan: "2ч назад",
-    isActive: true,
-  },
-  {
-    id: "2",
-    username: "@content_kings",
-    title: "Content Kings",
-    subscribers: 32100,
-    avgEngagement: 5.1,
-    lastScan: "2ч назад",
-    isActive: true,
-  },
-  {
-    id: "3",
-    username: "@digital_nomad",
-    title: "Digital Nomad",
-    subscribers: 28500,
-    avgEngagement: 3.8,
-    lastScan: "2ч назад",
-    isActive: true,
-  },
-];
-
-const mockHotTopics = [
-  {
-    topic: "AI-автоматизация в маркетинге",
-    score: 94,
-    trend: "rising",
-    mentions: 23,
-    avgEngagement: 5800,
-  },
-  {
-    topic: "Telegram Premium для бизнеса",
-    score: 87,
-    trend: "rising",
-    mentions: 18,
-    avgEngagement: 4200,
-  },
-  {
-    topic: "Контент-планирование 2026",
-    score: 82,
-    trend: "stable",
-    mentions: 15,
-    avgEngagement: 3900,
-  },
-  {
-    topic: "Монетизация через подписки",
-    score: 76,
-    trend: "falling",
-    mentions: 12,
-    avgEngagement: 3100,
-  },
-];
-
-const mockMissedTopics = [
-  {
-    topic: "Нейросети для создания визуала",
-    competitorCount: 4,
-    potential: 88,
-  },
-  {
-    topic: "Кросс-постинг стратегии",
-    competitorCount: 3,
-    potential: 72,
-  },
-];
+interface TrackedChannel {
+  id: string;
+  username: string;
+  title: string;
+  lastScan?: string;
+}
 
 export default function TrendsPage() {
-  const trendFeature = useFeature("trendRadar");
-  const [competitors, setCompetitors] = useState(mockCompetitors);
-  const [isAddingCompetitor, setIsAddingCompetitor] = useState(false);
-  const [newCompetitor, setNewCompetitor] = useState("");
-  const [isScanning, setIsScanning] = useState(false);
+  const { user, channels } = useAuth();
+  const underDev = useUnderDevelopment();
+  const [isAddingChannel, setIsAddingChannel] = useState(false);
+  const [newChannel, setNewChannel] = useState("");
+  const [trackedChannels, setTrackedChannels] = useState<TrackedChannel[]>([]);
 
-  // Premium gate for demo
-  const isPremium = !DEMO_MODE;
+  // Premium gate based on user plan
+  const isPremium = user?.plan === "pro" || user?.plan === "business";
 
-  const handleAddCompetitor = () => {
-    if (!newCompetitor.trim()) {
+  const handleAddChannel = () => {
+    if (!newChannel.trim()) {
       toast({ title: "Введите username канала", variant: "destructive" });
       return;
     }
 
-    toast({ title: "Добавляем канал...", description: "Проверяем доступность" });
-
-    setTimeout(() => {
-      const newComp = {
-        id: Date.now().toString(),
-        username: newCompetitor.startsWith("@") ? newCompetitor : `@${newCompetitor}`,
-        title: "New Channel",
-        subscribers: 0,
-        avgEngagement: 0,
-        lastScan: "Никогда",
-        isActive: true,
-      };
-      setCompetitors([...competitors, newComp]);
-      setNewCompetitor("");
-      setIsAddingCompetitor(false);
-      toast({ title: "Канал добавлен", variant: "success" });
-    }, 1500);
+    const newItem: TrackedChannel = {
+      id: Date.now().toString(),
+      username: newChannel.startsWith("@") ? newChannel : `@${newChannel}`,
+      title: newChannel.replace("@", ""),
+      lastScan: undefined,
+    };
+    
+    setTrackedChannels([...trackedChannels, newItem]);
+    setNewChannel("");
+    setIsAddingChannel(false);
+    toast({ title: "Канал добавлен для отслеживания", variant: "success" });
   };
 
   const handleScan = () => {
-    setIsScanning(true);
-    toast({ title: "Сканирование запущено", description: "Это займёт 2-3 минуты" });
-
-    setTimeout(() => {
-      setIsScanning(false);
-      toast({ title: "Сканирование завершено", description: "Тренды обновлены", variant: "success" });
-    }, 3000);
+    underDev.showModal(
+      "Сканирование трендов",
+      "Автоматический анализ контента конкурентов и выявление популярных тем. Эта функция скоро будет доступна."
+    );
   };
 
-  const removeCompetitor = (id: string) => {
-    setCompetitors(competitors.filter((c) => c.id !== id));
+  const removeChannel = (id: string) => {
+    setTrackedChannels(trackedChannels.filter((c) => c.id !== id));
     toast({ title: "Канал удалён" });
   };
 
@@ -154,39 +73,54 @@ export default function TrendsPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
         <div className="relative">
-          <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500">
+          <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 shadow-lg">
             <Lock className="h-10 w-10 text-white" />
           </div>
           <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 blur-xl opacity-40" />
         </div>
-        <h1 className="mt-6 text-2xl font-bold">Trend Radar</h1>
+        <h1 className="mt-6 text-2xl font-bold font-display">Trend Radar</h1>
         <p className="mt-2 text-muted-foreground max-w-md">
           Мониторинг конкурентов и выявление горячих тем в вашей нише.
           Доступно на тарифах Pro и Business.
         </p>
         <div className="mt-6 flex flex-col sm:flex-row gap-3">
           <Link href="/dashboard/settings/subscription">
-            <Button className="gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 border-0">
+            <Button className="gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 border-0 shadow-lg shadow-amber-500/25">
               <Crown className="h-4 w-4" />
               Перейти на Pro
             </Button>
           </Link>
-          <Button variant="outline">Узнать больше</Button>
+          <Link href="/dashboard/channels">
+            <Button variant="outline">Отслеживать каналы</Button>
+          </Link>
         </div>
+
+        <underDev.Modal />
       </div>
     );
   }
+
+  const hasChannels = trackedChannels.length > 0 || channels.length > 0;
+  const allChannels = [
+    ...trackedChannels,
+    ...channels.map(c => ({ 
+      id: c.id, 
+      username: c.username, 
+      title: c.title, 
+      lastScan: c.lastParsed 
+    }))
+  ];
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 shadow-lg shadow-amber-500/25">
             <Radar className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Trend Radar</h1>
+            <h1 className="text-2xl font-bold tracking-tight font-display">Trend Radar</h1>
             <p className="text-muted-foreground">
               Мониторинг конкурентов и трендов в нише
             </p>
@@ -194,201 +128,148 @@ export default function TrendsPage() {
         </div>
         <Button
           onClick={handleScan}
-          disabled={isScanning || !trendFeature.canScan}
+          disabled={!hasChannels}
           className="gap-2"
         >
-          <RefreshCw className={`h-4 w-4 ${isScanning ? "animate-spin" : ""}`} />
-          {isScanning ? "Сканируем..." : "Обновить"}
+          <RefreshCw className="h-4 w-4" />
+          Сканировать
         </Button>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Hot Topics */}
-        <Card className="lg:col-span-2 border-border/50 bg-card/50 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-emerald-500" />
-              Горячие темы
-            </CardTitle>
-            <CardDescription>
-              Популярные темы у ваших конкурентов за последние 7 дней
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {mockHotTopics.map((topic, idx) => (
-              <div
-                key={idx}
-                className="flex items-center gap-4 rounded-xl border border-border/50 bg-background/50 p-4 hover:bg-accent/30 transition-colors"
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted font-bold text-sm">
-                  #{idx + 1}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h4 className="font-medium truncate">{topic.topic}</h4>
-                    {topic.trend === "rising" && (
-                      <TrendingUp className="h-4 w-4 text-emerald-500 shrink-0" />
-                    )}
-                    {topic.trend === "falling" && (
-                      <TrendingDown className="h-4 w-4 text-red-500 shrink-0" />
-                    )}
-                    {topic.trend === "stable" && (
-                      <Minus className="h-4 w-4 text-muted-foreground shrink-0" />
-                    )}
-                  </div>
-                  <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                    <span>{topic.mentions} упоминаний</span>
-                    <span>~{topic.avgEngagement.toLocaleString()} просмотров</span>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold">{topic.score}</div>
-                  <div className="text-xs text-muted-foreground">score</div>
-                </div>
-                <Link href={`/dashboard/voicekeeper/generate?topic=${encodeURIComponent(topic.topic)}`}>
-                  <Button size="sm" className="gap-1">
-                    <Sparkles className="h-3 w-3" />
-                    Написать
-                  </Button>
-                </Link>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* Missed Topics */}
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Eye className="h-4 w-4 text-amber-500" />
-              Упущенные темы
-            </CardTitle>
-            <CardDescription>
-              Темы, о которых пишут конкуренты, но не вы
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {mockMissedTopics.map((topic, idx) => (
-              <div
-                key={idx}
-                className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4"
-              >
-                <h4 className="font-medium text-sm">{topic.topic}</h4>
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-xs text-muted-foreground">
-                    {topic.competitorCount} конкурента пишут
-                  </span>
-                  <Badge variant="warning">
-                    Потенциал {topic.potential}%
-                  </Badge>
-                </div>
-              </div>
-            ))}
-            <Link href="/dashboard/voicekeeper/generate">
-              <Button variant="outline" className="w-full gap-2 mt-2">
-                <Sparkles className="h-4 w-4" />
-                Создать пост
+      {!hasChannels ? (
+        <Card className="py-12">
+          <CardContent className="text-center">
+            <Radio className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium font-display mb-2">Добавьте каналы для анализа</h3>
+            <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+              Trend Radar анализирует контент конкурентов и выявляет популярные темы
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Button onClick={() => setIsAddingChannel(true)} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Добавить канал
               </Button>
-            </Link>
+              <Link href="/dashboard/channels">
+                <Button variant="outline" className="gap-2">
+                  <Radio className="h-4 w-4" />
+                  Отслеживаемые каналы
+                </Button>
+              </Link>
+            </div>
           </CardContent>
         </Card>
-      </div>
-
-      {/* Competitors */}
-      <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Конкуренты</CardTitle>
+      ) : (
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Empty Analysis Card */}
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-emerald-400" />
+                Горячие темы
+              </CardTitle>
               <CardDescription>
-                Каналы, которые вы отслеживаете
+                Популярные темы у отслеживаемых каналов
               </CardDescription>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsAddingCompetitor(true)}
-              className="gap-2"
-              disabled={!trendFeature.canAddCompetitors}
-            >
-              <Plus className="h-4 w-4" />
-              Добавить
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {/* Add competitor form */}
-          {isAddingCompetitor && (
-            <div className="mb-4 rounded-xl border border-dashed border-primary/50 bg-primary/5 p-4">
-              <Label className="mb-2 block">Username канала</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={newCompetitor}
-                  onChange={(e) => setNewCompetitor(e.target.value)}
-                  placeholder="@channel_name"
-                />
-                <Button onClick={handleAddCompetitor}>Добавить</Button>
-                <Button variant="ghost" onClick={() => setIsAddingCompetitor(false)}>
-                  Отмена
+            </CardHeader>
+            <CardContent>
+              <div className="py-12 text-center">
+                <TrendingUp className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
+                <h3 className="font-medium mb-2">Нет данных</h3>
+                <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-4">
+                  Запустите сканирование, чтобы проанализировать контент отслеживаемых каналов
+                </p>
+                <Button onClick={handleScan} className="gap-2">
+                  <RefreshCw className="h-4 w-4" />
+                  Сканировать
                 </Button>
               </div>
-            </div>
-          )}
+            </CardContent>
+          </Card>
 
-          {/* Competitors list */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {competitors.map((competitor) => (
-              <div
-                key={competitor.id}
-                className="rounded-xl border border-border/50 bg-background/50 p-4"
-              >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h4 className="font-medium">{competitor.title}</h4>
-                    <a
-                      href={`https://t.me/${competitor.username.replace("@", "")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {competitor.username}
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                    onClick={() => removeCompetitor(competitor.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <Users className="h-3 w-3" />
-                    {competitor.subscribers.toLocaleString()}
-                  </div>
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <TrendingUp className="h-3 w-3" />
-                    {competitor.avgEngagement}% ER
-                  </div>
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Обновлено: {competitor.lastScan}
-                </p>
+          {/* Tracked Channels */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base">Каналы для анализа</CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsAddingChannel(true)}
+                  className="gap-1"
+                >
+                  <Plus className="h-3 w-3" />
+                  Добавить
+                </Button>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {/* Add channel form */}
+              {isAddingChannel && (
+                <div className="rounded-xl border border-dashed border-amber-500/50 bg-amber-500/5 p-4 mb-4">
+                  <Label className="mb-2 block text-sm">Username канала</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={newChannel}
+                      onChange={(e) => setNewChannel(e.target.value)}
+                      placeholder="@channel_name"
+                      className="text-sm"
+                    />
+                  </div>
+                  <div className="flex gap-2 mt-2">
+                    <Button size="sm" onClick={handleAddChannel}>Добавить</Button>
+                    <Button size="sm" variant="ghost" onClick={() => setIsAddingChannel(false)}>
+                      Отмена
+                    </Button>
+                  </div>
+                </div>
+              )}
 
-      {DEMO_MODE && (
-        <p className="text-center text-sm text-muted-foreground">
-          В демо-режиме функции сканирования и добавления конкурентов отключены
-        </p>
+              {allChannels.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Нет добавленных каналов
+                </p>
+              ) : (
+                allChannels.map((channel) => (
+                  <div
+                    key={channel.id}
+                    className="rounded-xl bg-white/[0.02] p-3 hover:bg-white/[0.04] transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium text-sm">{channel.title}</h4>
+                        <a
+                          href={`https://t.me/${channel.username.replace("@", "")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          {channel.username}
+                          <ExternalLink className="h-2.5 w-2.5" />
+                        </a>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        onClick={() => removeChannel(channel.id)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    {channel.lastScan && (
+                      <p className="mt-1 text-[10px] text-muted-foreground">
+                        Обновлено: {channel.lastScan}
+                      </p>
+                    )}
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </div>
       )}
+
+      <underDev.Modal />
     </div>
   );
 }
-

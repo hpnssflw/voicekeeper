@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FeatureIcon } from "@/components/brand/feature-icon";
+import { useAuth } from "@/lib/auth";
 import {
   Bot,
   FileText,
@@ -12,118 +13,69 @@ import {
   Sparkles,
   ArrowRight,
   Eye,
-  MousePointer,
   Zap,
   BarChart3,
-  Clock,
-  Target,
+  Radio,
+  Plus,
 } from "lucide-react";
 import Link from "next/link";
 
-const stats = [
-  {
-    name: "Активные боты",
-    value: "3",
-    change: "+1 за месяц",
-    changeType: "positive",
-    icon: Bot,
-    variant: "info" as const,
-  },
-  {
-    name: "Всего постов",
-    value: "127",
-    change: "+12 за неделю",
-    changeType: "positive",
-    icon: FileText,
-    variant: "primary" as const,
-  },
-  {
-    name: "Подписчики",
-    value: "14.2K",
-    change: "+8.3%",
-    changeType: "positive",
-    icon: Users,
-    variant: "success" as const,
-  },
-  {
-    name: "Просмотры",
-    value: "89.4K",
-    change: "+24%",
-    changeType: "positive",
-    icon: Eye,
-    variant: "warning" as const,
-  },
-];
-
-const recentPosts = [
-  {
-    id: 1,
-    title: "5 трендов AI в 2026 году",
-    status: "published",
-    views: 2340,
-    clicks: 156,
-    bot: "Content Channel",
-    date: "2ч назад",
-    isAi: true,
-  },
-  {
-    id: 2,
-    title: "Как увеличить вовлеченность",
-    status: "scheduled",
-    views: 0,
-    clicks: 0,
-    bot: "Marketing Bot",
-    date: "Запланирован на 18:00",
-    isAi: true,
-  },
-  {
-    id: 3,
-    title: "Новости индустрии #47",
-    status: "draft",
-    views: 0,
-    clicks: 0,
-    bot: "News Bot",
-    date: "Черновик",
-    isAi: false,
-  },
-];
-
-const aiInsights = [
-  {
-    type: "trend",
-    icon: TrendingUp,
-    title: "Горячая тема в нише",
-    description: "«AI-автоматизация» набирает обороты. +340% упоминаний у конкурентов.",
-    action: "Создать пост",
-    href: "/dashboard/voicekeeper/generate?topic=AI-автоматизация",
-  },
-  {
-    type: "time",
-    icon: Clock,
-    title: "Лучшее время публикации",
-    description: "Ваша аудитория активна в 10:00-12:00 и 19:00-21:00.",
-    action: "Запланировать",
-    href: "/dashboard/posts",
-  },
-  {
-    type: "optimization",
-    icon: Target,
-    title: "Оптимизация контента",
-    description: "Посты с эмодзи получают на 23% больше реакций.",
-    action: "Настроить",
-    href: "/dashboard/voicekeeper/fingerprint",
-  },
-];
-
 export default function DashboardPage() {
+  const { user, bots, channels } = useAuth();
+  
+  const activeBots = bots.filter(b => b.isActive).length;
+  const totalPosts = bots.reduce((sum, b) => sum + b.postsCount, 0);
+  const totalSubscribers = bots.reduce((sum, b) => sum + b.subscriberCount, 0);
+  
+  const stats = [
+    {
+      name: "Активные боты",
+      value: activeBots.toString(),
+      subtitle: `из ${bots.length} подключенных`,
+      icon: Bot,
+      variant: "info" as const,
+      href: "/dashboard/bots",
+    },
+    {
+      name: "Всего постов",
+      value: totalPosts.toString(),
+      subtitle: "опубликовано",
+      icon: FileText,
+      variant: "primary" as const,
+      href: "/dashboard/posts",
+    },
+    {
+      name: "Подписчики",
+      value: totalSubscribers > 1000 ? `${(totalSubscribers / 1000).toFixed(1)}K` : totalSubscribers.toString(),
+      subtitle: "суммарно",
+      icon: Users,
+      variant: "success" as const,
+      href: "/dashboard/subscribers",
+    },
+    {
+      name: "Каналы",
+      value: channels.length.toString(),
+      subtitle: "отслеживаемых",
+      icon: Radio,
+      variant: "warning" as const,
+      href: "/dashboard/channels",
+    },
+  ];
+
+  const hasData = bots.length > 0 || channels.length > 0;
+
   return (
     <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight font-display">Dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-tight font-display">
+            {user?.firstName ? `Привет, ${user.firstName}!` : "Dashboard"}
+          </h1>
           <p className="text-muted-foreground">
-            Обзор ваших Telegram-каналов и контента
+            {hasData 
+              ? "Обзор ваших Telegram-каналов и контента"
+              : "Начните с добавления бота или канала"}
           </p>
         </div>
         <Link href="/dashboard/voicekeeper/generate">
@@ -137,198 +89,214 @@ export default function DashboardPage() {
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <Card key={stat.name} className="card-hover">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">{stat.name}</p>
-                  <p className="mt-1 text-2xl font-bold font-display">{stat.value}</p>
-                  <p className={`mt-1 text-xs ${
-                    stat.changeType === "positive" ? "text-emerald-400" : "text-red-400"
-                  }`}>
-                    {stat.change}
-                  </p>
+          <Link key={stat.name} href={stat.href}>
+            <Card className="card-hover h-full">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">{stat.name}</p>
+                    <p className="mt-1 text-2xl font-bold font-display">{stat.value}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {stat.subtitle}
+                    </p>
+                  </div>
+                  <FeatureIcon icon={stat.icon} variant={stat.variant} size="lg" />
                 </div>
-                <FeatureIcon icon={stat.icon} variant={stat.variant} size="lg" />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Recent Posts */}
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Последние посты</CardTitle>
-              <CardDescription>Активность за последние 7 дней</CardDescription>
+      {/* Empty State or Content */}
+      {!hasData ? (
+        <Card className="py-12">
+          <CardContent className="text-center">
+            <div className="flex justify-center mb-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-emerald-500 shadow-lg shadow-red-500/25">
+                <Zap className="h-8 w-8 text-white" />
+              </div>
             </div>
-            <Link href="/dashboard/posts">
-              <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground hover:text-foreground">
-                Все посты
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {recentPosts.map((post) => (
-                <div
-                  key={post.id}
-                  className="flex items-center justify-between rounded-xl bg-white/[0.02] p-4 hover:bg-white/[0.04] transition-colors cursor-pointer"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-medium truncate">{post.title}</h4>
-                      {post.isAi && (
-                        <Badge variant="gradient" className="gap-1">
-                          <Sparkles className="h-3 w-3" />
-                          AI
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {post.bot} • {post.date}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    {post.status === "published" && (
-                      <div className="flex items-center gap-4 text-sm">
-                        <div className="flex items-center gap-1 text-muted-foreground">
-                          <Eye className="h-4 w-4" />
-                          {post.views.toLocaleString()}
-                        </div>
-                        <div className="flex items-center gap-1 text-muted-foreground">
-                          <MousePointer className="h-4 w-4" />
-                          {post.clicks}
-                        </div>
-                      </div>
-                    )}
-                    <Badge
-                      variant={
-                        post.status === "published"
-                          ? "success"
-                          : post.status === "scheduled"
-                          ? "warning"
-                          : "secondary"
-                      }
-                    >
-                      {post.status === "published"
-                        ? "Опубликован"
-                        : post.status === "scheduled"
-                        ? "Запланирован"
-                        : "Черновик"}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
+            <h3 className="text-lg font-semibold font-display mb-2">Начните работу с VoiceKeeper</h3>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              Добавьте Telegram-бота для публикации контента или канал для анализа конкурентов
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Link href="/dashboard/bots">
+                <Button className="gap-2">
+                  <Bot className="h-4 w-4" />
+                  Добавить бота
+                </Button>
+              </Link>
+              <Link href="/dashboard/channels">
+                <Button variant="outline" className="gap-2">
+                  <Radio className="h-4 w-4" />
+                  Добавить канал
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
-
-        {/* AI Insights */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-emerald-500 shadow-lg shadow-red-500/25">
-                <Zap className="h-5 w-5 text-white" />
-              </div>
+      ) : (
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Bots List */}
+          <Card className="lg:col-span-2">
+            <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-base">AI Insights</CardTitle>
-                <CardDescription>Рекомендации VoiceKeeper</CardDescription>
+                <CardTitle>Ваши боты</CardTitle>
+                <CardDescription>Подключенные Telegram-боты</CardDescription>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {aiInsights.map((insight, idx) => {
-              const Icon = insight.icon;
-              return (
-                <div
-                  key={idx}
-                  className="rounded-xl bg-red-500/[0.06] p-4 hover:bg-red-500/[0.1] transition-colors"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/15">
-                      <Icon className="h-4 w-4 text-red-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-sm font-display">{insight.title}</h4>
-                      <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">
-                        {insight.description}
-                      </p>
-                    </div>
-                  </div>
-                  <Link href={insight.href}>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="mt-3 h-7 w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-500/10 px-0"
-                    >
-                      {insight.action}
-                      <ArrowRight className="ml-1 h-3 w-3" />
+              <Link href="/dashboard/bots">
+                <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground hover:text-foreground">
+                  Все боты
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </CardHeader>
+            <CardContent>
+              {bots.length === 0 ? (
+                <div className="text-center py-8">
+                  <Bot className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+                  <p className="text-muted-foreground mb-3">Нет подключенных ботов</p>
+                  <Link href="/dashboard/bots">
+                    <Button size="sm" className="gap-2">
+                      <Plus className="h-3 w-3" />
+                      Добавить бота
                     </Button>
                   </Link>
                 </div>
-              );
-            })}
-            <Link href="/dashboard/voicekeeper">
-              <Button variant="outline" className="w-full gap-2 mt-2 text-red-400 hover:bg-red-500/10 hover:text-red-300">
-                <Sparkles className="h-4 w-4" />
-                Открыть VoiceKeeper
-              </Button>
-            </Link>
+              ) : (
+                <div className="space-y-3">
+                  {bots.slice(0, 4).map((bot) => (
+                    <div
+                      key={bot.id}
+                      className="flex items-center justify-between rounded-xl bg-white/[0.02] p-4 hover:bg-white/[0.04] transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                          bot.isActive 
+                            ? "bg-gradient-to-br from-red-500 to-emerald-500" 
+                            : "bg-muted"
+                        }`}>
+                          <Bot className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium">{bot.name}</h4>
+                          <p className="text-sm text-muted-foreground">{bot.username}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right text-sm">
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <Users className="h-3 w-3" />
+                            {bot.subscriberCount.toLocaleString()}
+                          </div>
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <FileText className="h-3 w-3" />
+                            {bot.postsCount}
+                          </div>
+                        </div>
+                        <Badge variant={bot.isActive ? "success" : "secondary"}>
+                          {bot.isActive ? "Активен" : "Выкл"}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-emerald-500 shadow-lg shadow-red-500/25">
+                  <Zap className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-base">Быстрые действия</CardTitle>
+                  <CardDescription>Начните прямо сейчас</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Link href="/dashboard/voicekeeper/generate" className="block">
+                <div className="rounded-xl bg-red-500/[0.06] p-4 hover:bg-red-500/[0.1] transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/15">
+                      <Sparkles className="h-4 w-4 text-red-400" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-sm">Создать пост с AI</h4>
+                      <p className="text-xs text-muted-foreground">VoiceKeeper генерация</p>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+              
+              <Link href="/dashboard/trends" className="block">
+                <div className="rounded-xl bg-amber-500/[0.06] p-4 hover:bg-amber-500/[0.1] transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/15">
+                      <TrendingUp className="h-4 w-4 text-amber-400" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-sm">Trend Radar</h4>
+                      <p className="text-xs text-muted-foreground">Анализ конкурентов</p>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+              
+              <Link href="/dashboard/voicekeeper/fingerprint" className="block">
+                <div className="rounded-xl bg-emerald-500/[0.06] p-4 hover:bg-emerald-500/[0.1] transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/15">
+                      <BarChart3 className="h-4 w-4 text-emerald-400" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-sm">Voice Fingerprint</h4>
+                      <p className="text-xs text-muted-foreground">Настройка стиля</p>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Plan Info */}
+      {user && (
+        <Card className="bg-gradient-to-r from-red-500/5 via-transparent to-emerald-500/5">
+          <CardContent className="p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Badge variant="gradient" className="capitalize">{user.plan}</Badge>
+                  <span className="text-sm text-muted-foreground">план</span>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {user.plan === "free" 
+                    ? "3 генерации в месяц" 
+                    : user.plan === "pro"
+                    ? "50 генераций в месяц"
+                    : "Безлимитные генерации"}
+                </p>
+              </div>
+              {user.plan === "free" && (
+                <Link href="/dashboard/settings/subscription">
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Zap className="h-3 w-3" />
+                    Улучшить план
+                  </Button>
+                </Link>
+              )}
+            </div>
           </CardContent>
         </Card>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Link href="/dashboard/voicekeeper/generate" className="group">
-          <Card className="card-hover h-full">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-emerald-500 group-hover:scale-110 transition-transform shadow-lg shadow-red-500/25">
-                <Sparkles className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h3 className="font-semibold font-display">Сгенерировать пост</h3>
-                <p className="text-sm text-muted-foreground">Создайте контент с AI</p>
-              </div>
-              <ArrowRight className="h-5 w-5 text-muted-foreground ml-auto group-hover:translate-x-1 transition-transform" />
-            </CardContent>
-          </Card>
-        </Link>
-        
-        <Link href="/dashboard/trends" className="group">
-          <Card className="card-hover h-full">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 group-hover:scale-110 transition-transform shadow-lg shadow-amber-500/25">
-                <BarChart3 className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h3 className="font-semibold font-display">Trend Radar</h3>
-                <p className="text-sm text-muted-foreground">Анализ конкурентов</p>
-              </div>
-              <ArrowRight className="h-5 w-5 text-muted-foreground ml-auto group-hover:translate-x-1 transition-transform" />
-            </CardContent>
-          </Card>
-        </Link>
-        
-        <Link href="/dashboard/bots" className="group">
-          <Card className="card-hover h-full">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 group-hover:scale-110 transition-transform shadow-lg shadow-blue-500/25">
-                <Bot className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h3 className="font-semibold font-display">Добавить бота</h3>
-                <p className="text-sm text-muted-foreground">Подключите Telegram-бота</p>
-              </div>
-              <ArrowRight className="h-5 w-5 text-muted-foreground ml-auto group-hover:translate-x-1 transition-transform" />
-            </CardContent>
-          </Card>
-        </Link>
-      </div>
+      )}
     </div>
   );
 }

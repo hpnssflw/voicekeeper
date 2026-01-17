@@ -216,6 +216,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         lastName: data.lastName,
         telegramUsername: data.telegramUsername,
         plan: "free",
+        generationsUsed: 0,
+        generationsLimit: 3,
         createdAt: new Date().toISOString(),
       };
 
@@ -251,6 +253,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email,
         firstName: email.split("@")[0],
         plan: "free",
+        generationsUsed: 0,
+        generationsLimit: 3,
         createdAt: new Date().toISOString(),
       };
       
@@ -276,6 +280,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         telegramUsername: telegramData.username,
         photoUrl: telegramData.photo_url,
         plan: "free",
+        generationsUsed: 0,
+        generationsLimit: 3,
         createdAt: new Date().toISOString(),
       };
 

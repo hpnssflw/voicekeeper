@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
+import { useTheme } from "@/lib/themes";
 import { Logo, LogoIcon } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import {
@@ -105,6 +106,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const { user, bots, logout } = useAuth();
+  const { themeColors } = useTheme();
 
   const handleLogout = () => {
     logout();
@@ -118,24 +120,25 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
     }
   }, [pathname]);
 
-  const activeBots = bots.filter((b) => b.isActive).length;
-  const totalGenerations = 47; // Would come from subscription
+  const generationsUsed = user?.generationsUsed || 0;
+  const generationsLimit = user?.generationsLimit || 3;
+  const generationsLeft = generationsLimit - generationsUsed;
 
   return (
     <>
       {/* Mobile Overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-background/60 backdrop-blur-sm z-40 lg:hidden"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
           onClick={onMobileClose}
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar - darker than main content for contrast */}
       <aside
         className={cn(
-          "flex flex-col bg-card/30 backdrop-blur-2xl transition-all duration-300 relative z-50",
-          "shadow-[1px_0_0_0_hsl(var(--primary)/0.05),8px_0_32px_-8px_hsl(0_0%_0%/0.3)]",
+          "flex flex-col transition-all duration-300 relative z-50",
+          "shadow-[4px_0_24px_-4px_hsla(0,0%,0%,0.4)]",
           // Mobile: drawer from left
           "fixed lg:sticky top-0 left-0 h-screen",
           "transform transition-transform duration-300 ease-in-out",
@@ -145,6 +148,9 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
           // Mobile: always full width when open
           mobileOpen && "w-64"
         )}
+        style={{
+          backgroundColor: themeColors.surfaceSidebar
+        }}
       >
       {/* Logo */}
       <div className="flex h-16 items-center justify-between px-4">
@@ -163,7 +169,8 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
             variant="ghost"
             size="icon"
             onClick={onMobileClose}
-            className="h-8 w-8 text-muted-foreground lg:hidden"
+            className="h-8 w-8 lg:hidden"
+            style={{ color: themeColors.muted }}
           >
             <X className="h-4 w-4" />
           </Button>
@@ -174,7 +181,8 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
             variant="ghost"
             size="icon"
             onClick={() => setCollapsed(!collapsed)}
-            className="h-8 w-8 text-muted-foreground hidden lg:flex"
+            className="h-8 w-8 hidden lg:flex"
+            style={{ color: themeColors.muted }}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -186,7 +194,8 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
           variant="ghost"
           size="icon"
           onClick={() => setCollapsed(!collapsed)}
-          className="h-8 w-8 mx-auto my-2 text-muted-foreground hidden lg:flex"
+          className="h-8 w-8 mx-auto my-2 hidden lg:flex"
+          style={{ color: themeColors.muted }}
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
@@ -198,9 +207,15 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
           if ("type" in item && item.type === "divider") {
             return (
               <div key={idx} className="py-4">
-                <div className="h-px bg-gradient-to-r from-transparent via-primary/10 to-transparent" />
+                <div 
+                  className="h-px" 
+                  style={{ backgroundColor: `${themeColors.foreground}06` }}
+                />
                 {!collapsed && item.label && (
-                  <p className="mt-4 px-3 text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider font-display">
+                  <p 
+                    className="mt-4 px-3 text-xs font-semibold uppercase tracking-wider font-display"
+                    style={{ color: `${themeColors.muted}80` }}
+                  >
                     {item.label}
                   </p>
                 )}
@@ -217,30 +232,42 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
               href={item.href}
               className={cn(
                 "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                isActive
-                  ? item.gradient
-                    ? "bg-gradient-to-r from-red-500/15 to-emerald-500/15 text-white shadow-[0_0_20px_-5px_hsl(var(--primary)/0.3)]"
-                    : "bg-primary/10 text-primary shadow-[0_0_15px_-5px_hsl(var(--primary)/0.2)]"
-                  : "text-muted-foreground hover:bg-white/5 hover:text-foreground",
                 collapsed && "justify-center px-2"
               )}
+              style={{
+                backgroundColor: isActive 
+                  ? item.gradient 
+                    ? `${themeColors.primary}15`
+                    : `${themeColors.primary}15`
+                  : 'transparent',
+                color: isActive 
+                  ? item.gradient 
+                    ? themeColors.foreground
+                    : themeColors.primary
+                  : themeColors.muted,
+              }}
               title={collapsed ? item.name : undefined}
             >
-              <Icon className={cn(
-                "h-4 w-4 shrink-0 transition-transform group-hover:scale-110",
-                isActive && item.gradient && "text-red-400"
-              )} />
+              <Icon 
+                className={cn(
+                  "h-4 w-4 shrink-0 transition-transform group-hover:scale-110",
+                )} 
+                style={{
+                  color: isActive && item.gradient ? themeColors.primary : undefined
+                }}
+              />
               {!collapsed && (
                 <>
                   <span className="flex-1">{item.name}</span>
                   {item.badge && (
                     <span
-                      className={cn(
-                        "rounded-md px-2 py-0.5 text-[10px] font-semibold",
-                        item.badge === "AI"
-                          ? "bg-gradient-to-r from-red-500/20 to-emerald-500/20 text-red-400"
-                          : "bg-amber-500/15 text-amber-400"
-                      )}
+                      className="rounded-md px-2 py-0.5 text-[10px] font-semibold"
+                      style={{
+                        background: item.badge === "AI" 
+                          ? `linear-gradient(135deg, ${themeColors.primary}25, ${themeColors.secondary}25)`
+                          : `${themeColors.accent}20`,
+                        color: item.badge === "AI" ? themeColors.primary : themeColors.accent
+                      }}
                     >
                       {item.badge}
                     </span>
@@ -255,50 +282,85 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
       {/* Bottom section - Usage & User */}
       {!collapsed && (
         <div className="p-4 space-y-3">
-          {/* Usage */}
-          <div className="rounded-2xl bg-gradient-to-br from-red-500/10 via-rose-500/5 to-emerald-500/10 p-4 shadow-[inset_0_1px_0_0_hsla(0,0%,100%,0.05)]">
+          {/* Usage - slightly lighter background for separation */}
+          <div 
+            className="rounded-xl p-4"
+            style={{ backgroundColor: themeColors.surfaceCard }}
+          >
             <div className="flex items-center gap-2 mb-2">
-              <Zap className="h-4 w-4 text-red-400" />
-              <span className="text-xs font-semibold text-red-400 font-display capitalize">
+              <Zap className="h-4 w-4" style={{ color: themeColors.primary }} />
+              <span 
+                className="text-xs font-semibold font-display capitalize"
+                style={{ color: themeColors.primary }}
+              >
                 {user?.plan || "Free"} план
               </span>
             </div>
-            <p className="text-xs text-muted-foreground mb-3">
-              {totalGenerations} генераций осталось
+            <p 
+              className="text-xs mb-3"
+              style={{ color: themeColors.muted }}
+            >
+              {generationsLeft} генераций осталось
             </p>
-            <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+            <div 
+              className="h-1.5 rounded-full overflow-hidden" 
+              style={{ backgroundColor: themeColors.surfaceElevated }}
+            >
               <div
-                className="h-full rounded-full bg-gradient-to-r from-red-500 to-emerald-500 transition-all duration-500 shadow-[0_0_10px_hsl(0,72%,51%,0.5)]"
-                style={{ width: `${totalGenerations}%` }}
+                className="h-full rounded-full transition-all duration-500"
+                style={{ 
+                  width: `${((generationsLimit - generationsUsed) / generationsLimit) * 100}%`,
+                  background: themeColors.gradient
+                }}
               />
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full mt-3 text-xs gap-1 text-red-400 hover:text-red-300 hover:bg-red-500/10"
-            >
-              <Crown className="h-3 w-3" />
-              Улучшить план
-            </Button>
+            <Link href="/dashboard/settings/subscription">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full mt-3 text-xs gap-1"
+                style={{ color: themeColors.primary }}
+              >
+                <Crown className="h-3 w-3" />
+                Улучшить план
+              </Button>
+            </Link>
           </div>
 
           {/* User Info */}
           {user && (
-            <div className="rounded-2xl bg-white/[0.03] p-3">
+            <div 
+              className="rounded-xl p-3"
+              style={{ backgroundColor: themeColors.surfaceCard }}
+            >
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-emerald-500 text-white text-sm font-semibold">
+                <div 
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-white text-sm font-semibold"
+                  style={{ background: themeColors.gradient }}
+                >
                   {user.firstName?.charAt(0) || <User className="h-4 w-4" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{user.firstName} {user.lastName}</p>
-                  <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                  <p 
+                    className="text-sm font-medium truncate"
+                    style={{ color: themeColors.foreground }}
+                  >
+                    {user.firstName} {user.lastName}
+                  </p>
+                  <p 
+                    className="text-xs truncate"
+                    style={{ color: themeColors.muted }}
+                  >
+                    {user.email}
+                  </p>
                 </div>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleLogout}
-                className="w-full mt-3 text-xs gap-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                className="w-full mt-3 text-xs gap-1 hover:bg-red-500/10 hover:text-red-400"
+                style={{ color: themeColors.muted }}
               >
                 <LogOut className="h-3 w-3" />
                 Выйти
@@ -313,7 +375,8 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
         <div className="p-3">
           <button
             onClick={handleLogout}
-            className="flex h-9 w-9 mx-auto items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-emerald-500 text-white text-sm font-semibold hover:opacity-80 transition-opacity"
+            className="flex h-9 w-9 mx-auto items-center justify-center rounded-full text-white text-sm font-semibold hover:opacity-80 transition-opacity"
+            style={{ background: themeColors.gradient }}
             title="Выйти"
           >
             {user.firstName?.charAt(0) || <User className="h-4 w-4" />}
