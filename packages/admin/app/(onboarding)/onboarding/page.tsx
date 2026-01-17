@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { FeatureIcon } from "@/components/brand/feature-icon";
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   Sparkles,
   Bot,
@@ -238,14 +239,19 @@ export default function OnboardingPage() {
           {currentStep === 0 && (
             <div className="space-y-5">
               <div className="text-center">
-                <div className="flex justify-center mb-4">
-                  <div className="relative">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-emerald-500 shadow-lg shadow-red-500/25">
-                      <User className="h-7 w-7 text-white" />
-                    </div>
+                <div className="flex justify-center mb-3">
+                  <div className="relative w-16 h-16">
+                    <Image
+                      src="/lips.png"
+                      alt="VoiceKeeper"
+                      fill
+                      className="object-contain drop-shadow-[0_0_25px_rgba(239,68,68,0.4)]"
+                    />
                   </div>
                 </div>
-                <h2 className="text-lg font-bold font-display">Создайте аккаунт</h2>
+                <h2 className="text-lg font-bold font-display">
+                  Добро пожаловать в <span className="gradient-text">VoiceKeeper</span>
+                </h2>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Заполните данные для регистрации
                 </p>

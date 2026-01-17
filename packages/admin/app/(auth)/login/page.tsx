@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   Mail,
   Lock,
@@ -14,7 +15,6 @@ import {
   Eye,
   EyeOff,
   LogIn,
-  Sparkles,
 } from "lucide-react";
 
 export default function LoginPage() {
@@ -89,19 +89,27 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8 bg-mesh bg-grid">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8 bg-mesh">
+      {/* Background glow */}
+      <div className="fixed top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-red-500/20 rounded-full blur-[100px] pointer-events-none" />
+      
       {/* Logo */}
-      <div className="mb-8 text-center">
-        <div className="flex justify-center mb-4">
-          <div className="relative">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-emerald-500 shadow-lg shadow-red-500/25">
-              <Sparkles className="h-8 w-8 text-white" />
-            </div>
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-red-500 to-emerald-500 blur-xl opacity-40" />
+      <div className="mb-6 text-center">
+        <div className="flex justify-center mb-3">
+          <div className="relative w-20 h-20">
+            <Image
+              src="/lips.png"
+              alt="VoiceKeeper"
+              fill
+              className="object-contain drop-shadow-[0_0_30px_rgba(239,68,68,0.4)]"
+              priority
+            />
           </div>
         </div>
-        <h1 className="text-2xl font-bold font-display">VoiceKeeper</h1>
-        <p className="text-sm text-muted-foreground mt-1">AI-стратег для вашего контента</p>
+        <h1 className="text-2xl font-bold font-display">
+          <span className="gradient-text">VoiceKeeper</span>
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">AI-контент в вашем стиле</p>
       </div>
 
       <Card className="w-full max-w-md glass-panel-glow">
@@ -198,4 +206,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

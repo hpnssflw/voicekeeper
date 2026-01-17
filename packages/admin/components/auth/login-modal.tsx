@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
-import { X, Loader2, Sparkles, Mail, Lock, Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
+import Image from "next/image";
+import { X, Loader2, Mail, Lock, Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -97,14 +98,19 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
         
         <CardContent className="p-6">
           <div className="text-center mb-6">
-            <div className="flex justify-center mb-4">
-              <div className="relative">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-emerald-500 shadow-lg shadow-red-500/25">
-                  <Sparkles className="h-7 w-7 text-white" />
-                </div>
+            <div className="flex justify-center mb-3">
+              <div className="relative w-16 h-16">
+                <Image
+                  src="/lips.png"
+                  alt="VoiceKeeper"
+                  fill
+                  className="object-contain drop-shadow-[0_0_25px_rgba(239,68,68,0.4)]"
+                />
               </div>
             </div>
-            <h2 className="text-xl font-bold font-display">Войти в VoiceKeeper</h2>
+            <h2 className="text-xl font-bold font-display">
+              Войти в <span className="gradient-text">VoiceKeeper</span>
+            </h2>
             <p className="text-sm text-muted-foreground mt-1">
               Введите данные для входа
             </p>

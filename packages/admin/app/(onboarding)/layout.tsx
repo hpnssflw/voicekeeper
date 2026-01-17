@@ -1,4 +1,5 @@
-import { Logo } from "@/components/brand/logo";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function OnboardingLayout({
   children,
@@ -18,7 +19,17 @@ export default function OnboardingLayout({
       {/* Header */}
       <header className="relative z-10 bg-card/20 backdrop-blur-2xl shadow-[0_1px_0_0_hsl(var(--primary)/0.05)]">
         <div className="mx-auto max-w-4xl px-6 py-3 flex items-center justify-center">
-          <Logo size="md" />
+          <Link href="/landing" className="flex items-center gap-3">
+            <div className="relative w-10 h-10">
+              <Image
+                src="/lips.png"
+                alt="VoiceKeeper"
+                fill
+                className="object-contain"
+              />
+            </div>
+            <span className="font-display font-bold text-lg gradient-text">VoiceKeeper</span>
+          </Link>
         </div>
       </header>
       
