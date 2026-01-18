@@ -64,9 +64,9 @@ export default function DashboardLayout({
       <Sidebar 
         mobileOpen={mobileMenuOpen}
         onMobileClose={() => setMobileMenuOpen(false)}
-        onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)}
       />
       <div className="flex flex-1 flex-col overflow-hidden relative lg:ml-0">
+        <Header onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)} />
         <main className="flex-1 overflow-y-auto p-2 sm:p-3 relative">
           <div className="relative z-10">
             {children}

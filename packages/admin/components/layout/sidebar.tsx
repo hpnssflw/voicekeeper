@@ -26,17 +26,15 @@ import {
   LogOut,
   User,
   BookOpen,
-  Menu,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
 interface SidebarProps {
   mobileOpen?: boolean;
   onMobileClose?: () => void;
-  onMenuClick?: () => void;
 }
 
-export function Sidebar({ mobileOpen = false, onMobileClose, onMenuClick }: SidebarProps) {
+export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
@@ -131,20 +129,6 @@ export function Sidebar({ mobileOpen = false, onMobileClose, onMenuClick }: Side
             </Button>
           )}
         </div>
-        
-        {/* Mobile menu button */}
-        {!mobileOpen && onMenuClick && (
-          <div className="lg:hidden px-2 pb-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onMenuClick}
-              className="h-7 w-7 text-muted-foreground"
-            >
-              <Menu className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
 
         {collapsed && !mobileOpen && (
           <Button

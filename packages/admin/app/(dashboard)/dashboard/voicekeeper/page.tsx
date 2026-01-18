@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FeatureIcon } from "@/components/brand/feature-icon";
 import { useAuth } from "@/lib/auth";
+import { getFingerprint } from "@/lib/ai";
 import { UnderDevelopmentModal, useUnderDevelopment } from "@/components/ui/under-development-modal";
 import Link from "next/link";
 import {
@@ -18,15 +19,24 @@ import {
   ArrowRight,
   Bot,
   Plus,
+  CheckCircle2,
+  Pencil,
 } from "lucide-react";
 
 export default function VoiceKeeperPage() {
   const { user, bots } = useAuth();
   const underDev = useUnderDevelopment();
+  const [hasFingerprint, setHasFingerprint] = useState(false);
   
   const hasBots = bots.length > 0;
   const generationsUsed = user?.generationsUsed || 0;
   const generationsLimit = user?.generationsLimit || 3;
+
+  // Check for saved fingerprint
+  useEffect(() => {
+    const fingerprint = getFingerprint();
+    setHasFingerprint(!!fingerprint);
+  }, []);
 
   const handleAnalyze = () => {
     underDev.showModal(
@@ -82,12 +92,21 @@ export default function VoiceKeeperPage() {
             <Card>
               <CardContent className="p-3">
                 <div className="flex items-center gap-2">
-                  <FeatureIcon icon={Fingerprint} variant="primary" size="sm" />
+                  <FeatureIcon icon={Fingerprint} variant={hasFingerprint ? "success" : "primary"} size="sm" />
                   <div className="min-w-0 flex-1">
                     <p className="text-[10px] text-muted-foreground">Voice Fingerprint</p>
                     <div className="flex items-center gap-1.5">
-                      <p className="text-base font-bold font-display">—</p>
-                      <Badge variant="secondary" className="text-[9px] px-1 py-0">Не настроен</Badge>
+                      {hasFingerprint ? (
+                        <>
+                          <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                          <Badge variant="success" className="text-[9px] px-1 py-0">Активен</Badge>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-base font-bold font-display">—</p>
+                          <Badge variant="secondary" className="text-[9px] px-1 py-0">Не настроен</Badge>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -150,19 +169,37 @@ export default function VoiceKeeperPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-3 p-4">
-                <div className="py-4 text-center">
-                  <Fingerprint className="h-10 w-10 mx-auto text-gray-600 mb-2" />
-                  <h3 className="text-xs font-medium mb-1">Профиль не настроен</h3>
-                  <p className="text-[10px] text-muted-foreground max-w-sm mx-auto mb-3">
-                    Проанализируйте ваши существующие посты, чтобы AI мог имитировать ваш уникальный стиль письма
-                  </p>
-                  <Link href="/dashboard/voicekeeper/fingerprint">
-                    <Button onClick={handleAnalyze} size="sm" className="gap-1.5 h-7 text-[10px]">
-                      <Sparkles className="h-3 w-3" />
-                      Начать анализ
-                    </Button>
-                  </Link>
-                </div>
+                {hasFingerprint ? (
+                  <div className="py-3">
+                    <div className="flex items-center gap-2 mb-3 p-2 rounded-lg bg-emerald-500/5">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-emerald-400">Voice Fingerprint активен</p>
+                        <p className="text-[10px] text-muted-foreground">Ваш стиль используется при генерации</p>
+                      </div>
+                    </div>
+                    <Link href="/dashboard/voicekeeper/fingerprint">
+                      <Button variant="outline" size="sm" className="w-full gap-1.5 h-7 text-[10px]">
+                        <Pencil className="h-3 w-3" />
+                        Изменить профиль
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="py-4 text-center">
+                    <Fingerprint className="h-10 w-10 mx-auto text-gray-600 mb-2" />
+                    <h3 className="text-xs font-medium mb-1">Профиль не настроен</h3>
+                    <p className="text-[10px] text-muted-foreground max-w-sm mx-auto mb-3">
+                      Проанализируйте ваши существующие посты, чтобы AI мог имитировать ваш уникальный стиль письма
+                    </p>
+                    <Link href="/dashboard/voicekeeper/fingerprint">
+                      <Button onClick={handleAnalyze} size="sm" className="gap-1.5 h-7 text-[10px]">
+                        <Sparkles className="h-3 w-3" />
+                        Начать анализ
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
