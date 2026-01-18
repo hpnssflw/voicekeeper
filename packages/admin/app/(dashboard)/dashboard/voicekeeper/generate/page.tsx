@@ -59,8 +59,17 @@ export default function GeneratePage() {
 
   // Load API key and fingerprint status
   useEffect(() => {
-    setHasApiKey(!!getApiKey("gemini"));
-    setFingerprintState(getFingerprint());
+    const loadData = async () => {
+      try {
+        const apiKey = await getApiKey("gemini");
+        setHasApiKey(!!apiKey);
+        const fingerprint = await getFingerprint();
+        setFingerprintState(fingerprint);
+      } catch (error) {
+        console.error("Failed to load API key/fingerprint:", error);
+      }
+    };
+    loadData();
   }, []);
 
   const handleGenerate = async () => {

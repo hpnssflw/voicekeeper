@@ -1,22 +1,59 @@
 /**
  * AI Service - Direct Gemini API integration for admin panel
- * Works client-side without backend dependency
+ * Uses MongoDB for storing settings instead of localStorage
  */
 
-// Storage keys
-const STORAGE_KEYS = {
-  GEMINI_KEY: "voicekeeper_gemini_key",
-  OPENAI_KEY: "voicekeeper_openai_key",
-  AI_PROVIDER: "voicekeeper_ai_provider",
-  FINGERPRINT: "voicekeeper_fingerprint",
-};
+import { usersApi, type UserSettingsResponse } from "./api";
 
+/**
+ * Voice Fingerprint - формализованная модель авторского стиля
+ * Структурированный профиль вместо текстового описания
+ */
 export interface StyleProfile {
-  tone: string;
-  structure: string;
-  vocabulary: string;
-  signature: string;
-  emoji: string;
+  // Уровень 2: Декомпозиция стиля
+  tone: {
+    emotionality: number;      // 0.0 (сухой) ←→ 1.0 (эмоциональный)
+    assertiveness: number;      // 0.0 (мягкий) ←→ 1.0 (уверенный)
+    irony: number;              // 0.0 (нет) ←→ 1.0 (часто)
+  };
+  
+  language: {
+    sentenceLength: "short" | "medium" | "long";
+    slangLevel: number;         // 0.0 ←→ 1.0
+    professionalLexicon: boolean;
+    emojiFrequency: number;     // 0.0 ←→ 1.0
+  };
+  
+  structure: {
+    hookType: "question" | "statement" | "provocation" | "mixed";
+    paragraphLength: "1-2 sentences" | "3-4 sentences" | "5+ sentences";
+    useLists: boolean;
+    rhythm: "fast" | "medium" | "slow";
+  };
+  
+  rhetoric: {
+    questionsPerPost: number;   // 0, 1-2, 3+
+    metaphors: "frequent" | "rare" | "none";
+    storytelling: boolean;
+    ctaStyle: "soft" | "none" | "direct";
+  };
+  
+  forbidden: {
+    phrases: string[];          // ["в наше время", "как известно"]
+    tones: string[];            // ["mentoring", "academic"]
+  };
+  
+  signature: {
+    typicalOpenings: string[];  // ["Вопрос", "Утверждение"]
+    typicalClosings: string[];  // ["CTA", "Вопрос читателю"]
+  };
+  
+  // Legacy fields для обратной совместимости (опционально)
+  tone_legacy?: string;
+  structure_legacy?: string;
+  vocabulary_legacy?: string;
+  signature_legacy?: string;
+  emoji_legacy?: string;
 }
 
 export interface GenerationParams {
@@ -35,39 +72,120 @@ export interface GenerationResult {
   confidence: number;
 }
 
-// Get/Set API keys from localStorage
-export function getApiKey(provider: "gemini" | "openai"): string | null {
+// Cache for settings to avoid repeated API calls
+let settingsCache: UserSettingsResponse | null = null;
+let settingsCacheUserId: string | null = null;
+
+// Get user ID from auth context (will be passed or use hook)
+function getUserId(): string | null {
   if (typeof window === "undefined") return null;
-  const key = provider === "gemini" ? STORAGE_KEYS.GEMINI_KEY : STORAGE_KEYS.OPENAI_KEY;
-  return localStorage.getItem(key);
+  // Try to get from localStorage - use the same key as auth.tsx
+  const userStr = localStorage.getItem("voicekeeper_auth");
+  if (userStr) {
+    try {
+      const user = JSON.parse(userStr);
+      return user.id || user.userId || null;
+    } catch {
+      return null;
+    }
+  }
+  return null;
 }
 
-export function setApiKey(provider: "gemini" | "openai", key: string): void {
-  if (typeof window === "undefined") return;
-  const storageKey = provider === "gemini" ? STORAGE_KEYS.GEMINI_KEY : STORAGE_KEYS.OPENAI_KEY;
-  localStorage.setItem(storageKey, key);
+// Cache for API keys (in-memory, cleared on page reload)
+const apiKeyCache: { [key: string]: string | null } = {};
+
+// Get/Set API keys from MongoDB via API
+export async function getApiKey(provider: "gemini" | "openai"): Promise<string | null> {
+  const userId = getUserId();
+  if (!userId) return null;
+  
+  const cacheKey = `${userId}_${provider}`;
+  
+  // Return from cache if available
+  if (apiKeyCache[cacheKey] !== undefined) {
+    return apiKeyCache[cacheKey];
+  }
+  
+  try {
+    // Get API key from backend
+    const response = await usersApi.hasApiKey(userId, provider);
+    
+    apiKeyCache[cacheKey] = response.key || null;
+    return response.key || null;
+  } catch {
+    apiKeyCache[cacheKey] = null;
+    return null;
+  }
 }
 
-export function getAiProvider(): "gemini" | "openai" {
-  if (typeof window === "undefined") return "gemini";
-  return (localStorage.getItem(STORAGE_KEYS.AI_PROVIDER) as "gemini" | "openai") || "gemini";
+export async function setApiKey(provider: "gemini" | "openai", key: string): Promise<void> {
+  const userId = getUserId();
+  if (!userId) throw new Error("User ID not found");
+  
+  try {
+    await usersApi.updateSettings(userId, {
+      [provider === "gemini" ? "geminiApiKey" : "openaiApiKey"]: key || null,
+    });
+    // Update cache
+    const cacheKey = `${userId}_${provider}`;
+    apiKeyCache[cacheKey] = key || null;
+    // Clear settings cache
+    settingsCache = null;
+  } catch (error) {
+    throw new Error(`Failed to save API key: ${error instanceof Error ? error.message : "Unknown error"}`);
+  }
 }
 
-export function setAiProvider(provider: "gemini" | "openai"): void {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEYS.AI_PROVIDER, provider);
+export async function getAiProvider(): Promise<"gemini" | "openai"> {
+  const userId = getUserId();
+  if (!userId) return "gemini";
+  
+  try {
+    const settings = await usersApi.getSettings(userId);
+    return settings.aiProvider || "gemini";
+  } catch {
+    return "gemini";
+  }
 }
 
-// Get/Set fingerprint from localStorage
-export function getFingerprint(): StyleProfile | null {
-  if (typeof window === "undefined") return null;
-  const data = localStorage.getItem(STORAGE_KEYS.FINGERPRINT);
-  return data ? JSON.parse(data) : null;
+export async function setAiProvider(provider: "gemini" | "openai"): Promise<void> {
+  const userId = getUserId();
+  if (!userId) throw new Error("User ID not found");
+  
+  try {
+    await usersApi.updateSettings(userId, { aiProvider: provider });
+    // Clear cache
+    settingsCache = null;
+  } catch (error) {
+    throw new Error(`Failed to save AI provider: ${error instanceof Error ? error.message : "Unknown error"}`);
+  }
 }
 
-export function setFingerprint(profile: StyleProfile): void {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEYS.FINGERPRINT, JSON.stringify(profile));
+// Get/Set fingerprint from MongoDB via API
+export async function getFingerprint(): Promise<StyleProfile | null> {
+  const userId = getUserId();
+  if (!userId) return null;
+  
+  try {
+    const settings = await usersApi.getSettings(userId);
+    return settings.fingerprint || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function setFingerprint(profile: StyleProfile): Promise<void> {
+  const userId = getUserId();
+  if (!userId) throw new Error("User ID not found");
+  
+  try {
+    await usersApi.updateSettings(userId, { fingerprint: profile });
+    // Clear cache
+    settingsCache = null;
+  } catch (error) {
+    throw new Error(`Failed to save fingerprint: ${error instanceof Error ? error.message : "Unknown error"}`);
+  }
 }
 
 // Get available Gemini models
@@ -141,55 +259,148 @@ async function callGemini(prompt: string, apiKey: string): Promise<string> {
   throw lastError || new Error("Gemini API error: All models and versions failed. Please check your API key and available models.");
 }
 
-// Analyze style from text
+/**
+ * Уровень 3: Анализ корпуса (AI-assisted)
+ * Многоэтапный анализ вместо простого промпта
+ */
 export async function analyzeStyle(text: string): Promise<StyleProfile> {
-  const apiKey = getApiKey("gemini");
+  const apiKey = await getApiKey("gemini");
   if (!apiKey) {
     throw new Error("API ключ Gemini не настроен. Перейдите в Настройки → API ключи.");
   }
 
-  const prompt = `Проанализируй следующий текст и определи авторский стиль. Верни JSON объект с полями:
-- tone: описание тональности (например: "Дружелюбный и экспертный")
-- structure: описание структуры текста (например: "Короткие абзацы, списки")
-- vocabulary: описание словарного запаса (например: "Технический с упрощениями")
-- signature: характерные фишки стиля (например: "Начинает с вопроса, заканчивает CTA")
-- emoji: типичные эмодзи через пробел (например: "🔥 💡 ✅")
+  // Уровень 3: Детальный анализ по шкалам
+  const analysisPrompt = `Проанализируй стиль следующего текста по структурированным шкалам. 
 
 Текст для анализа:
 """
 ${text}
 """
 
-Ответь ТОЛЬКО валидным JSON без markdown:`;
+Верни ТОЛЬКО валидный JSON объект со следующей структурой:
+{
+  "tone": {
+    "emotionality": 0.7,      // 0.0 (сухой) ←→ 1.0 (эмоциональный)
+    "assertiveness": 0.8,     // 0.0 (мягкий) ←→ 1.0 (уверенный)
+    "irony": 0.4              // 0.0 (нет) ←→ 1.0 (часто)
+  },
+  "language": {
+    "sentenceLength": "short | medium | long",
+    "slangLevel": 0.6,        // 0.0 ←→ 1.0
+    "professionalLexicon": true,
+    "emojiFrequency": 0.3     // 0.0 ←→ 1.0
+  },
+  "structure": {
+    "hookType": "question | statement | provocation | mixed",
+    "paragraphLength": "1-2 sentences | 3-4 sentences | 5+ sentences",
+    "useLists": true,
+    "rhythm": "fast | medium | slow"
+  },
+  "rhetoric": {
+    "questionsPerPost": 1,    // среднее количество
+    "metaphors": "frequent | rare | none",
+    "storytelling": false,
+    "ctaStyle": "soft | none | direct"
+  },
+  "forbidden": {
+    "phrases": ["в наше время", "как известно"],  // клише, которых избегает автор
+    "tones": ["mentoring", "academic"]            // тона, которые НЕ использует
+  },
+  "signature": {
+    "typicalOpenings": ["Вопрос", "Утверждение"], // типичные начала
+    "typicalClosings": ["CTA", "Вопрос читателю"] // типичные окончания
+  }
+}
 
-  const result = await callGemini(prompt, apiKey);
+Важно: Анализируй объективно, используй числа для шкал, строки для категорий.`;
+
+  const result = await callGemini(analysisPrompt, apiKey);
   
   // Parse JSON from response
   try {
-    // Try to extract JSON from response
     const jsonMatch = result.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
+      const parsed = JSON.parse(jsonMatch[0]);
+      
+      // Валидация и нормализация данных
+      return {
+        tone: {
+          emotionality: typeof parsed.tone?.emotionality === 'number' ? parsed.tone.emotionality : 0.5,
+          assertiveness: typeof parsed.tone?.assertiveness === 'number' ? parsed.tone.assertiveness : 0.5,
+          irony: typeof parsed.tone?.irony === 'number' ? parsed.tone.irony : 0.0,
+        },
+        language: {
+          sentenceLength: ['short', 'medium', 'long'].includes(parsed.language?.sentenceLength) 
+            ? parsed.language.sentenceLength 
+            : 'medium',
+          slangLevel: typeof parsed.language?.slangLevel === 'number' ? parsed.language.slangLevel : 0.3,
+          professionalLexicon: parsed.language?.professionalLexicon === true,
+          emojiFrequency: typeof parsed.language?.emojiFrequency === 'number' ? parsed.language.emojiFrequency : 0.2,
+        },
+        structure: {
+          hookType: ['question', 'statement', 'provocation', 'mixed'].includes(parsed.structure?.hookType)
+            ? parsed.structure.hookType
+            : 'mixed',
+          paragraphLength: ['1-2 sentences', '3-4 sentences', '5+ sentences'].includes(parsed.structure?.paragraphLength)
+            ? parsed.structure.paragraphLength
+            : '3-4 sentences',
+          useLists: parsed.structure?.useLists === true,
+          rhythm: ['fast', 'medium', 'slow'].includes(parsed.structure?.rhythm)
+            ? parsed.structure.rhythm
+            : 'medium',
+        },
+        rhetoric: {
+          questionsPerPost: typeof parsed.rhetoric?.questionsPerPost === 'number' ? parsed.rhetoric.questionsPerPost : 1,
+          metaphors: ['frequent', 'rare', 'none'].includes(parsed.rhetoric?.metaphors)
+            ? parsed.rhetoric.metaphors
+            : 'rare',
+          storytelling: parsed.rhetoric?.storytelling === true,
+          ctaStyle: ['soft', 'none', 'direct'].includes(parsed.rhetoric?.ctaStyle)
+            ? parsed.rhetoric.ctaStyle
+            : 'none',
+        },
+        forbidden: {
+          phrases: Array.isArray(parsed.forbidden?.phrases) ? parsed.forbidden.phrases : [],
+          tones: Array.isArray(parsed.forbidden?.tones) ? parsed.forbidden.tones : [],
+        },
+        signature: {
+          typicalOpenings: Array.isArray(parsed.signature?.typicalOpenings) ? parsed.signature.typicalOpenings : [],
+          typicalClosings: Array.isArray(parsed.signature?.typicalClosings) ? parsed.signature.typicalClosings : [],
+        },
+      };
     }
     throw new Error("No JSON found");
-  } catch {
-    // Fallback parsing
+  } catch (error) {
+    // Fallback: возвращаем структуру по умолчанию
+    console.error("Error parsing fingerprint analysis:", error);
     return {
-      tone: "Не удалось определить",
-      structure: "Не удалось определить",
-      vocabulary: "Не удалось определить",
-      signature: "Не удалось определить",
-      emoji: "📝",
+      tone: { emotionality: 0.5, assertiveness: 0.5, irony: 0.0 },
+      language: { sentenceLength: 'medium', slangLevel: 0.3, professionalLexicon: true, emojiFrequency: 0.2 },
+      structure: { hookType: 'mixed', paragraphLength: '3-4 sentences', useLists: false, rhythm: 'medium' },
+      rhetoric: { questionsPerPost: 1, metaphors: 'rare', storytelling: false, ctaStyle: 'none' },
+      forbidden: { phrases: [], tones: [] },
+      signature: { typicalOpenings: [], typicalClosings: [] },
     };
   }
 }
 
-// Generate post content
+/**
+ * Уровень 4: Разделение STYLE и CONTENT (критично)
+ * Content Layer → что сказать
+ * Style Layer → как сказать (из fingerprint)
+ * 
+ * Уровень 5: Генерация через "Style Compiler"
+ * VoiceFingerprint → Style Instructions → Prompt
+ */
 export async function generatePost(params: GenerationParams): Promise<GenerationResult> {
-  const apiKey = getApiKey("gemini");
+  const apiKey = await getApiKey("gemini");
   if (!apiKey) {
     throw new Error("API ключ Gemini не настроен. Перейдите в Настройки → API ключи.");
   }
+
+  // Content Layer: что сказать
+  const contentContext = `Тема: ${params.topic}
+${params.customInstructions ? `Дополнительно: ${params.customInstructions}` : ""}`;
 
   const lengthGuide = {
     short: "150-250 символов",
@@ -197,35 +408,69 @@ export async function generatePost(params: GenerationParams): Promise<Generation
     long: "800-1200 символов",
   };
 
-  const toneGuide = {
-    friendly: "дружелюбный, тёплый, как разговор с другом",
-    professional: "экспертный, деловой, авторитетный",
-    provocative: "провокационный, вызывающий, эмоциональный",
-  };
-
-  let fingerprintContext = "";
+  // Style Layer: как сказать (из fingerprint или параметров)
+  let styleInstructions = "";
+  
   if (params.fingerprint) {
-    fingerprintContext = `
-Стиль автора (Voice Fingerprint):
-- Тональность: ${params.fingerprint.tone}
-- Структура: ${params.fingerprint.structure}
-- Словарь: ${params.fingerprint.vocabulary}
-- Фишки: ${params.fingerprint.signature}
-- Эмодзи: ${params.fingerprint.emoji}
+    // Уровень 5: Компилятор стиля из структурированного fingerprint
+    const fp = params.fingerprint;
+    
+    // Жёсткие правила работают лучше мягких описаний
+    styleInstructions = `Ты пишешь ТОЛЬКО в следующем стиле:
 
-Важно: Копируй этот стиль максимально точно!
-`;
+ТОН:
+- Эмоциональность: ${fp.tone.emotionality >= 0.7 ? "эмоциональный" : fp.tone.emotionality <= 0.3 ? "сухой" : "умеренный"}
+- Уверенность: ${fp.tone.assertiveness >= 0.7 ? "уверенный, без сомнений" : "мягкий, осторожный"}
+- Ирония: ${fp.tone.irony >= 0.5 ? "используй умеренную иронию" : "избегай иронии"}
+
+ЯЗЫК:
+- Длина предложений: ${fp.language.sentenceLength === 'short' ? 'короткие (до 10 слов)' : fp.language.sentenceLength === 'long' ? 'длинные (15+ слов)' : 'средние'}
+- Сленг: ${fp.language.slangLevel >= 0.6 ? "можно использовать современный сленг" : "только литературный язык"}
+- Профессионализмы: ${fp.language.professionalLexicon ? "используй профессиональную лексику" : "избегай профессиональных терминов"}
+- Эмодзи: ${fp.language.emojiFrequency >= 0.5 ? "используй эмодзи" : fp.language.emojiFrequency <= 0.2 ? "НЕ используй эмодзи" : "минимум эмодзи"}
+
+СТРУКТУРА:
+- Начало: ${fp.structure.hookType === 'question' ? 'вопрос' : fp.structure.hookType === 'provocation' ? 'провокация' : 'утверждение'}
+- Длина абзацев: ${fp.structure.paragraphLength}
+- Списки: ${fp.structure.useLists ? "используй списки" : "избегай списков"}
+- Ритм: ${fp.structure.rhythm === 'fast' ? 'быстрый, короткие фразы' : fp.structure.rhythm === 'slow' ? 'размеренный, длинные фразы' : 'умеренный'}
+
+РИТОРИКА:
+- Вопросы: ${fp.rhetoric.questionsPerPost > 0 ? `${fp.rhetoric.questionsPerPost} вопрос(а) в тексте` : 'без вопросов'}
+- Метафоры: ${fp.rhetoric.metaphors === 'frequent' ? 'часто' : fp.rhetoric.metaphors === 'none' ? 'не используй' : 'редко'}
+- Истории: ${fp.rhetoric.storytelling ? 'используй storytelling' : 'без историй'}
+- CTA: ${fp.rhetoric.ctaStyle === 'direct' ? 'прямой призыв к действию' : fp.rhetoric.ctaStyle === 'soft' ? 'мягкий призыв' : 'без CTA'}
+
+ЗАПРЕЩЕНО (Уровень 6: Анти-GPT защита):
+- Фразы: ${fp.forbidden.phrases.length > 0 ? fp.forbidden.phrases.join(', ') : 'нет'}
+- Тона: ${fp.forbidden.tones.length > 0 ? fp.forbidden.tones.join(', ') : 'нет'}
+- Обобщения: избегай "все", "каждый", "всегда"
+- Вводные конструкции: избегай "очевидно", "важно понимать", "как известно"
+- Определения: не давай определения понятиям
+
+Нарушение любого пункта — ошибка.`;
+  } else {
+    // Fallback: простой стиль из параметров
+    const toneGuide = {
+      friendly: "дружелюбный, тёплый, как разговор с другом",
+      professional: "экспертный, деловой, авторитетный",
+      provocative: "провокационный, вызывающий, эмоциональный",
+    };
+    styleInstructions = `
+ТОН: ${toneGuide[params.tone]}
+ЭМОДЗИ: ${params.includeEmoji ? "используй уместно" : "НЕ используй"}
+CTA: ${params.includeCta ? "добавь в конце" : "не нужен"}`;
   }
 
-  const prompt = `Ты — копирайтер для Telegram-каналов. Напиши пост на тему: "${params.topic}"
+  // Объединённый промпт (Content + Style)
+  const prompt = `${styleInstructions}
 
-Требования:
+---
+
+${contentContext}
+
+ТРЕБОВАНИЯ:
 - Длина: ${lengthGuide[params.length]}
-- Тон: ${toneGuide[params.tone]}
-- Эмодзи: ${params.includeEmoji ? "используй уместно, не перебарщивай" : "НЕ используй эмодзи"}
-- Призыв к действию: ${params.includeCta ? "добавь в конце" : "не нужен"}
-${params.customInstructions ? `- Дополнительно: ${params.customInstructions}` : ""}
-${fingerprintContext}
 
 Напиши пост (без кавычек, без заголовка "Пост:", просто текст поста):`;
 
@@ -262,7 +507,7 @@ export async function testApiKey(provider: "gemini" | "openai", key: string): Pr
       const apiVersions = ['v1beta', 'v1']; // Prioritize v1beta for gemma
       
       for (const version of apiVersions) {
-        for (const model of models.slice(0, 3)) { // Try first 3 models
+        for (const model of modelsToTest.slice(0, 3)) { // Try first 3 models
           try {
             const endpoint = `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${key}`;
             const response = await fetch(endpoint, {

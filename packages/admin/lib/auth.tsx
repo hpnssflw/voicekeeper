@@ -1,7 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { botsApi, channelsApi, type BotResponse, type ValidateBotResponse } from "./api";
+import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import { botsApi, channelsApi, usersApi, type BotResponse, type ValidateBotResponse } from "./api";
 
 /**
  * User model - compatible with MongoDB schema
@@ -105,7 +105,7 @@ interface AuthContextType {
   loginWithTelegram: (telegramData: TelegramAuthData) => Promise<void>;
   logout: () => void;
   completeOnboarding: (data: OnboardingData) => Promise<void>;
-  updateUser: (data: Partial<User>) => void;
+  updateUser: (data: Partial<User>) => Promise<void>;
   addBot: (token: string) => Promise<Bot>;
   removeBot: (botId: string) => void;
   updateBot: (botId: string, data: Partial<Bot>) => void;
@@ -139,33 +139,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isOnboarded, setIsOnboarded] = useState(false);
 
-  // Load persisted auth state
+  // Load persisted auth state from API (with localStorage fallback for demo)
   useEffect(() => {
-    const loadAuth = () => {
+    const loadAuth = async () => {
       try {
+        // Try to load from localStorage first (for demo mode)
         const storedUser = localStorage.getItem(STORAGE_KEY);
-        const storedBots = localStorage.getItem(BOTS_KEY);
-        const storedChannels = localStorage.getItem(CHANNELS_KEY);
-        const storedOnboarded = localStorage.getItem(ONBOARDED_KEY);
         
         if (storedUser) {
-          setUser(JSON.parse(storedUser));
-        }
-        
-        if (storedBots) {
-          const parsedBots = JSON.parse(storedBots);
-          setBots(parsedBots);
-          if (parsedBots.length > 0 && !selectedBotId) {
-            setSelectedBotId(parsedBots[0].id);
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+          
+          // Load user data from API if available
+          try {
+            const apiUser = await usersApi.get(parsedUser.id);
+            setUser({
+              ...parsedUser,
+              plan: apiUser.plan || parsedUser.plan,
+              generationsUsed: apiUser.generationsUsed || 0,
+              generationsLimit: apiUser.generationsLimit || 3,
+              isOnboarded: apiUser.isOnboarded !== undefined ? apiUser.isOnboarded : parsedUser.isOnboarded,
+            });
+            setIsOnboarded(apiUser.isOnboarded || false);
+          } catch (error) {
+            console.warn("Failed to load user from API, using local data:", error);
           }
-        }
-        
-        if (storedChannels) {
-          setChannels(JSON.parse(storedChannels));
-        }
-        
-        if (storedOnboarded) {
-          setIsOnboarded(JSON.parse(storedOnboarded));
+          
+          // Load bots from API
+          try {
+            const botsResponse = await botsApi.list(parsedUser.id);
+            const apiBots: Bot[] = botsResponse.bots.map((b) => ({
+              id: b.id,
+              name: b.firstName || b.username,
+              username: `@${b.username}`,
+              token: "", // Token not returned from API for security
+              telegramId: b.telegramId,
+              isActive: b.isActive,
+              channelId: b.channelId,
+              channelUsername: b.channelUsername,
+              channelTitle: b.channelTitle,
+              subscriberCount: 0,
+              postsCount: b.postsCount || 0,
+            }));
+            setBots(apiBots);
+            if (apiBots.length > 0 && !selectedBotId) {
+              setSelectedBotId(apiBots[0].id);
+            }
+          } catch (error) {
+            console.warn("Failed to load bots from API:", error);
+            // Fallback to localStorage
+            const storedBots = localStorage.getItem(BOTS_KEY);
+            if (storedBots) {
+              const parsedBots = JSON.parse(storedBots);
+              setBots(parsedBots);
+              if (parsedBots.length > 0 && !selectedBotId) {
+                setSelectedBotId(parsedBots[0].id);
+              }
+            }
+          }
         }
       } catch (error) {
         console.error("Failed to load auth state:", error);
@@ -177,55 +208,92 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loadAuth();
   }, []);
 
-  // Persist auth state
+  // Persist user to API (keep localStorage only for demo/auth persistence)
   useEffect(() => {
-    if (!isLoading) {
-      if (user) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-      } else {
-        localStorage.removeItem(STORAGE_KEY);
+    if (!isLoading && user) {
+      // Save to localStorage for auth persistence (demo mode)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+      
+      // Save to MongoDB via API
+      if (user.id) {
+        usersApi.update(user.id, {
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          plan: user.plan,
+          generationsUsed: user.generationsUsed,
+          generationsLimit: user.generationsLimit,
+          isOnboarded: isOnboarded,
+        }).catch(error => {
+          console.warn("Failed to save user to API:", error);
+        });
       }
     }
-  }, [user, isLoading]);
-
-  useEffect(() => {
-    if (!isLoading) {
-      localStorage.setItem(BOTS_KEY, JSON.stringify(bots));
-    }
-  }, [bots, isLoading]);
-
-  useEffect(() => {
-    if (!isLoading) {
-      localStorage.setItem(CHANNELS_KEY, JSON.stringify(channels));
-    }
-  }, [channels, isLoading]);
-
-  useEffect(() => {
-    if (!isLoading) {
-      localStorage.setItem(ONBOARDED_KEY, JSON.stringify(isOnboarded));
-    }
-  }, [isOnboarded, isLoading]);
+  }, [user, isLoading, isOnboarded]);
 
   const register = async (data: RegisterData) => {
     setIsLoading(true);
     
     try {
-      // In a real app, send to backend
-      // For now, create local user
-      const newUser: User = {
-        id: "user-" + Date.now(),
-        email: data.email,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        telegramUsername: data.telegramUsername,
-        plan: "free",
-        generationsUsed: 0,
-        generationsLimit: 3,
-        createdAt: new Date().toISOString(),
-      };
+      // Generate stable user ID based on email (same as login)
+      const userId = `user-${data.email.replace(/[^a-zA-Z0-9]/g, '-')}`;
+      
+      // Check if user already exists
+      try {
+        const existingUser = await usersApi.get(userId);
+        // User exists, update with registration data
+        await usersApi.update(userId, {
+          email: data.email,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          plan: existingUser.plan || "free",
+          generationsUsed: existingUser.generationsUsed || 0,
+          generationsLimit: existingUser.generationsLimit || 3,
+          isOnboarded: existingUser.isOnboarded || false,
+        });
+        
+        const user: User = {
+          id: existingUser.userId,
+          email: existingUser.email || data.email,
+          firstName: existingUser.firstName || data.firstName,
+          lastName: existingUser.lastName || data.lastName,
+          telegramUsername: data.telegramUsername,
+          plan: existingUser.plan,
+          generationsUsed: existingUser.generationsUsed,
+          generationsLimit: existingUser.generationsLimit,
+          createdAt: new Date().toISOString(),
+        };
+        
+        setUser(user);
+        setIsOnboarded(existingUser.isOnboarded);
+      } catch {
+        // User doesn't exist, create new user in MongoDB via API
+        await usersApi.update(userId, {
+          email: data.email,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          plan: "free",
+          generationsUsed: 0,
+          generationsLimit: 3,
+          isOnboarded: false,
+        });
+        
+        // Create local user object
+        const newUser: User = {
+          id: userId,
+          email: data.email,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          telegramUsername: data.telegramUsername,
+          plan: "free",
+          generationsUsed: 0,
+          generationsLimit: 3,
+          createdAt: new Date().toISOString(),
+        };
 
-      setUser(newUser);
-      setIsOnboarded(false); // New user needs onboarding
+        setUser(newUser);
+        setIsOnboarded(false); // New user needs onboarding
+      }
     } catch (error) {
       console.error("Registration failed:", error);
       throw error;
@@ -238,30 +306,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     
     try {
-      // In a real app, verify with backend
-      // For demo, check if user exists in localStorage
-      const storedUser = localStorage.getItem(STORAGE_KEY);
+      // For demo, create/get user ID based on email
+      const userId = `user-${email.replace(/[^a-zA-Z0-9]/g, '-')}`;
       
-      if (storedUser) {
-        const parsedUser = JSON.parse(storedUser);
-        if (parsedUser.email === email) {
-          setUser(parsedUser);
-          return;
-        }
+      // Try to load user from API
+      try {
+        const apiUser = await usersApi.get(userId);
+        const user: User = {
+          id: apiUser.userId,
+          email: apiUser.email || email,
+          firstName: apiUser.firstName || email.split("@")[0],
+          lastName: apiUser.lastName,
+          plan: apiUser.plan,
+          generationsUsed: apiUser.generationsUsed,
+          generationsLimit: apiUser.generationsLimit,
+          createdAt: new Date().toISOString(),
+        };
+        setUser(user);
+        setIsOnboarded(apiUser.isOnboarded);
+      } catch {
+        // Create new user if not exists
+        await usersApi.update(userId, {
+          email,
+          firstName: email.split("@")[0],
+          plan: "free",
+          generationsUsed: 0,
+          generationsLimit: 3,
+          isOnboarded: false,
+        });
+        
+        const newUser: User = {
+          id: userId,
+          email,
+          firstName: email.split("@")[0],
+          plan: "free",
+          generationsUsed: 0,
+          generationsLimit: 3,
+          createdAt: new Date().toISOString(),
+        };
+        
+        setUser(newUser);
+        setIsOnboarded(false);
       }
-      
-      // Create mock user for demo
-      const newUser: User = {
-        id: "user-" + Date.now(),
-        email,
-        firstName: email.split("@")[0],
-        plan: "free",
-        generationsUsed: 0,
-        generationsLimit: 3,
-        createdAt: new Date().toISOString(),
-      };
-      
-      setUser(newUser);
     } catch (error) {
       console.error("Login failed:", error);
       throw error;
@@ -274,21 +360,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     
     try {
-      const newUser: User = {
-        id: telegramData.id.toString(),
-        email: `${telegramData.username || telegramData.id}@telegram.user`,
-        firstName: telegramData.first_name,
-        lastName: telegramData.last_name,
-        telegramId: telegramData.id,
-        telegramUsername: telegramData.username,
-        photoUrl: telegramData.photo_url,
-        plan: "free",
-        generationsUsed: 0,
-        generationsLimit: 3,
-        createdAt: new Date().toISOString(),
-      };
+      const userId = telegramData.id.toString();
+      
+      // Load or create user from API
+      try {
+        const apiUser = await usersApi.get(userId);
+        const user: User = {
+          id: apiUser.userId,
+          email: apiUser.email || `${telegramData.username || telegramData.id}@telegram.user`,
+          firstName: apiUser.firstName || telegramData.first_name,
+          lastName: apiUser.lastName || telegramData.last_name,
+          telegramId: telegramData.id,
+          telegramUsername: telegramData.username,
+          photoUrl: telegramData.photo_url,
+          plan: apiUser.plan,
+          generationsUsed: apiUser.generationsUsed,
+          generationsLimit: apiUser.generationsLimit,
+          createdAt: new Date().toISOString(),
+        };
+        setUser(user);
+        setIsOnboarded(apiUser.isOnboarded);
+      } catch {
+        // Create new user
+        await usersApi.update(userId, {
+          email: `${telegramData.username || telegramData.id}@telegram.user`,
+          firstName: telegramData.first_name,
+          lastName: telegramData.last_name,
+          plan: "free",
+          generationsUsed: 0,
+          generationsLimit: 3,
+          isOnboarded: false,
+        });
+        
+        const newUser: User = {
+          id: userId,
+          email: `${telegramData.username || telegramData.id}@telegram.user`,
+          firstName: telegramData.first_name,
+          lastName: telegramData.last_name,
+          telegramId: telegramData.id,
+          telegramUsername: telegramData.username,
+          photoUrl: telegramData.photo_url,
+          plan: "free",
+          generationsUsed: 0,
+          generationsLimit: 3,
+          createdAt: new Date().toISOString(),
+        };
 
-      setUser(newUser);
+        setUser(newUser);
+        setIsOnboarded(false);
+      }
     } catch (error) {
       console.error("Telegram login failed:", error);
       throw error;
@@ -330,20 +450,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
       
-      // Update user plan
+      // Update user plan locally first (for immediate UI update)
       if (user) {
         setUser({ ...user, plan: data.selectedPlan });
       }
       
       setIsOnboarded(true);
+      
+      // Update user onboarding status in API (non-blocking)
+      if (user) {
+        try {
+          await usersApi.update(user.id, { isOnboarded: true });
+        } catch (error) {
+          // Don't block onboarding if API is unavailable
+          console.warn("Failed to update user onboarding status in API:", error);
+        }
+      }
     } catch (error) {
       console.error("Onboarding completion failed:", error);
       throw error;
     }
   };
 
-  const updateUser = (data: Partial<User>) => {
-    if (user) {
+  const updateUser = async (data: Partial<User>) => {
+    if (!user) return;
+    
+    try {
+      // Update in backend via API
+      const updateData: any = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        plan: data.plan,
+        generationsUsed: data.generationsUsed,
+        generationsLimit: data.generationsLimit,
+      };
+      
+      // Add isOnboarded if it's being updated
+      if ('isOnboarded' in data && data.isOnboarded !== undefined) {
+        updateData.isOnboarded = data.isOnboarded;
+      } else if (isOnboarded !== undefined) {
+        updateData.isOnboarded = isOnboarded;
+      }
+      
+      await usersApi.update(user.id, updateData);
+      
+      // Update local state
+      setUser({ ...user, ...data });
+    } catch (error) {
+      console.error("Failed to update user:", error);
+      // Still update local state
       setUser({ ...user, ...data });
     }
   };
@@ -422,7 +578,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const removeBot = (botId: string) => {
+  const removeBot = async (botId: string) => {
+    try {
+      // Delete from backend
+      await botsApi.delete(botId);
+    } catch (error) {
+      console.error("Failed to delete bot from API:", error);
+    }
+    
+    // Update local state
     setBots((prev) => prev.filter((b) => b.id !== botId));
     
     if (selectedBotId === botId) {
@@ -431,10 +595,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateBot = (botId: string, data: Partial<Bot>) => {
-    setBots((prev) =>
-      prev.map((b) => (b.id === botId ? { ...b, ...data } : b))
-    );
+  const updateBot = async (botId: string, data: Partial<Bot>) => {
+    try {
+      // Update in backend via API
+      await botsApi.update(botId, {
+        channelId: data.channelId !== undefined 
+          ? (typeof data.channelId === 'number' ? data.channelId.toString() : data.channelId)
+          : undefined,
+        isActive: data.isActive,
+      });
+      
+      // Update local state
+      setBots((prev) =>
+        prev.map((b) => (b.id === botId ? { ...b, ...data } : b))
+      );
+    } catch (error) {
+      console.error("Failed to update bot:", error);
+      // Still update local state for UI responsiveness
+      setBots((prev) =>
+        prev.map((b) => (b.id === botId ? { ...b, ...data } : b))
+      );
+    }
   };
 
   const selectBot = (botId: string) => {

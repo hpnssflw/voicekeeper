@@ -103,8 +103,13 @@ cd packages/admin
 Создайте файл `.env.local`:
 
 ```env
-# API Backend URL
-NEXT_PUBLIC_API_BASE=http://localhost:8080/api
+# MongoDB Connection (required for admin API routes)
+MONGO_URI=mongodb://localhost:27017/voicekeeper
+# Or use MongoDB Atlas:
+# MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/voronka?retryWrites=true&w=majority
+
+# API Backend URL (for bot operations - bots, posts, channels)
+NEXT_PUBLIC_API_BASE=http://localhost:4000/api
 ```
 
 ### 4. Запуск сервисов

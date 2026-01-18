@@ -190,36 +190,36 @@ export default function OnboardingPage() {
   if (authLoading) {
     return (
       <div className="min-h-[calc(100vh-57px)] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-[calc(100vh-57px)] flex flex-col items-center justify-center px-4 py-8">
+    <div className="min-h-[calc(100vh-57px)] flex flex-col items-center justify-center px-4 py-3">
       {/* Progress */}
-      <div className="w-full max-w-xl mb-6">
-        <div className="flex items-center justify-between mb-2">
+      <div className="w-full max-w-md mb-2.5">
+        <div className="flex items-center justify-between mb-1.5">
           {steps.map((step, idx) => (
             <div key={step.id} className="flex items-center">
               <div
-                className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium transition-all ${
+                className={`flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-medium transition-all ${
                   idx < currentStep
-                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
                     : idx === currentStep
-                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30 ring-4 ring-primary/10"
+                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/30 ring-2 ring-primary/20"
                     : "bg-white/[0.05] text-muted-foreground"
                 }`}
               >
                 {idx < currentStep ? (
-                  <Check className="h-3.5 w-3.5" />
+                  <Check className="h-2.5 w-2.5" />
                 ) : (
                   idx + 1
                 )}
               </div>
               {idx < steps.length - 1 && (
                 <div
-                  className={`h-0.5 w-6 md:w-12 mx-1 transition-colors rounded-full ${
+                  className={`h-0.5 w-4 md:w-8 mx-0.5 transition-colors rounded-full ${
                     idx < currentStep ? "bg-primary" : "bg-white/[0.05]"
                   }`}
                 />
@@ -227,162 +227,163 @@ export default function OnboardingPage() {
             </div>
           ))}
         </div>
-        <p className="text-center text-xs text-muted-foreground">
+        <p className="text-center text-[9px] text-muted-foreground">
           Шаг {currentStep + 1} из {steps.length}: {steps[currentStep].title}
         </p>
       </div>
 
       {/* Step Content */}
-      <Card className="w-full max-w-xl">
-        <CardContent className="p-6">
+      <Card className="w-full max-w-md">
+        <CardContent className="p-2.5">
           {/* Step 1: Registration */}
           {currentStep === 0 && (
-            <div className="space-y-5">
+            <div className="space-y-2.5">
               <div className="text-center">
-                <div className="flex justify-center mb-3">
-                  <div className="relative w-16 h-16">
+                <div className="flex justify-center mb-1.5">
+                  <div className="relative w-8 h-8">
                     <Image
                       src="/lips.png"
                       alt="VoiceKeeper"
                       fill
-                      className="object-contain drop-shadow-[0_0_25px_rgba(239,68,68,0.4)]"
+                      className="object-contain drop-shadow-[0_0_12px_rgba(239,68,68,0.25)]"
                     />
                   </div>
                 </div>
-                <h2 className="text-lg font-bold font-display">
+                <h2 className="text-xs font-bold font-display">
                   Добро пожаловать в <span className="gradient-text">VoiceKeeper</span>
                 </h2>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <p className="mt-0.5 text-[9px] text-muted-foreground">
                   Заполните данные для регистрации
                 </p>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-2.5">
                 {/* Email */}
-                <div className="space-y-1.5">
-                  <Label htmlFor="email" className="text-sm">Email *</Label>
+                <div className="space-y-1">
+                  <Label htmlFor="email" className="text-[10px]">Email *</Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Mail className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                     <Input
                       id="email"
                       type="email"
                       placeholder="your@email.com"
                       value={formData.email}
                       onChange={(e) => updateField("email", e.target.value)}
-                      className={`pl-10 ${errors.email ? "border-destructive" : ""}`}
+                      className={`pl-7 h-6 text-[10px] ${errors.email ? "border-destructive" : ""}`}
                     />
                   </div>
-                  {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+                  {errors.email && <p className="text-[9px] text-destructive">{errors.email}</p>}
                 </div>
 
                 {/* Name fields */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="firstName" className="text-sm">Имя *</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="firstName" className="text-[10px]">Имя *</Label>
                     <Input
                       id="firstName"
                       placeholder="Иван"
                       value={formData.firstName}
                       onChange={(e) => updateField("firstName", e.target.value)}
-                      className={errors.firstName ? "border-destructive" : ""}
+                      className={`h-6 text-[10px] ${errors.firstName ? "border-destructive" : ""}`}
                     />
-                    {errors.firstName && <p className="text-xs text-destructive">{errors.firstName}</p>}
+                    {errors.firstName && <p className="text-[9px] text-destructive">{errors.firstName}</p>}
                   </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="lastName" className="text-sm">Фамилия</Label>
+                  <div className="space-y-1">
+                    <Label htmlFor="lastName" className="text-[10px]">Фамилия</Label>
                     <Input
                       id="lastName"
                       placeholder="Иванов"
                       value={formData.lastName}
                       onChange={(e) => updateField("lastName", e.target.value)}
+                      className="h-6 text-[10px]"
                     />
                   </div>
                 </div>
 
                 {/* Telegram username */}
-                <div className="space-y-1.5">
-                  <Label htmlFor="telegramUsername" className="text-sm">Telegram username</Label>
+                <div className="space-y-1">
+                  <Label htmlFor="telegramUsername" className="text-[10px]">Telegram username</Label>
                   <div className="relative">
-                    <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <AtSign className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                     <Input
                       id="telegramUsername"
                       placeholder="username"
                       value={formData.telegramUsername}
                       onChange={(e) => updateField("telegramUsername", e.target.value)}
-                      className="pl-10"
+                      className="pl-7 h-6 text-[10px]"
                     />
                   </div>
                 </div>
 
                 {/* Password */}
-                <div className="space-y-1.5">
-                  <Label htmlFor="password" className="text-sm">Пароль *</Label>
+                <div className="space-y-1">
+                  <Label htmlFor="password" className="text-[10px]">Пароль *</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Lock className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
                       placeholder="Минимум 6 символов"
                       value={formData.password}
                       onChange={(e) => updateField("password", e.target.value)}
-                      className={`pl-10 pr-10 ${errors.password ? "border-destructive" : ""}`}
+                      className={`pl-7 pr-8 h-6 text-[10px] ${errors.password ? "border-destructive" : ""}`}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      {showPassword ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
                     </button>
                   </div>
-                  {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+                  {errors.password && <p className="text-[9px] text-destructive">{errors.password}</p>}
                 </div>
 
                 {/* Confirm Password */}
-                <div className="space-y-1.5">
-                  <Label htmlFor="confirmPassword" className="text-sm">Подтвердите пароль *</Label>
+                <div className="space-y-1">
+                  <Label htmlFor="confirmPassword" className="text-[10px]">Подтвердите пароль *</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Lock className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                     <Input
                       id="confirmPassword"
                       type={showPassword ? "text" : "password"}
                       placeholder="Повторите пароль"
                       value={formData.confirmPassword}
                       onChange={(e) => updateField("confirmPassword", e.target.value)}
-                      className={`pl-10 ${errors.confirmPassword ? "border-destructive" : ""}`}
+                      className={`pl-7 h-6 text-[10px] ${errors.confirmPassword ? "border-destructive" : ""}`}
                     />
                   </div>
-                  {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword}</p>}
+                  {errors.confirmPassword && <p className="text-[9px] text-destructive">{errors.confirmPassword}</p>}
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2 pt-2">
+              <div className="flex flex-col gap-1.5 pt-1.5">
                 <Button 
                   onClick={nextStep} 
-                  className="w-full gap-2" 
+                  className="w-full h-6 text-[10px] gap-1" 
                   variant="gradient"
                   disabled={isLoading}
                 >
                   {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-3 w-3 animate-spin" />
                   ) : (
                     <>
                       Продолжить
-                      <ArrowRight className="h-4 w-4" />
+                      <ArrowRight className="h-3 w-3" />
                     </>
                   )}
                 </Button>
                 <Button 
                   variant="ghost" 
                   onClick={skipOnboarding} 
-                  className="text-muted-foreground text-sm"
+                  className="text-muted-foreground text-[9px] h-6"
                   disabled={isLoading}
                 >
                   Пропустить и настроить позже
                 </Button>
               </div>
               
-              <p className="text-center text-xs text-muted-foreground">
+              <p className="text-center text-[9px] text-muted-foreground">
                 Уже есть аккаунт?{" "}
                 <button 
                   onClick={() => router.push("/login")} 
@@ -396,37 +397,41 @@ export default function OnboardingPage() {
 
           {/* Step 2: Bot Setup */}
           {currentStep === 1 && (
-            <div className="space-y-5">
+            <div className="space-y-2.5">
               <div className="text-center">
-                <FeatureIcon icon={Bot} variant="info" size="lg" className="mx-auto mb-3" />
-                <h2 className="text-lg font-bold font-display">Подключите Telegram-бота</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <div className="flex justify-center mb-1.5">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 shadow-md">
+                    <Bot className="h-4 w-4 text-white" />
+                  </div>
+                </div>
+                <h2 className="text-xs font-bold font-display">Подключите Telegram-бота</h2>
+                <p className="mt-0.5 text-[9px] text-muted-foreground">
                   Бот нужен для публикации постов в ваш канал
                 </p>
               </div>
 
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="bot-token" className="text-sm">Токен бота</Label>
+              <div className="space-y-2.5">
+                <div className="space-y-1">
+                  <Label htmlFor="bot-token" className="text-[10px]">Токен бота</Label>
                   <Input
                     id="bot-token"
                     placeholder="7123456789:AAH..."
                     value={formData.botToken}
                     onChange={(e) => updateField("botToken", e.target.value)}
-                    className="font-mono text-sm"
+                    className="font-mono h-6 text-[10px]"
                   />
                   {/* Quick hint for testing */}
-                  <p className="text-xs text-emerald-400/80 mt-1">
-                    💡 Тестовый токен: <code className="bg-emerald-500/10 px-1.5 py-0.5 rounded cursor-pointer hover:bg-emerald-500/20" onClick={() => updateField("botToken", "7819471498:AAG6rlm5hZJGLmJfcRO5FhTNi0mmbCMvbKI")}>7819471498:AAG6rlm5hZJGLmJfcRO5FhTNi0mmbCMvbKI</code>
+                  <p className="text-[9px] text-emerald-400/80 mt-0.5">
+                    💡 Тестовый токен: <code className="bg-emerald-500/10 px-1 py-0.5 rounded cursor-pointer hover:bg-emerald-500/20" onClick={() => updateField("botToken", "7819471498:AAG6rlm5hZJGLmJfcRO5FhTNi0mmbCMvbKI")}>7819471498:AAG6rlm5hZJGLmJfcRO5FhTNi0mmbCMvbKI</code>
                   </p>
                 </div>
 
-                <div className="rounded-xl bg-white/[0.03] p-4 text-sm">
-                  <h4 className="font-medium mb-2 flex items-center gap-2 text-sm">
-                    <MessageSquare className="h-4 w-4 text-blue-400" />
+                <div className="rounded-lg bg-white/[0.03] p-2.5">
+                  <h4 className="font-medium mb-1.5 flex items-center gap-1.5 text-[10px]">
+                    <MessageSquare className="h-3 w-3 text-blue-400" />
                     Как получить токен:
                   </h4>
-                  <ol className="list-decimal list-inside space-y-1 text-xs text-muted-foreground">
+                  <ol className="list-decimal list-inside space-y-0.5 text-[9px] text-muted-foreground">
                     <li>Откройте <a href="https://t.me/BotFather" target="_blank" className="text-primary hover:underline">@BotFather</a> в Telegram</li>
                     <li>Отправьте команду <code className="bg-white/[0.05] px-1 rounded">/newbot</code></li>
                     <li>Следуйте инструкциям и скопируйте токен</li>
@@ -434,18 +439,18 @@ export default function OnboardingPage() {
                 </div>
               </div>
 
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={prevStep} className="gap-2" size="sm">
-                  <ArrowLeft className="h-3.5 w-3.5" />
+              <div className="flex gap-1.5 pt-1.5">
+                <Button variant="outline" onClick={prevStep} className="gap-1 h-6 text-[10px]" size="sm">
+                  <ArrowLeft className="h-3 w-3" />
                   Назад
                 </Button>
                 <Button 
                   onClick={nextStep} 
-                  className="flex-1 gap-2"
+                  className="flex-1 gap-1 h-6 text-[10px]"
                   size="sm"
                 >
                   {formData.botToken ? "Продолжить" : "Пропустить"}
-                  <ArrowRight className="h-3.5 w-3.5" />
+                  <ArrowRight className="h-3 w-3" />
                 </Button>
               </div>
             </div>
@@ -453,42 +458,47 @@ export default function OnboardingPage() {
 
           {/* Step 3: Channel Setup */}
           {currentStep === 2 && (
-            <div className="space-y-5">
+            <div className="space-y-2.5">
               <div className="text-center">
-                <FeatureIcon icon={Target} variant="success" size="lg" className="mx-auto mb-3" />
-                <h2 className="text-lg font-bold font-display">Укажите ваш канал</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <div className="flex justify-center mb-1.5">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 shadow-md">
+                    <Target className="h-4 w-4 text-white" />
+                  </div>
+                </div>
+                <h2 className="text-xs font-bold font-display">Укажите ваш канал</h2>
+                <p className="mt-0.5 text-[9px] text-muted-foreground">
                   Канал, в который будут публиковаться посты
                 </p>
               </div>
 
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="channel" className="text-sm">Username канала</Label>
+              <div className="space-y-2.5">
+                <div className="space-y-1">
+                  <Label htmlFor="channel" className="text-[10px]">Username канала</Label>
                   <Input
                     id="channel"
                     placeholder="@your_channel"
                     value={formData.channelUsername}
                     onChange={(e) => updateField("channelUsername", e.target.value)}
+                    className="h-6 text-[10px]"
                   />
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[9px] text-muted-foreground">
                     Не забудьте добавить бота администратором канала
                   </p>
                 </div>
               </div>
 
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={prevStep} className="gap-2" size="sm">
-                  <ArrowLeft className="h-3.5 w-3.5" />
+              <div className="flex gap-1.5 pt-1.5">
+                <Button variant="outline" onClick={prevStep} className="gap-1 h-6 text-[10px]" size="sm">
+                  <ArrowLeft className="h-3 w-3" />
                   Назад
                 </Button>
                 <Button 
                   onClick={nextStep} 
-                  className="flex-1 gap-2"
+                  className="flex-1 gap-1 h-6 text-[10px]"
                   size="sm"
                 >
                   {formData.channelUsername ? "Продолжить" : "Пропустить"}
-                  <ArrowRight className="h-3.5 w-3.5" />
+                  <ArrowRight className="h-3 w-3" />
                 </Button>
               </div>
             </div>
@@ -496,35 +506,40 @@ export default function OnboardingPage() {
 
           {/* Step 4: Voice Fingerprint Setup */}
           {currentStep === 3 && (
-            <div className="space-y-5">
+            <div className="space-y-2.5">
               <div className="text-center">
-                <FeatureIcon icon={Fingerprint} variant="primary" size="lg" className="mx-auto mb-3" />
-                <h2 className="text-lg font-bold font-display">Настройте Voice Fingerprint</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <div className="flex justify-center mb-1.5">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-pink-500 shadow-md">
+                    <Fingerprint className="h-4 w-4 text-white" />
+                  </div>
+                </div>
+                <h2 className="text-xs font-bold font-display">Настройте Voice Fingerprint</h2>
+                <p className="mt-0.5 text-[9px] text-muted-foreground">
                   Укажите канал для анализа вашего авторского стиля
                 </p>
               </div>
 
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="analysis-channel" className="text-sm">Канал для анализа стиля</Label>
+              <div className="space-y-2.5">
+                <div className="space-y-1">
+                  <Label htmlFor="analysis-channel" className="text-[10px]">Канал для анализа стиля</Label>
                   <Input
                     id="analysis-channel"
                     placeholder="@your_channel или любой публичный канал"
                     value={formData.channelForAnalysis}
                     onChange={(e) => updateField("channelForAnalysis", e.target.value)}
+                    className="h-6 text-[10px]"
                   />
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[9px] text-muted-foreground">
                     AI проанализирует последние 50 постов
                   </p>
                 </div>
 
-                <div className="rounded-xl bg-red-500/[0.06] p-4">
-                  <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-red-400" />
+                <div className="rounded-lg bg-red-500/[0.06] p-2.5">
+                  <h4 className="font-medium text-[10px] mb-1.5 flex items-center gap-1.5">
+                    <Sparkles className="h-3 w-3 text-red-400" />
                     Что анализирует AI:
                   </h4>
-                  <ul className="text-xs text-muted-foreground space-y-1">
+                  <ul className="text-[9px] text-muted-foreground space-y-0.5">
                     <li>• Структуру и длину постов</li>
                     <li>• Тональность и формальность</li>
                     <li>• Фирменные фразы и обороты</li>
@@ -533,18 +548,18 @@ export default function OnboardingPage() {
                 </div>
               </div>
 
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={prevStep} className="gap-2" size="sm">
-                  <ArrowLeft className="h-3.5 w-3.5" />
+              <div className="flex gap-1.5 pt-1.5">
+                <Button variant="outline" onClick={prevStep} className="gap-1 h-6 text-[10px]" size="sm">
+                  <ArrowLeft className="h-3 w-3" />
                   Назад
                 </Button>
                 <Button 
                   onClick={nextStep} 
-                  className="flex-1 gap-2"
+                  className="flex-1 gap-1 h-6 text-[10px]"
                   size="sm"
                 >
                   {formData.channelForAnalysis ? "Продолжить" : "Пропустить"}
-                  <ArrowRight className="h-3.5 w-3.5" />
+                  <ArrowRight className="h-3 w-3" />
                 </Button>
               </div>
             </div>
@@ -552,25 +567,22 @@ export default function OnboardingPage() {
 
           {/* Step 5: Plan Selection & Finish */}
           {currentStep === 4 && (
-            <div className="text-center space-y-5">
+            <div className="text-center space-y-2.5">
               <div className="flex justify-center">
-                <div className="relative">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/30">
-                    <Rocket className="h-7 w-7 text-white" />
-                  </div>
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 blur-xl opacity-40" />
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 shadow-md">
+                  <Rocket className="h-4 w-4 text-white" />
                 </div>
               </div>
               
               <div>
-                <h1 className="text-xl font-bold font-display">Выберите план</h1>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <h1 className="text-xs font-bold font-display">Выберите план</h1>
+                <p className="mt-0.5 text-[9px] text-muted-foreground">
                   Начните бесплатно, масштабируйтесь по мере роста
                 </p>
               </div>
 
               {/* Plan Selection */}
-              <div className="grid gap-3 md:grid-cols-3">
+              <div className="grid gap-2 md:grid-cols-3">
                 {[
                   { id: "free" as const, name: "Free", price: "0 ₽", features: ["3 генерации/мес", "1 бот", "Базовый анализ"] },
                   { id: "pro" as const, name: "Pro", price: "750 ₽", features: ["50 генераций/мес", "5 ботов", "Voice Fingerprint"], popular: true },
@@ -579,23 +591,23 @@ export default function OnboardingPage() {
                   <button
                     key={plan.id}
                     onClick={() => setFormData({ ...formData, selectedPlan: plan.id })}
-                    className={`relative rounded-xl p-4 text-left transition-all ${
+                    className={`relative rounded-lg p-2.5 text-left transition-all ${
                       formData.selectedPlan === plan.id
-                        ? "bg-primary/10 shadow-[0_0_0_2px_hsl(var(--primary)/0.3)]"
+                        ? "bg-primary/10 shadow-[0_0_0_1px_hsl(var(--primary)/0.3)]"
                         : "bg-white/[0.03] hover:bg-white/[0.05]"
                     }`}
                   >
                     {plan.popular && (
-                      <Badge variant="gradient" className="absolute -top-2 right-2 text-[9px] px-1.5 py-0">
+                      <Badge variant="gradient" className="absolute -top-1.5 right-1.5 text-[8px] px-1 py-0">
                         Популярный
                       </Badge>
                     )}
-                    <p className="font-semibold font-display">{plan.name}</p>
-                    <p className="text-xl font-bold mt-1">{plan.price}<span className="text-xs font-normal text-muted-foreground">/мес</span></p>
-                    <ul className="mt-3 space-y-1">
+                    <p className="font-semibold font-display text-[10px]">{plan.name}</p>
+                    <p className="text-sm font-bold mt-0.5 leading-tight">{plan.price}<span className="text-[9px] font-normal text-muted-foreground">/мес</span></p>
+                    <ul className="mt-2 space-y-0.5">
                       {plan.features.map((f) => (
-                        <li key={f} className="text-xs text-muted-foreground flex items-center gap-1.5">
-                          <Check className="h-3 w-3 text-emerald-400" />
+                        <li key={f} className="text-[9px] text-muted-foreground flex items-center gap-1 leading-tight">
+                          <Check className="h-2.5 w-2.5 text-emerald-400 shrink-0" />
                           {f}
                         </li>
                       ))}
@@ -604,22 +616,22 @@ export default function OnboardingPage() {
                 ))}
               </div>
 
-              <div className="flex gap-2 pt-2">
-                <Button variant="outline" onClick={prevStep} className="gap-2" size="sm">
-                  <ArrowLeft className="h-3.5 w-3.5" />
+              <div className="flex gap-1.5 pt-1.5">
+                <Button variant="outline" onClick={prevStep} className="gap-1 h-6 text-[10px]" size="sm">
+                  <ArrowLeft className="h-3 w-3" />
                   Назад
                 </Button>
                 <Button 
                   onClick={finishOnboarding} 
-                  className="flex-1 gap-2"
+                  className="flex-1 gap-1 h-6 text-[10px]"
                   variant="gradient"
                   disabled={isLoading}
                 >
                   {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-3 w-3 animate-spin" />
                   ) : (
                     <>
-                      <Sparkles className="h-4 w-4" />
+                      <Sparkles className="h-3 w-3" />
                       Начать работу
                     </>
                   )}

@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { StatCard, ListItem, ActionItem, PageHeader, EmptyState } from "@/components/widgets";
 import { useAuth } from "@/lib/auth";
 import { useTranslations } from "@/lib/use-translations";
 import {
@@ -37,69 +38,55 @@ export default function DashboardPage() {
   const hasData = bots.length > 0 || channels.length > 0;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-sm font-bold tracking-tight font-display">
-            {user?.firstName ? t("dashboard.greeting", { name: user.firstName }) : t("dashboard.title")}
-          </h1>
-          <p className="text-[10px] text-muted-foreground">
-            {hasData ? t("dashboard.overview") : t("dashboard.startWithBot")}
-          </p>
-        </div>
-        <Link href="/dashboard/voicekeeper/generate">
-          <Button variant="gradient" size="sm" className="gap-1.5 h-7 text-[10px]">
-            <Sparkles className="h-3 w-3" />
-            AI
-          </Button>
-        </Link>
-      </div>
+      <PageHeader
+        title={user?.firstName ? t("dashboard.greeting", { name: user.firstName }) : t("dashboard.title")}
+        description={hasData ? t("dashboard.overview") : t("dashboard.startWithBot")}
+        action={
+          <Link href="/dashboard/voicekeeper/generate">
+            <Button variant="gradient" size="sm" className="h-6 text-[9px]">
+              <Sparkles className="h-2.5 w-2.5" />
+              AI
+            </Button>
+          </Link>
+        }
+      />
 
       {/* Stats */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1">
+      <div className="flex gap-1 overflow-x-auto pb-1">
         {stats.map((stat) => (
-          <Link key={stat.name} href={stat.href} className="flex-1 min-w-[70px]">
-            <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-[hsl(15,12%,8%)] hover:bg-[hsl(15,12%,10%)] transition-colors">
-              <stat.icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-              <div className="min-w-0">
-                <p className="text-xs font-bold font-display">{stat.value}</p>
-                <p className="text-[9px] text-muted-foreground truncate">{stat.name}</p>
-              </div>
-            </div>
-          </Link>
+          <StatCard key={stat.name} {...stat} />
         ))}
       </div>
 
       {/* Empty State or Content */}
       {!hasData ? (
-        <Card className="py-8">
-          <CardContent className="text-center">
-            <div className="flex justify-center mb-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-pink-500 shadow-lg shadow-orange-500/20">
-                <Zap className="h-6 w-6 text-white" />
-              </div>
+        <EmptyState
+          icon={
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-pink-500 shadow-lg shadow-orange-500/20">
+              <Zap className="h-4 w-4 text-white" />
             </div>
-            <h3 className="text-sm font-semibold font-display mb-1">{t("dashboard.emptyState.title")}</h3>
-            <p className="text-xs text-muted-foreground mb-4 max-w-xs mx-auto">
-              {t("dashboard.emptyState.description")}
-            </p>
-            <div className="flex items-center justify-center gap-2">
+          }
+          title={t("dashboard.emptyState.title")}
+          description={t("dashboard.emptyState.description")}
+          action={
+            <>
               <Link href="/dashboard/bots">
-                <Button size="sm" className="gap-1.5">
-                  <Bot className="h-3 w-3" />
+                <Button size="sm" className="h-6 text-[9px]">
+                  <Bot className="h-2.5 w-2.5" />
                   {t("dashboard.emptyState.addBot")}
                 </Button>
               </Link>
               <Link href="/dashboard/channels">
-                <Button variant="outline" size="sm" className="gap-1.5">
-                  <Radio className="h-3 w-3" />
+                <Button variant="outline" size="sm" className="h-6 text-[9px]">
+                  <Radio className="h-2.5 w-2.5" />
                   {t("dashboard.emptyState.addChannel")}
                 </Button>
               </Link>
-            </div>
-          </CardContent>
-        </Card>
+            </>
+          }
+        />
       ) : (
         <div className="grid gap-4 lg:grid-cols-3">
           {/* Bots */}
@@ -139,6 +126,7 @@ export default function DashboardPage() {
                           <h4 className="text-xs font-medium">{bot.name}</h4>
                           <p className="text-[10px] text-muted-foreground">{bot.username}</p>
                         </div>
+
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="text-right text-[10px] text-muted-foreground">
@@ -158,59 +146,39 @@ export default function DashboardPage() {
 
           {/* Quick Actions */}
           <Card>
-            <CardHeader className="pb-2">
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-pink-500">
-                  <Zap className="h-4 w-4 text-white" />
+            <CardHeader className="pb-1.5 p-2">
+              <div className="flex items-center gap-1.5">
+                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-orange-500 to-pink-500">
+                  <Zap className="h-3 w-3 text-white" />
                 </div>
                 <div>
-                  <CardTitle>{t("dashboard.quickActions.title")}</CardTitle>
-                  <CardDescription>{t("dashboard.quickActions.description")}</CardDescription>
+                  <CardTitle className="text-[11px]">{t("dashboard.quickActions.title")}</CardTitle>
+                  <CardDescription className="text-[9px]">{t("dashboard.quickActions.description")}</CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <Link href="/dashboard/voicekeeper/generate" className="block">
-                <div className="rounded-lg bg-orange-500/[0.06] p-3 hover:bg-orange-500/[0.1] transition-colors">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-md bg-orange-500/15">
-                      <Sparkles className="h-3.5 w-3.5 text-orange-400" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-medium">{t("dashboard.quickActions.createPost")}</h4>
-                      <p className="text-[10px] text-muted-foreground">VoiceKeeper</p>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-              
-              <Link href="/dashboard/trends" className="block">
-                <div className="rounded-lg bg-amber-500/[0.06] p-3 hover:bg-amber-500/[0.1] transition-colors">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-md bg-amber-500/15">
-                      <TrendingUp className="h-3.5 w-3.5 text-amber-400" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-medium">{t("dashboard.quickActions.trendRadar")}</h4>
-                      <p className="text-[10px] text-muted-foreground">Analysis</p>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-              
-              <Link href="/dashboard/voicekeeper/fingerprint" className="block">
-                <div className="rounded-lg bg-emerald-500/[0.06] p-3 hover:bg-emerald-500/[0.1] transition-colors">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-md bg-emerald-500/15">
-                      <BarChart3 className="h-3.5 w-3.5 text-emerald-400" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-medium">{t("dashboard.quickActions.fingerprint")}</h4>
-                      <p className="text-[10px] text-muted-foreground">Setup</p>
-                    </div>
-                  </div>
-                </div>
-              </Link>
+            <CardContent className="space-y-1.5 p-2">
+              <ActionItem
+                title={t("dashboard.quickActions.createPost")}
+                description="VoiceKeeper"
+                icon={Sparkles}
+                href="/dashboard/voicekeeper/generate"
+                color="orange"
+              />
+              <ActionItem
+                title={t("dashboard.quickActions.trendRadar")}
+                description="Analysis"
+                icon={TrendingUp}
+                href="/dashboard/trends"
+                color="amber"
+              />
+              <ActionItem
+                title={t("dashboard.quickActions.fingerprint")}
+                description="Setup"
+                icon={BarChart3}
+                href="/dashboard/voicekeeper/fingerprint"
+                color="emerald"
+              />
             </CardContent>
           </Card>
         </div>
@@ -219,18 +187,18 @@ export default function DashboardPage() {
       {/* Plan */}
       {user && (
         <Card className="bg-gradient-to-r from-orange-500/5 via-transparent to-pink-500/5">
-          <CardContent className="p-3">
+          <CardContent className="p-2">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Badge variant="gradient" className="capitalize">{user.plan}</Badge>
-                <span className="text-[10px] text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <Badge variant="gradient" className="capitalize text-[9px] px-1.5 py-0">{user.plan}</Badge>
+                <span className="text-[9px] text-muted-foreground">
                   {user.plan === "free" ? t("dashboard.plan.free") : user.plan === "pro" ? t("dashboard.plan.pro") : t("dashboard.plan.business")}
                 </span>
               </div>
               {user.plan === "free" && (
                 <Link href="/dashboard/settings/subscription">
-                  <Button variant="ghost" size="sm" className="gap-1 text-orange-400 text-[10px]">
-                    <Zap className="h-3 w-3" />
+                  <Button variant="ghost" size="sm" className="h-6 gap-0.5 text-orange-400 text-[9px]">
+                    <Zap className="h-2.5 w-2.5" />
                     {t("common.upgrade")}
                   </Button>
                 </Link>
@@ -242,4 +210,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
 

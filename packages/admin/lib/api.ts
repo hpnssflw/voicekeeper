@@ -1,6 +1,9 @@
-// Safe API_BASE with fallback for local development
-// On Vercel, this should be set via environment variables
-export const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:4000/api';
+// Use Next.js API routes for admin operations (relative path)
+// Admin API routes work directly with MongoDB, no bot API needed
+export const API_BASE = '/api';
+
+// Bot API base for operations that still need bot API (bots, posts, channels, etc.)
+const BOT_API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:4000/api';
 
 interface ApiResponse<T> {
   data?: T;
@@ -46,6 +49,12 @@ class ApiClient {
         method,
         headers,
         body: body ? JSON.stringify(body) : undefined,
+      }).catch((fetchError) => {
+        // Handle fetch errors (network, CORS, etc.)
+        if (fetchError instanceof TypeError && fetchError.message.includes('fetch')) {
+          throw new Error(`Network error: Unable to reach API server at ${this.baseUrl}. Please ensure the backend is running.`);
+        }
+        throw fetchError;
       });
 
       // Handle network errors
@@ -494,5 +503,78 @@ export const postsApi = {
    */
   delete: (postId: string): Promise<{ success: boolean }> => {
     return api.delete(`/posts/${postId}`);
+  },
+};
+
+// ============================================
+// Users API (for user settings, API keys, fingerprint)
+// ============================================
+
+export interface UserResponse {
+  userId: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  plan: 'free' | 'pro' | 'business';
+  generationsUsed: number;
+  generationsLimit: number;
+  isOnboarded: boolean;
+  language?: string;
+}
+
+// Импортируем StyleProfile из ai.ts для типизации
+import type { StyleProfile } from './ai';
+
+export interface UserSettingsResponse {
+  aiProvider?: 'gemini' | 'openai';
+  geminiApiKey?: string;
+  openaiApiKey?: string;
+  fingerprint?: StyleProfile | null;
+}
+
+export const usersApi = {
+  /**
+   * Get user data
+   * Uses Next.js API route: /api/users/[userId]
+   */
+  get: (userId: string): Promise<UserResponse> => {
+    return api.get(`/users/${userId}`);
+  },
+
+  /**
+   * Update user data
+   * Uses Next.js API route: /api/users/[userId]
+   */
+  update: (userId: string, data: Partial<UserResponse>): Promise<UserResponse> => {
+    return api.put(`/users/${userId}`, data);
+  },
+
+  /**
+   * Get user settings (API keys, fingerprint)
+   * Uses Next.js API route: /api/users/[userId]/settings
+   */
+  getSettings: (userId: string): Promise<UserSettingsResponse> => {
+    return api.get(`/users/${userId}/settings`);
+  },
+
+  /**
+   * Update user settings (API keys, fingerprint)
+   * Uses Next.js API route: /api/users/[userId]/settings
+   */
+  updateSettings: (userId: string, data: {
+    aiProvider?: 'gemini' | 'openai';
+    geminiApiKey?: string | null;
+    openaiApiKey?: string | null;
+    fingerprint?: StyleProfile | null;
+  }): Promise<{ success: boolean; aiProvider?: string; fingerprintUpdated?: boolean; apiKeysUpdated?: boolean }> => {
+    return api.put(`/users/${userId}/settings`, data);
+  },
+
+  /**
+   * Check if API key exists and get it
+   * Uses Next.js API route: /api/users/[userId]/api-key
+   */
+  hasApiKey: (userId: string, provider: 'gemini' | 'openai'): Promise<{ hasKey: boolean; key: string | null }> => {
+    return api.get(`/users/${userId}/api-key?provider=${provider}`);
   },
 };

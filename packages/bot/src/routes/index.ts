@@ -4,6 +4,7 @@ import { webhookRouter } from './webhook.routes';
 import { botsRouter } from './bots.routes';
 import { channelsRouter } from './channels.routes';
 import { mtprotoRouter } from './mtproto.routes';
+import { usersRouter } from './users.routes';
 
 export const router = Router();
 
@@ -19,5 +20,6 @@ router.use('/channels', channelsRouter);
 router.use('/posts', postsRouter);
 router.use('/webhook', webhookRouter);
 router.use('/mtproto', mtprotoRouter);
+router.use('/users', usersRouter);
 
 

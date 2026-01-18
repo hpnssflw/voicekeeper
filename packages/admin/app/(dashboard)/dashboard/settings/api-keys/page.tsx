@@ -30,22 +30,49 @@ export default function ApiKeysPage() {
 
   // Load saved keys on mount
   useEffect(() => {
-    setKeys({
-      geminiKey: getApiKey("gemini") || "",
-      openaiKey: getApiKey("openai") || "",
-    });
-    setProvider(getAiProvider());
+    const loadData = async () => {
+      try {
+        const geminiKey = await getApiKey("gemini");
+        const openaiKey = await getApiKey("openai");
+        const currentProvider = await getAiProvider();
+        setKeys({
+          geminiKey: geminiKey || "",
+          openaiKey: openaiKey || "",
+        });
+        setProvider(currentProvider);
+      } catch (error) {
+        console.error("Failed to load API keys:", error);
+      }
+    };
+    loadData();
   }, []);
 
-  const handleSave = (keyType: "gemini" | "openai") => {
+  const handleSave = async (keyType: "gemini" | "openai") => {
     const key = keyType === "gemini" ? keys.geminiKey : keys.openaiKey;
-    setApiKey(keyType, key);
-    toast({ title: "Ключ сохранён", variant: "success" });
+    try {
+      await setApiKey(keyType, key);
+      toast({ title: "Ключ сохранён", variant: "success" });
+    } catch (error) {
+      toast({ 
+        title: "Ошибка сохранения", 
+        description: error instanceof Error ? error.message : "Попробуйте позже",
+        variant: "destructive" 
+      });
+    }
   };
 
-  const handleProviderChange = (newProvider: "gemini" | "openai") => {
-    setProvider(newProvider);
-    setAiProvider(newProvider);
+  const handleProviderChange = async (newProvider: "gemini" | "openai") => {
+    try {
+      setProvider(newProvider);
+      await setAiProvider(newProvider);
+      toast({ title: "Провайдер изменён", variant: "success" });
+    } catch (error) {
+      toast({ 
+        title: "Ошибка сохранения", 
+        description: error instanceof Error ? error.message : "Попробуйте позже",
+        variant: "destructive" 
+      });
+    }
   };
 
   const handleTest = async (keyType: "gemini" | "openai") => {
