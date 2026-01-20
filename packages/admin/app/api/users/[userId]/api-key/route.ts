@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectMongo } from '@/lib/db/mongo';
 import { UserModel } from '@/lib/db/models/User';
 
+interface UserDocument {
+  geminiApiKey?: string;
+  openaiApiKey?: string;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
@@ -20,7 +25,7 @@ export async function GET(
     
     await connectMongo();
     
-    const user = await UserModel.findOne({ userId }).lean();
+    const user = await UserModel.findOne({ userId }).lean() as UserDocument | null;
     
     if (!user) {
       return NextResponse.json({ hasKey: false, key: null });

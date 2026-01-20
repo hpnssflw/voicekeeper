@@ -2,6 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectMongo } from '@/lib/db/mongo';
 import { UserModel } from '@/lib/db/models/User';
 
+interface UserDocument {
+  userId: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  plan?: string;
+  generationsUsed?: number;
+  generationsLimit?: number;
+  isOnboarded?: boolean;
+  language?: string;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
@@ -10,7 +22,7 @@ export async function GET(
     const { userId } = await params;
     await connectMongo();
     
-    let user = await UserModel.findOne({ userId }).lean();
+    let user = await UserModel.findOne({ userId }).lean() as UserDocument | null;
     
     // If user doesn't exist, create default user
     if (!user) {
@@ -22,7 +34,7 @@ export async function GET(
         isOnboarded: false,
         aiProvider: 'gemini',
       });
-      user = newUser.toObject();
+      user = newUser.toObject() as UserDocument;
     }
     
     return NextResponse.json({
@@ -67,18 +79,25 @@ export async function PUT(
       { userId },
       { $set: filteredUpdates },
       { upsert: true, new: true }
-    ).lean();
+    ).lean() as UserDocument | null;
+    
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Failed to update user' },
+        { status: 500 }
+      );
+    }
     
     return NextResponse.json({
-      userId: user?.userId,
-      email: user?.email,
-      firstName: user?.firstName,
-      lastName: user?.lastName,
-      plan: user?.plan || 'free',
-      generationsUsed: user?.generationsUsed || 0,
-      generationsLimit: user?.generationsLimit || 3,
-      isOnboarded: user?.isOnboarded || false,
-      language: user?.language || 'ru',
+      userId: user.userId,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      plan: user.plan || 'free',
+      generationsUsed: user.generationsUsed || 0,
+      generationsLimit: user.generationsLimit || 3,
+      isOnboarded: user.isOnboarded || false,
+      language: user.language || 'ru',
     });
   } catch (error) {
     console.error('Error updating user:', error);

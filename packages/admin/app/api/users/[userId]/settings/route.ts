@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectMongo } from '@/lib/db/mongo';
 import { UserModel } from '@/lib/db/models/User';
 
+interface UserSettingsDocument {
+  aiProvider?: 'gemini' | 'openai';
+  geminiApiKey?: string;
+  openaiApiKey?: string;
+  fingerprint?: any;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
@@ -10,7 +17,7 @@ export async function GET(
     const { userId } = await params;
     await connectMongo();
     
-    const user = await UserModel.findOne({ userId }).lean();
+    const user = await UserModel.findOne({ userId }).lean() as UserSettingsDocument | null;
     
     if (!user) {
       return NextResponse.json({
@@ -101,7 +108,7 @@ export async function PUT(
       { userId },
       { $set: updates },
       updateOptions
-    ).lean();
+    ).lean() as UserSettingsDocument | null;
     
     return NextResponse.json({
       success: true,

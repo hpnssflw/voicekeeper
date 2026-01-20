@@ -3,7 +3,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-interface SliderProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> {
+interface SliderProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type" | "onChange"> {
   label?: string;
   value: number;
   min?: number;
