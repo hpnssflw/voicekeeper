@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { botId, authorId, title, content, publishTarget = 'channel' } = body;
+    const { botId, authorId, title, content, status = 'draft', publishTarget = 'channel' } = body;
 
     // Validation
     if (!botId) {
@@ -148,6 +148,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // If status is 'draft' or 'scheduled', save to database without publishing
+    if (status === 'draft' || status === 'scheduled') {
+      const savedPost = await PostModel.create({
+        botId,
+        authorId: finalAuthorId,
+        title: title || undefined,
+        content,
+        type: 'text',
+        status: status,
+        publishTarget,
+        ...(status === 'scheduled' && body.scheduledAt ? { scheduledAt: new Date(body.scheduledAt) } : {}),
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: status === 'draft' ? 'Post saved as draft' : 'Post scheduled',
+        data: {
+          postId: savedPost._id.toString(),
+          status: status,
+        },
+      });
+    }
+
+    // For 'published' status, token is required
     if (!bot.tokenPlain) {
       return NextResponse.json(
         { error: 'Bot token not available in database' },
@@ -160,8 +184,8 @@ export async function POST(request: NextRequest) {
       ? `*${title}*\n\n${content}`
       : title || content;
 
-    // Handle channel publishing
-    if (publishTarget === 'channel') {
+    // Handle channel publishing (only for published status)
+    if (publishTarget === 'channel' && status === 'published') {
       // Get channelId: prioritize bot's channel from DB
       let channelIdentifier: string | number | null = null;
       
@@ -308,7 +332,7 @@ export async function POST(request: NextRequest) {
             title: title || undefined,
             content,
             type: 'text',
-            status: 'published',
+            status: status || 'published',
             publishTarget,
           });
 

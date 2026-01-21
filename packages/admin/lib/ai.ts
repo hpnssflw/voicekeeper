@@ -58,7 +58,7 @@ export interface StyleProfile {
 
 export interface GenerationParams {
   topic: string;
-  tone: "friendly" | "professional" | "provocative";
+  tone: "friendly" | "professional" | "provocative" | "humorous" | "serious" | "casual";
   length: "short" | "medium" | "long";
   includeEmoji: boolean;
   includeCta: boolean;
@@ -415,35 +415,54 @@ ${params.customInstructions ? `Дополнительно: ${params.customInstru
     // Уровень 5: Компилятор стиля из структурированного fingerprint
     const fp = params.fingerprint;
     
+    // Безопасный доступ к свойствам с значениями по умолчанию
+    const emotionality = fp.tone?.emotionality ?? 0.5;
+    const assertiveness = fp.tone?.assertiveness ?? 0.5;
+    const irony = fp.tone?.irony ?? 0;
+    const sentenceLength = fp.language?.sentenceLength ?? 'medium';
+    const slangLevel = fp.language?.slangLevel ?? 0;
+    const professionalLexicon = fp.language?.professionalLexicon ?? false;
+    const emojiFrequency = fp.language?.emojiFrequency ?? 0.5;
+    const hookType = fp.structure?.hookType ?? 'statement';
+    const paragraphLength = fp.structure?.paragraphLength ?? '3-4 sentences';
+    const useLists = fp.structure?.useLists ?? false;
+    const rhythm = fp.structure?.rhythm ?? 'medium';
+    const questionsPerPost = fp.rhetoric?.questionsPerPost ?? 0;
+    const metaphors = fp.rhetoric?.metaphors ?? 'rare';
+    const storytelling = fp.rhetoric?.storytelling ?? false;
+    const ctaStyle = fp.rhetoric?.ctaStyle ?? 'none';
+    const forbiddenPhrases = fp.forbidden?.phrases ?? [];
+    const forbiddenTones = fp.forbidden?.tones ?? [];
+    
     // Жёсткие правила работают лучше мягких описаний
     styleInstructions = `Ты пишешь ТОЛЬКО в следующем стиле:
 
 ТОН:
-- Эмоциональность: ${fp.tone.emotionality >= 0.7 ? "эмоциональный" : fp.tone.emotionality <= 0.3 ? "сухой" : "умеренный"}
-- Уверенность: ${fp.tone.assertiveness >= 0.7 ? "уверенный, без сомнений" : "мягкий, осторожный"}
-- Ирония: ${fp.tone.irony >= 0.5 ? "используй умеренную иронию" : "избегай иронии"}
+- Эмоциональность: ${emotionality >= 0.7 ? "эмоциональный" : emotionality <= 0.3 ? "сухой" : "умеренный"}
+- Уверенность: ${assertiveness >= 0.7 ? "уверенный, без сомнений" : "мягкий, осторожный"}
+- Ирония: ${irony >= 0.5 ? "используй умеренную иронию" : "избегай иронии"}
 
 ЯЗЫК:
-- Длина предложений: ${fp.language.sentenceLength === 'short' ? 'короткие (до 10 слов)' : fp.language.sentenceLength === 'long' ? 'длинные (15+ слов)' : 'средние'}
-- Сленг: ${fp.language.slangLevel >= 0.6 ? "можно использовать современный сленг" : "только литературный язык"}
-- Профессионализмы: ${fp.language.professionalLexicon ? "используй профессиональную лексику" : "избегай профессиональных терминов"}
-- Эмодзи: ${fp.language.emojiFrequency >= 0.5 ? "используй эмодзи" : fp.language.emojiFrequency <= 0.2 ? "НЕ используй эмодзи" : "минимум эмодзи"}
+- Длина предложений: ${sentenceLength === 'short' ? 'короткие (до 10 слов)' : sentenceLength === 'long' ? 'длинные (15+ слов)' : 'средние'}
+- Сленг: ${slangLevel >= 0.6 ? "можно использовать современный сленг" : "только литературный язык"}
+- Профессионализмы: ${professionalLexicon ? "используй профессиональную лексику" : "избегай профессиональных терминов"}
+- Эмодзи: ${emojiFrequency >= 0.5 ? "используй эмодзи" : emojiFrequency <= 0.2 ? "НЕ используй эмодзи" : "минимум эмодзи"}
 
 СТРУКТУРА:
-- Начало: ${fp.structure.hookType === 'question' ? 'вопрос' : fp.structure.hookType === 'provocation' ? 'провокация' : 'утверждение'}
-- Длина абзацев: ${fp.structure.paragraphLength}
-- Списки: ${fp.structure.useLists ? "используй списки" : "избегай списков"}
-- Ритм: ${fp.structure.rhythm === 'fast' ? 'быстрый, короткие фразы' : fp.structure.rhythm === 'slow' ? 'размеренный, длинные фразы' : 'умеренный'}
+- Начало: ${hookType === 'question' ? 'вопрос' : hookType === 'provocation' ? 'провокация' : 'утверждение'}
+- Длина абзацев: ${paragraphLength}
+- Списки: ${useLists ? "используй списки" : "избегай списков"}
+- Ритм: ${rhythm === 'fast' ? 'быстрый, короткие фразы' : rhythm === 'slow' ? 'размеренный, длинные фразы' : 'умеренный'}
 
 РИТОРИКА:
-- Вопросы: ${fp.rhetoric.questionsPerPost > 0 ? `${fp.rhetoric.questionsPerPost} вопрос(а) в тексте` : 'без вопросов'}
-- Метафоры: ${fp.rhetoric.metaphors === 'frequent' ? 'часто' : fp.rhetoric.metaphors === 'none' ? 'не используй' : 'редко'}
-- Истории: ${fp.rhetoric.storytelling ? 'используй storytelling' : 'без историй'}
-- CTA: ${fp.rhetoric.ctaStyle === 'direct' ? 'прямой призыв к действию' : fp.rhetoric.ctaStyle === 'soft' ? 'мягкий призыв' : 'без CTA'}
+- Вопросы: ${questionsPerPost > 0 ? `${questionsPerPost} вопрос(а) в тексте` : 'без вопросов'}
+- Метафоры: ${metaphors === 'frequent' ? 'часто' : metaphors === 'none' ? 'не используй' : 'редко'}
+- Истории: ${storytelling ? 'используй storytelling' : 'без историй'}
+- CTA: ${ctaStyle === 'direct' ? 'прямой призыв к действию' : ctaStyle === 'soft' ? 'мягкий призыв' : 'без CTA'}
 
 ЗАПРЕЩЕНО (Уровень 6: Анти-GPT защита):
-- Фразы: ${fp.forbidden.phrases.length > 0 ? fp.forbidden.phrases.join(', ') : 'нет'}
-- Тона: ${fp.forbidden.tones.length > 0 ? fp.forbidden.tones.join(', ') : 'нет'}
+- Фразы: ${forbiddenPhrases.length > 0 ? forbiddenPhrases.join(', ') : 'нет'}
+- Тона: ${forbiddenTones.length > 0 ? forbiddenTones.join(', ') : 'нет'}
 - Обобщения: избегай "все", "каждый", "всегда"
 - Вводные конструкции: избегай "очевидно", "важно понимать", "как известно"
 - Определения: не давай определения понятиям
@@ -455,6 +474,9 @@ ${params.customInstructions ? `Дополнительно: ${params.customInstru
       friendly: "дружелюбный, тёплый, как разговор с другом",
       professional: "экспертный, деловой, авторитетный",
       provocative: "провокационный, вызывающий, эмоциональный",
+      humorous: "юмористический, лёгкий, с шутками и иронией",
+      serious: "серьёзный, вдумчивый, глубокий, без легкомыслия",
+      casual: "неформальный, расслабленный, как в мессенджере",
     };
     styleInstructions = `
 ТОН: ${toneGuide[params.tone]}
