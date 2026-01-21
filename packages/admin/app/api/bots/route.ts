@@ -1,4 +1,67 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { connectMongo } from '@/lib/db/mongo';
+import { BotModel } from '@/lib/db/models/Bot';
+import crypto from 'crypto';
+
+interface BotDocument {
+  _id: string;
+  ownerId: string;
+  botUsername: string;
+  tokenPlain?: string;
+  isActive: boolean;
+  telegramId?: number;
+  firstName?: string;
+  channelId?: number | string;
+  channelUsername?: string;
+  channelTitle?: string;
+  subscriberCount: number;
+  postsCount: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+/**
+ * List user's bots
+ * GET /api/bots?ownerId=userId
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const ownerId = searchParams.get('ownerId');
+    
+    if (!ownerId) {
+      return NextResponse.json(
+        { error: 'Owner ID is required' },
+        { status: 400 }
+      );
+    }
+    
+    await connectMongo();
+    
+    const bots = await BotModel.find({ ownerId }).lean() as BotDocument[];
+    
+    return NextResponse.json({
+      bots: bots.map(bot => ({
+        id: bot._id.toString(),
+        username: bot.botUsername,
+        firstName: bot.firstName,
+        telegramId: bot.telegramId,
+        isActive: bot.isActive,
+        channelId: bot.channelId,
+        channelUsername: bot.channelUsername,
+        channelTitle: bot.channelTitle,
+        postsCount: bot.postsCount || 0,
+        createdAt: bot.createdAt?.toISOString(),
+      })),
+    });
+  } catch (error) {
+    console.error('Error fetching bots:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch bots' },
+      { status: 500 }
+    );
+  }
+}
 
 /**
  * Create/Register a new bot
@@ -31,6 +94,8 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    await connectMongo();
+    
     // Validate token via Telegram Bot API
     const telegramApiUrl = `https://api.telegram.org/bot${token}/getMe`;
     
@@ -61,16 +126,42 @@ export async function POST(request: NextRequest) {
       
       const botInfo = data.result;
       
-      // Generate bot ID
-      const botId = `bot-${botInfo.id}-${Date.now()}`;
+      // Check if bot already exists for this user
+      const existingBot = await BotModel.findOne({ 
+        ownerId, 
+        botUsername: botInfo.username 
+      });
       
-      // Return bot response
-      return NextResponse.json({
-        id: botId,
-        username: botInfo.username,
-        firstName: botInfo.first_name,
-        telegramId: botInfo.id,
+      if (existingBot) {
+        return NextResponse.json(
+          { error: 'This bot is already registered' },
+          { status: 409 }
+        );
+      }
+      
+      // Hash token (simple hash for MVP, use encryption in production)
+      const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+      
+      // Create bot in MongoDB
+      const newBot = await BotModel.create({
+        ownerId,
+        botUsername: botInfo.username,
+        tokenHash,
+        tokenPlain: token, // MVP only - remove in production
         isActive: true,
+        telegramId: botInfo.id,
+        firstName: botInfo.first_name,
+        channelId: channelId || undefined,
+        subscriberCount: 0,
+        postsCount: 0,
+      });
+      
+      return NextResponse.json({
+        id: newBot._id.toString(),
+        username: newBot.botUsername,
+        firstName: newBot.firstName,
+        telegramId: newBot.telegramId,
+        isActive: newBot.isActive,
         channel: channelId ? {
           id: channelId,
           username: undefined,
@@ -80,7 +171,7 @@ export async function POST(request: NextRequest) {
           postsCount: 0,
           publishedCount: 0,
         },
-        createdAt: new Date().toISOString(),
+        createdAt: newBot.createdAt.toISOString(),
       });
     } catch (fetchError) {
       console.error('Telegram API error:', fetchError);

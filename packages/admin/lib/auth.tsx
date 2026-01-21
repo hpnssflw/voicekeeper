@@ -165,23 +165,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             console.warn("Failed to load user from API, using local data:", error);
           }
           
-          // Load bots from API
+          // Load bots from API (MongoDB)
           try {
             const botsResponse = await botsApi.list(parsedUser.id);
-            const apiBots: Bot[] = botsResponse.bots.map((b) => ({
-              id: b.id,
-              name: b.firstName || b.username,
-              username: `@${b.username}`,
-              token: "", // Token not returned from API for security
-              telegramId: b.telegramId,
-              isActive: b.isActive,
-              channelId: b.channelId,
-              channelUsername: b.channelUsername,
-              channelTitle: b.channelTitle,
-              subscriberCount: 0,
-              postsCount: b.postsCount || 0,
-            }));
+            
+            // Load tokens from localStorage as fallback (for session persistence)
+            const storedBots = localStorage.getItem(BOTS_KEY);
+            const tokensMap: Record<string, string> = storedBots 
+              ? JSON.parse(storedBots).reduce((acc: Record<string, string>, bot: Bot) => {
+                  if (bot.token) acc[bot.id] = bot.token;
+                  return acc;
+                }, {})
+              : {};
+            
+            const apiBots: Bot[] = await Promise.all(
+              botsResponse.bots.map(async (b) => {
+                // Try to get token from localStorage first
+                let token = tokensMap[b.id] || "";
+                
+                // If no token in localStorage, try to get from API (only for owner)
+                if (!token) {
+                  try {
+                    const tokenResponse = await fetch(`/api/bots/${b.id}/token?ownerId=${parsedUser.id}`);
+                    if (tokenResponse.ok) {
+                      const tokenData = await tokenResponse.json();
+                      token = tokenData.key || "";
+                    }
+                  } catch (e) {
+                    // Token not available, continue without it
+                  }
+                }
+                
+                return {
+                  id: b.id,
+                  name: b.firstName || b.username,
+                  username: `@${b.username}`,
+                  token, // Token from localStorage or API
+                  telegramId: b.telegramId,
+                  isActive: b.isActive,
+                  channelId: b.channelId,
+                  channelUsername: b.channelUsername,
+                  channelTitle: b.channelTitle,
+                  subscriberCount: 0,
+                  postsCount: b.postsCount || 0,
+                };
+              })
+            );
+            
             setBots(apiBots);
+            
+            // Update localStorage with tokens (for session persistence)
+            if (apiBots.some(b => b.token)) {
+              localStorage.setItem(BOTS_KEY, JSON.stringify(apiBots));
+            }
+            
             if (apiBots.length > 0 && !selectedBotId) {
               setSelectedBotId(apiBots[0].id);
             }
@@ -548,6 +585,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!selectedBotId) {
         setSelectedBotId(newBot.id);
       }
+
+      // Save token to localStorage for session persistence (MVP only)
+      // In production, tokens should be retrieved securely from API when needed
+      const currentBots = [...bots, newBot];
+      localStorage.setItem(BOTS_KEY, JSON.stringify(currentBots));
 
       return newBot;
     } catch (error: any) {

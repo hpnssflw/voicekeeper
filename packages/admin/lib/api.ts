@@ -196,6 +196,7 @@ export const botsApi = {
 
   /**
    * List user's bots
+   * Uses admin API (/api/bots) instead of bot API
    */
   list: (ownerId?: string): Promise<BotsListResponse> => {
     const query = ownerId ? `?ownerId=${ownerId}` : '';
