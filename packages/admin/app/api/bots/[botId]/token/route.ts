@@ -33,7 +33,7 @@ export async function GET(
     const bot = await BotModel.findOne({ 
       _id: botId, 
       ownerId 
-    }).lean() as BotDocument | null;
+    }).lean() as unknown as BotDocument | null;
     
     if (!bot) {
       return NextResponse.json(

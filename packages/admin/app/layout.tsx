@@ -3,6 +3,7 @@ import { Comfortaa, Rubik, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/lib/auth";
+import { SessionProvider } from "@/components/providers/session-provider";
 
 const comfortaa = Comfortaa({
   variable: "--font-display",
@@ -44,10 +45,12 @@ export default function RootLayout({
   return (
     <html lang="ru" className="dark">
       <body className={`${comfortaa.variable} ${rubik.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
-        <AuthProvider>
-          {children}
-          <Toaster />
-        </AuthProvider>
+        <SessionProvider>
+          <AuthProvider>
+            {children}
+            <Toaster />
+          </AuthProvider>
+        </SessionProvider>
       </body>
     </html>
   );

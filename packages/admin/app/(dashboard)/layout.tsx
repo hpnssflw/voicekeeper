@@ -15,22 +15,19 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { isAuthenticated, isLoading, isOnboarded, login } = useAuth();
+  const { isAuthenticated, isLoading, isOnboarded } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading) {
       if (!isAuthenticated) {
-        if (DEMO_MODE) {
-          login("demo@voicekeeper.app", "demo123");
-        } else {
-          router.push("/login");
-        }
-      } else if (!isOnboarded && !DEMO_MODE) {
+        // OAuth only - redirect to login
+        router.push("/login");
+      } else if (!isOnboarded) {
         router.push("/onboarding");
       }
     }
-  }, [isLoading, isAuthenticated, isOnboarded, router, login]);
+  }, [isLoading, isAuthenticated, isOnboarded, router]);
 
   if (isLoading) {
     return (

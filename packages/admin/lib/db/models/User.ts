@@ -82,6 +82,10 @@ const UserSchema = new Schema(
     // Settings
     language: { type: String, default: 'ru' },
     preferences: { type: Map, of: Schema.Types.Mixed, default: {} },
+    
+    // OAuth integration
+    photoUrl: { type: String },
+    provider: { type: String }, // 'google', 'yandex', 'telegram', etc.
   },
   { timestamps: true }
 );

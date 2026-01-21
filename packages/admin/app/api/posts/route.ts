@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get bot from database
-    const bot = await BotModel.findById(botId).lean() as BotDocument | null;
+    const bot = await BotModel.findById(botId).lean() as unknown as BotDocument | null;
 
     if (!bot) {
       return NextResponse.json(

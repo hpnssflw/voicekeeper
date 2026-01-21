@@ -20,21 +20,44 @@ export async function GET(
 ) {
   try {
     const { userId } = await params;
-    await connectMongo();
+    
+    try {
+      await connectMongo();
+    } catch (mongoError) {
+      console.error('MongoDB connection error:', mongoError);
+      return NextResponse.json(
+        { 
+          error: 'Database connection failed',
+          details: mongoError instanceof Error ? mongoError.message : 'Unknown error'
+        },
+        { status: 503 }
+      );
+    }
     
     let user = await UserModel.findOne({ userId }).lean() as UserDocument | null;
     
     // If user doesn't exist, create default user
     if (!user) {
-      const newUser = await UserModel.create({
-        userId,
-        plan: 'free',
-        generationsLimit: 3,
-        generationsUsed: 0,
-        isOnboarded: false,
-        aiProvider: 'gemini',
-      });
-      user = newUser.toObject() as UserDocument;
+      try {
+        const newUser = await UserModel.create({
+          userId,
+          plan: 'free',
+          generationsLimit: 3,
+          generationsUsed: 0,
+          isOnboarded: false,
+          aiProvider: 'gemini',
+        });
+        user = newUser.toObject() as UserDocument;
+      } catch (createError) {
+        console.error('Error creating user:', createError);
+        return NextResponse.json(
+          { 
+            error: 'Failed to create user',
+            details: createError instanceof Error ? createError.message : 'Unknown error'
+          },
+          { status: 500 }
+        );
+      }
     }
     
     return NextResponse.json({
@@ -47,11 +70,16 @@ export async function GET(
       generationsLimit: user.generationsLimit || 3,
       isOnboarded: user.isOnboarded || false,
       language: user.language || 'ru',
+      photoUrl: (user as any).photoUrl,
+      provider: (user as any).provider,
     });
   } catch (error) {
     console.error('Error fetching user:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch user' },
+      { 
+        error: 'Failed to fetch user',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
@@ -64,9 +92,21 @@ export async function PUT(
   try {
     const { userId } = await params;
     const body = await request.json();
-    await connectMongo();
     
-    const allowedFields = ['firstName', 'lastName', 'email', 'plan', 'isOnboarded', 'language', 'generationsUsed', 'generationsLimit'];
+    try {
+      await connectMongo();
+    } catch (mongoError) {
+      console.error('MongoDB connection error:', mongoError);
+      return NextResponse.json(
+        { 
+          error: 'Database connection failed',
+          details: mongoError instanceof Error ? mongoError.message : 'Unknown error'
+        },
+        { status: 503 }
+      );
+    }
+    
+    const allowedFields = ['firstName', 'lastName', 'email', 'plan', 'isOnboarded', 'language', 'generationsUsed', 'generationsLimit', 'photoUrl', 'provider'];
     const filteredUpdates: any = {};
     
     for (const key of allowedFields) {
@@ -98,11 +138,16 @@ export async function PUT(
       generationsLimit: user.generationsLimit || 3,
       isOnboarded: user.isOnboarded || false,
       language: user.language || 'ru',
+      photoUrl: (user as any).photoUrl,
+      provider: (user as any).provider,
     });
   } catch (error) {
     console.error('Error updating user:', error);
     return NextResponse.json(
-      { error: 'Failed to update user' },
+      { 
+        error: 'Failed to update user',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

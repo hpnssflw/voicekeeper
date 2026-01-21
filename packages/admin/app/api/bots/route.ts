@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     
     await connectMongo();
     
-    const bots = await BotModel.find({ ownerId }).lean() as BotDocument[];
+    const bots = await BotModel.find({ ownerId }).lean() as unknown as BotDocument[];
     
     // Get real posts count for each bot from database
     const botsWithStats = await Promise.all(

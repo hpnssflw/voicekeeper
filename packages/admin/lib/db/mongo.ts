@@ -14,10 +14,10 @@ export async function connectMongo(): Promise<typeof mongoose> {
     return connectionPromise;
   }
   
-  const mongoUri = process.env.MONGO_URI || process.env.NEXT_PUBLIC_MONGO_URI || 'mongodb+srv://plzv92:arpolozov92@my-cluster.vb8w5g8.mongodb.net/voronka?retryWrites=true&w=majority';
+  const mongoUri = process.env.MONGO_URI || process.env.NEXT_PUBLIC_MONGO_URI;
   
   if (!mongoUri) {
-    throw new Error('MONGO_URI is not configured. Please set MONGO_URI environment variable in .env.local');
+    throw new Error('MONGO_URI is not configured. Please set MONGO_URI environment variable in .env.local file. See .env.example for reference.');
   }
   
   // Создаем promise для подключения

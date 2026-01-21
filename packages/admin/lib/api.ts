@@ -521,6 +521,8 @@ export interface UserResponse {
   generationsLimit: number;
   isOnboarded: boolean;
   language?: string;
+  photoUrl?: string;
+  provider?: string;
 }
 
 // Импортируем StyleProfile из ai.ts для типизации

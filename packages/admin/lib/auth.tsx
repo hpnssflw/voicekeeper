@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { botsApi, channelsApi, usersApi, type BotResponse, type ValidateBotResponse } from "./api";
 
 /**
@@ -103,6 +104,7 @@ interface AuthContextType {
   register: (data: RegisterData) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   loginWithTelegram: (telegramData: TelegramAuthData) => Promise<void>;
+  loginWithOAuth: (provider: "google" | "yandex") => Promise<void>;
   logout: () => void;
   completeOnboarding: (data: OnboardingData) => Promise<void>;
   updateUser: (data: Partial<User>) => Promise<void>;
@@ -132,6 +134,7 @@ const CHANNELS_KEY = "voicekeeper_channels";
 const ONBOARDED_KEY = "voicekeeper_onboarded";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const { data: session, status: sessionStatus } = useSession();
   const [user, setUser] = useState<User | null>(null);
   const [bots, setBots] = useState<Bot[]>([]);
   const [channels, setChannels] = useState<Channel[]>([]);
@@ -139,111 +142,169 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isOnboarded, setIsOnboarded] = useState(false);
 
+  // Функция для загрузки ботов
+  const loadBotsForUser = async (userId: string) => {
+    try {
+      const botsResponse = await botsApi.list(userId);
+      
+      // Load tokens from localStorage as fallback (for session persistence)
+      const storedBots = localStorage.getItem(BOTS_KEY);
+      const tokensMap: Record<string, string> = storedBots 
+        ? JSON.parse(storedBots).reduce((acc: Record<string, string>, bot: Bot) => {
+            if (bot.token) acc[bot.id] = bot.token;
+            return acc;
+          }, {})
+        : {};
+      
+      const apiBots: Bot[] = await Promise.all(
+        botsResponse.bots.map(async (b) => {
+          // Try to get token from localStorage first
+          let token = tokensMap[b.id] || "";
+          
+          // If no token in localStorage, try to get from API (only for owner)
+          if (!token) {
+            try {
+              const tokenResponse = await fetch(`/api/bots/${b.id}/token?ownerId=${userId}`);
+              if (tokenResponse.ok) {
+                const tokenData = await tokenResponse.json();
+                token = tokenData.key || "";
+              }
+            } catch (e) {
+              // Token not available, continue without it
+            }
+          }
+          
+          return {
+            id: b.id,
+            name: b.firstName || b.username,
+            username: `@${b.username}`,
+            token,
+            telegramId: b.telegramId,
+            isActive: b.isActive,
+            channelId: b.channelId,
+            channelUsername: b.channelUsername,
+            channelTitle: b.channelTitle,
+            subscriberCount: 0,
+            postsCount: b.postsCount || 0,
+          };
+        })
+      );
+      
+      setBots(apiBots);
+      
+      // Update localStorage with tokens (for session persistence)
+      if (apiBots.some(b => b.token)) {
+        localStorage.setItem(BOTS_KEY, JSON.stringify(apiBots));
+      }
+      
+      if (apiBots.length > 0 && !selectedBotId) {
+        setSelectedBotId(apiBots[0].id);
+      }
+    } catch (error) {
+      console.warn("Failed to load bots from API:", error);
+      // Fallback to localStorage
+      const storedBots = localStorage.getItem(BOTS_KEY);
+      if (storedBots) {
+        const parsedBots = JSON.parse(storedBots);
+        setBots(parsedBots);
+        if (parsedBots.length > 0 && !selectedBotId) {
+          setSelectedBotId(parsedBots[0].id);
+        }
+      }
+    }
+  };
+
   // Load persisted auth state from API (with localStorage fallback for demo)
   useEffect(() => {
     const loadAuth = async () => {
       try {
-        // Try to load from localStorage first (for demo mode)
-        const storedUser = localStorage.getItem(STORAGE_KEY);
-        
-        if (storedUser) {
-          const parsedUser = JSON.parse(storedUser);
-          setUser(parsedUser);
+        // Если есть OAuth сессия, синхронизируем её
+        if (sessionStatus === "authenticated" && session?.user) {
+          const oauthUser = session.user;
+          const userId = (oauthUser as any).id || `oauth-${oauthUser.email?.replace(/[^a-zA-Z0-9]/g, "-")}`;
           
-          // Load user data from API if available
           try {
-            const apiUser = await usersApi.get(parsedUser.id);
-            setUser({
-              ...parsedUser,
-              plan: apiUser.plan || parsedUser.plan,
-              generationsUsed: apiUser.generationsUsed || 0,
-              generationsLimit: apiUser.generationsLimit || 3,
-              isOnboarded: apiUser.isOnboarded !== undefined ? apiUser.isOnboarded : parsedUser.isOnboarded,
+            // Синхронизируем с нашей системой
+            const syncResponse = await fetch("/api/auth/sync", {
+              method: "POST",
             });
-            setIsOnboarded(apiUser.isOnboarded || false);
-          } catch (error) {
-            console.warn("Failed to load user from API, using local data:", error);
-          }
-          
-          // Load bots from API (MongoDB)
-          try {
-            const botsResponse = await botsApi.list(parsedUser.id);
             
-            // Load tokens from localStorage as fallback (for session persistence)
-            const storedBots = localStorage.getItem(BOTS_KEY);
-            const tokensMap: Record<string, string> = storedBots 
-              ? JSON.parse(storedBots).reduce((acc: Record<string, string>, bot: Bot) => {
-                  if (bot.token) acc[bot.id] = bot.token;
-                  return acc;
-                }, {})
-              : {};
-            
-            const apiBots: Bot[] = await Promise.all(
-              botsResponse.bots.map(async (b) => {
-                // Try to get token from localStorage first
-                let token = tokensMap[b.id] || "";
-                
-                // If no token in localStorage, try to get from API (only for owner)
-                if (!token) {
-                  try {
-                    const tokenResponse = await fetch(`/api/bots/${b.id}/token?ownerId=${parsedUser.id}`);
-                    if (tokenResponse.ok) {
-                      const tokenData = await tokenResponse.json();
-                      token = tokenData.key || "";
-                    }
-                  } catch (e) {
-                    // Token not available, continue without it
-                  }
-                }
-                
-                return {
-                  id: b.id,
-                  name: b.firstName || b.username,
-                  username: `@${b.username}`,
-                  token, // Token from localStorage or API
-                  telegramId: b.telegramId,
-                  isActive: b.isActive,
-                  channelId: b.channelId,
-                  channelUsername: b.channelUsername,
-                  channelTitle: b.channelTitle,
-                  subscriberCount: 0,
-                  postsCount: b.postsCount || 0,
+            if (syncResponse.ok) {
+              const syncData = await syncResponse.json();
+              
+              // Загружаем данные пользователя
+              try {
+                const apiUser = await usersApi.get(userId);
+                const user: User = {
+                  id: apiUser.userId,
+                  email: apiUser.email || oauthUser.email || "",
+                  firstName: apiUser.firstName || oauthUser.name?.split(" ")[0] || "",
+                  lastName: apiUser.lastName || oauthUser.name?.split(" ").slice(1).join(" ") || "",
+                  photoUrl: apiUser.photoUrl || oauthUser.image || undefined,
+                  plan: apiUser.plan,
+                  generationsUsed: apiUser.generationsUsed,
+                  generationsLimit: apiUser.generationsLimit,
+                  createdAt: new Date().toISOString(),
                 };
-              })
-            );
-            
-            setBots(apiBots);
-            
-            // Update localStorage with tokens (for session persistence)
-            if (apiBots.some(b => b.token)) {
-              localStorage.setItem(BOTS_KEY, JSON.stringify(apiBots));
-            }
-            
-            if (apiBots.length > 0 && !selectedBotId) {
-              setSelectedBotId(apiBots[0].id);
-            }
-          } catch (error) {
-            console.warn("Failed to load bots from API:", error);
-            // Fallback to localStorage
-            const storedBots = localStorage.getItem(BOTS_KEY);
-            if (storedBots) {
-              const parsedBots = JSON.parse(storedBots);
-              setBots(parsedBots);
-              if (parsedBots.length > 0 && !selectedBotId) {
-                setSelectedBotId(parsedBots[0].id);
+                
+                setUser(user);
+                setIsOnboarded(syncData.isOnboarded || apiUser.isOnboarded || false);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+                
+                // Загружаем ботов
+                await loadBotsForUser(userId);
+              } catch (error) {
+                console.warn("Failed to load user from API:", error);
               }
             }
+          } catch (error) {
+            console.warn("Failed to sync OAuth session:", error);
+          } finally {
+            setIsLoading(false);
+          }
+          return;
+        }
+
+        // Если нет OAuth сессии, загружаем из localStorage
+        if (sessionStatus === "unauthenticated") {
+          const storedUser = localStorage.getItem(STORAGE_KEY);
+        
+          if (storedUser) {
+            const parsedUser = JSON.parse(storedUser);
+            setUser(parsedUser);
+            
+            // Load user data from API if available
+            try {
+              const apiUser = await usersApi.get(parsedUser.id);
+              setUser({
+                ...parsedUser,
+                plan: apiUser.plan || parsedUser.plan,
+                generationsUsed: apiUser.generationsUsed || 0,
+                generationsLimit: apiUser.generationsLimit || 3,
+                isOnboarded: apiUser.isOnboarded !== undefined ? apiUser.isOnboarded : parsedUser.isOnboarded,
+              });
+              setIsOnboarded(apiUser.isOnboarded || false);
+            } catch (error) {
+              console.warn("Failed to load user from API, using local data:", error);
+            }
+            
+            // Load bots
+            await loadBotsForUser(parsedUser.id);
           }
         }
       } catch (error) {
         console.error("Failed to load auth state:", error);
       } finally {
-        setIsLoading(false);
+        if (sessionStatus !== "loading") {
+          setIsLoading(false);
+        }
       }
     };
 
-    loadAuth();
-  }, []);
+    if (sessionStatus !== "loading") {
+      loadAuth();
+    }
+  }, [sessionStatus, session]);
 
   // Persist user to API (keep localStorage only for demo/auth persistence)
   useEffect(() => {
@@ -452,6 +513,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const loginWithOAuth = async (provider: "google" | "yandex") => {
+    // Перенаправляем на страницу авторизации NextAuth
+    window.location.href = `/api/auth/signin/${provider}`;
   };
 
   const logout = () => {
@@ -726,6 +792,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         login,
         loginWithTelegram,
+        loginWithOAuth,
         logout,
         completeOnboarding,
         updateUser,

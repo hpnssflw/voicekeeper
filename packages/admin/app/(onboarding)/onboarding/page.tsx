@@ -32,7 +32,6 @@ import {
 } from "lucide-react";
 
 const steps = [
-  { id: "register", title: "Регистрация" },
   { id: "bot", title: "Подключите бота" },
   { id: "channel", title: "Укажите канал" },
   { id: "style", title: "Настройте стиль" },
@@ -41,20 +40,13 @@ const steps = [
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { isAuthenticated, isOnboarded, register, completeOnboarding, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isOnboarded, completeOnboarding, isLoading: authLoading } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   
   const [formData, setFormData] = useState({
-    // Registration
-    email: "",
-    password: "",
-    confirmPassword: "",
-    firstName: "",
-    lastName: "",
-    telegramUsername: "",
     // Bot setup
     botToken: "",
     // Channel
@@ -71,39 +63,16 @@ export default function OnboardingPage() {
     }
   }, [authLoading, isAuthenticated, isOnboarded, router]);
 
-  // Skip registration step if already authenticated
+  // Redirect to login if not authenticated (OAuth only)
   useEffect(() => {
-    if (!authLoading && isAuthenticated && currentStep === 0) {
-      setCurrentStep(1);
+    if (!authLoading && !isAuthenticated) {
+      router.push("/login");
     }
-  }, [authLoading, isAuthenticated, currentStep]);
+  }, [authLoading, isAuthenticated, router]);
 
   const validateStep = (): boolean => {
     const newErrors: Record<string, string> = {};
-    
-    if (currentStep === 0) {
-      // Registration validation
-      if (!formData.email) {
-        newErrors.email = "Email обязателен";
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-        newErrors.email = "Неверный формат email";
-      }
-      
-      if (!formData.firstName) {
-        newErrors.firstName = "Имя обязательно";
-      }
-      
-      if (!formData.password) {
-        newErrors.password = "Пароль обязателен";
-      } else if (formData.password.length < 6) {
-        newErrors.password = "Минимум 6 символов";
-      }
-      
-      if (formData.password !== formData.confirmPassword) {
-        newErrors.confirmPassword = "Пароли не совпадают";
-      }
-    }
-    
+    // Validation removed for registration step (step 0) as it's no longer used
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -111,32 +80,14 @@ export default function OnboardingPage() {
   const nextStep = async () => {
     if (!validateStep()) return;
     
-    // Handle registration on first step
-    if (currentStep === 0 && !isAuthenticated) {
-      setIsLoading(true);
-      try {
-        await register({
-          email: formData.email,
-          password: formData.password,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          telegramUsername: formData.telegramUsername,
-        });
-      } catch (error) {
-        setErrors({ email: "Ошибка регистрации. Попробуйте снова." });
-        setIsLoading(false);
-        return;
-      }
-      setIsLoading(false);
-    }
-    
+    // Registration step removed - users must authenticate via OAuth first
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     }
   };
 
   const prevStep = () => {
-    if (currentStep > (isAuthenticated ? 1 : 0)) {
+    if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
   };
@@ -162,12 +113,9 @@ export default function OnboardingPage() {
     setIsLoading(true);
     try {
       if (!isAuthenticated) {
-        // Quick registration for skip
-        await register({
-          email: `user${Date.now()}@voicekeeper.local`,
-          password: "demo123456",
-          firstName: "User",
-        });
+        // OAuth only - redirect to login
+        router.push("/login");
+        return;
       }
       await completeOnboarding({
         selectedPlan: "free",
@@ -235,168 +183,8 @@ export default function OnboardingPage() {
       {/* Step Content */}
       <Card className="w-full max-w-md">
         <CardContent className="p-2.5">
-          {/* Step 1: Registration */}
+          {/* Step 1: Bot Setup */}
           {currentStep === 0 && (
-            <div className="space-y-2.5">
-              <div className="text-center">
-                <div className="flex justify-center mb-1.5">
-                  <div className="relative w-8 h-8">
-                    <Image
-                      src="/lips.png"
-                      alt="VoiceKeeper"
-                      fill
-                      className="object-contain drop-shadow-[0_0_12px_rgba(239,68,68,0.25)]"
-                    />
-                  </div>
-                </div>
-                <h2 className="text-xs font-bold font-display">
-                  Добро пожаловать в <span className="gradient-text">VoiceKeeper</span>
-                </h2>
-                <p className="mt-0.5 text-[9px] text-muted-foreground">
-                  Заполните данные для регистрации
-                </p>
-              </div>
-
-              <div className="space-y-2.5">
-                {/* Email */}
-                <div className="space-y-1">
-                  <Label htmlFor="email" className="text-[10px]">Email *</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="your@email.com"
-                      value={formData.email}
-                      onChange={(e) => updateField("email", e.target.value)}
-                      className={`pl-7 h-6 text-[10px] ${errors.email ? "border-destructive" : ""}`}
-                    />
-                  </div>
-                  {errors.email && <p className="text-[9px] text-destructive">{errors.email}</p>}
-                </div>
-
-                {/* Name fields */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <Label htmlFor="firstName" className="text-[10px]">Имя *</Label>
-                    <Input
-                      id="firstName"
-                      placeholder="Иван"
-                      value={formData.firstName}
-                      onChange={(e) => updateField("firstName", e.target.value)}
-                      className={`h-6 text-[10px] ${errors.firstName ? "border-destructive" : ""}`}
-                    />
-                    {errors.firstName && <p className="text-[9px] text-destructive">{errors.firstName}</p>}
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="lastName" className="text-[10px]">Фамилия</Label>
-                    <Input
-                      id="lastName"
-                      placeholder="Иванов"
-                      value={formData.lastName}
-                      onChange={(e) => updateField("lastName", e.target.value)}
-                      className="h-6 text-[10px]"
-                    />
-                  </div>
-                </div>
-
-                {/* Telegram username */}
-                <div className="space-y-1">
-                  <Label htmlFor="telegramUsername" className="text-[10px]">Telegram username</Label>
-                  <div className="relative">
-                    <AtSign className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-                    <Input
-                      id="telegramUsername"
-                      placeholder="username"
-                      value={formData.telegramUsername}
-                      onChange={(e) => updateField("telegramUsername", e.target.value)}
-                      className="pl-7 h-6 text-[10px]"
-                    />
-                  </div>
-                </div>
-
-                {/* Password */}
-                <div className="space-y-1">
-                  <Label htmlFor="password" className="text-[10px]">Пароль *</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Минимум 6 символов"
-                      value={formData.password}
-                      onChange={(e) => updateField("password", e.target.value)}
-                      className={`pl-7 pr-8 h-6 text-[10px] ${errors.password ? "border-destructive" : ""}`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showPassword ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                    </button>
-                  </div>
-                  {errors.password && <p className="text-[9px] text-destructive">{errors.password}</p>}
-                </div>
-
-                {/* Confirm Password */}
-                <div className="space-y-1">
-                  <Label htmlFor="confirmPassword" className="text-[10px]">Подтвердите пароль *</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-                    <Input
-                      id="confirmPassword"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Повторите пароль"
-                      value={formData.confirmPassword}
-                      onChange={(e) => updateField("confirmPassword", e.target.value)}
-                      className={`pl-7 h-6 text-[10px] ${errors.confirmPassword ? "border-destructive" : ""}`}
-                    />
-                  </div>
-                  {errors.confirmPassword && <p className="text-[9px] text-destructive">{errors.confirmPassword}</p>}
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1.5 pt-1.5">
-                <Button 
-                  onClick={nextStep} 
-                  className="w-full h-6 text-[10px] gap-1" 
-                  variant="gradient"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <>
-                      Продолжить
-                      <ArrowRight className="h-3 w-3" />
-                    </>
-                  )}
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  onClick={skipOnboarding} 
-                  className="text-muted-foreground text-[9px] h-6"
-                  disabled={isLoading}
-                >
-                  Пропустить и настроить позже
-                </Button>
-              </div>
-              
-              <p className="text-center text-[9px] text-muted-foreground">
-                Уже есть аккаунт?{" "}
-                <button 
-                  onClick={() => router.push("/login")} 
-                  className="text-primary hover:underline"
-                >
-                  Войти
-                </button>
-              </p>
-            </div>
-          )}
-
-          {/* Step 2: Bot Setup */}
-          {currentStep === 1 && (
             <div className="space-y-2.5">
               <div className="text-center">
                 <div className="flex justify-center mb-1.5">
@@ -505,7 +293,7 @@ export default function OnboardingPage() {
           )}
 
           {/* Step 4: Voice Fingerprint Setup */}
-          {currentStep === 3 && (
+          {currentStep === 2 && (
             <div className="space-y-2.5">
               <div className="text-center">
                 <div className="flex justify-center mb-1.5">
@@ -566,7 +354,7 @@ export default function OnboardingPage() {
           )}
 
           {/* Step 5: Plan Selection & Finish */}
-          {currentStep === 4 && (
+          {currentStep === 3 && (
             <div className="text-center space-y-2.5">
               <div className="flex justify-center">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 shadow-md">

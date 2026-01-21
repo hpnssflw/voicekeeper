@@ -3,12 +3,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { X, Loader2, Mail, Lock, Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
+import { signIn } from "next-auth/react";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -17,65 +15,25 @@ interface LoginModalProps {
 }
 
 export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
-  const { login } = useAuth();
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [isOAuthLoading, setIsOAuthLoading] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
 
   if (!isOpen) return null;
 
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
-    
-    if (!formData.email) {
-      newErrors.email = "Email обязателен";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Неверный формат email";
-    }
-    
-    if (!formData.password) {
-      newErrors.password = "Пароль обязателен";
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleLogin = async () => {
-    if (!validateForm()) return;
-    
-    setIsLoading(true);
+  const handleOAuthLogin = async (provider: "google" | "yandex") => {
+    setIsOAuthLoading(provider);
     try {
-      await login(formData.email, formData.password);
+      await signIn(provider, {
+        callbackUrl: "/dashboard",
+        redirect: true,
+      });
       onSuccess?.();
       onClose();
     } catch (error) {
-      setErrors({ email: "Неверный email или пароль" });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleRegister = () => {
-    onClose();
-    router.push("/onboarding");
-  };
-
-  const updateField = (field: string, value: string) => {
-    setFormData({ ...formData, [field]: value });
-    if (errors[field]) {
-      setErrors({ ...errors, [field]: "" });
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleLogin();
+      console.error(`OAuth login failed for ${provider}:`, error);
+      setErrors({ email: `Ошибка входа через ${provider === "google" ? "Google" : "Яндекс"}` });
+      setIsOAuthLoading(null);
     }
   };
 
@@ -112,85 +70,66 @@ export function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
               Войти в <span className="gradient-text">VoiceKeeper</span>
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
-              Введите данные для входа
+              Войдите через один из провайдеров
             </p>
           </div>
 
-          <div className="space-y-4" onKeyDown={handleKeyDown}>
-            {/* Email */}
-            <div className="space-y-1.5">
-              <Label htmlFor="modal-email" className="text-sm">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="modal-email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={formData.email}
-                  onChange={(e) => updateField("email", e.target.value)}
-                  className={`pl-10 ${errors.email ? "border-destructive" : ""}`}
-                />
-              </div>
-              {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
-            </div>
-
-            {/* Password */}
-            <div className="space-y-1.5">
-              <Label htmlFor="modal-password" className="text-sm">Пароль</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="modal-password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Введите пароль"
-                  value={formData.password}
-                  onChange={(e) => updateField("password", e.target.value)}
-                  className={`pl-10 pr-10 ${errors.password ? "border-destructive" : ""}`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-              {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
-            </div>
-
+          <div className="space-y-3">
+            {/* OAuth Buttons */}
             <Button
-              onClick={handleLogin}
-              disabled={isLoading}
-              variant="gradient"
+              type="button"
+              variant="outline"
               className="w-full gap-2"
+              onClick={() => handleOAuthLogin("google")}
+              disabled={isOAuthLoading !== null}
             >
-              {isLoading ? (
+              {isOAuthLoading === "google" ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <>
-                  <LogIn className="h-4 w-4" />
-                  Войти
-                </>
+                <svg className="h-4 w-4" viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="currentColor"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="currentColor"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  />
+                  <path
+                    fill="currentColor"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  />
+                </svg>
               )}
+              Войти через Google
             </Button>
-            
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/[0.05]" />
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-card px-2 text-muted-foreground">или</span>
-              </div>
-            </div>
-            
+
             <Button
+              type="button"
               variant="outline"
-              onClick={handleRegister}
               className="w-full gap-2"
+              onClick={() => handleOAuthLogin("yandex")}
+              disabled={isOAuthLoading !== null}
             >
-              <UserPlus className="h-4 w-4" />
-              Создать аккаунт
+              {isOAuthLoading === "yandex" ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 16.894c-1.302 0-2.376-.436-3.23-1.302l-1.302-1.302c-.436-.436-.872-.654-1.302-.654-.436 0-.872.218-1.302.654l-1.302 1.302c-.854.866-1.928 1.302-3.23 1.302s-2.376-.436-3.23-1.302c-.866-.854-1.302-1.928-1.302-3.23s.436-2.376 1.302-3.23c.854-.866 1.928-1.302 3.23-1.302s2.376.436 3.23 1.302l1.302 1.302c.436.436.872.654 1.302.654.436 0 .872-.218 1.302-.654l1.302-1.302c.854-.866 1.928-1.302 3.23-1.302s2.376.436 3.23 1.302c.866.854 1.302 1.928 1.302 3.23s-.436 2.376-1.302 3.23c-.854.866-1.928 1.302-3.23 1.302z"/>
+                </svg>
+              )}
+              Войти через Яндекс
             </Button>
+
+            {errors.email && (
+              <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                <p className="text-xs text-destructive text-center">{errors.email}</p>
+              </div>
+            )}
             
             <p className="text-xs text-center text-muted-foreground mt-4">
               При входе вы соглашаетесь с условиями использования

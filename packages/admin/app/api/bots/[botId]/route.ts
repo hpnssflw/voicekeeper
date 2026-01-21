@@ -32,7 +32,7 @@ export async function GET(
     const { botId } = await params;
     await connectMongo();
     
-    const bot = await BotModel.findById(botId).lean() as BotDocument | null;
+    const bot = await BotModel.findById(botId).lean() as unknown as BotDocument | null;
     
     if (!bot) {
       return NextResponse.json(
@@ -114,7 +114,7 @@ export async function PUT(
       botId,
       { $set: updates },
       { new: true }
-    ).lean() as BotDocument | null;
+    ).lean() as unknown as BotDocument | null;
     
     if (!bot) {
       return NextResponse.json(
