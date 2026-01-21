@@ -16,6 +16,8 @@ interface BotDocument {
   channelTitle?: string;
   subscriberCount: number;
   postsCount: number;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 /**
