@@ -209,26 +209,29 @@ export default function FingerprintPage() {
         </Card>
       )}
 
-      {/* Tabs */}
-      <div className="flex gap-1 p-0.5 bg-[hsl(15,12%,8%)] rounded-lg">
-        {[
-          { id: "text", label: "AI Анализ", icon: Sparkles },
-          { id: "manual", label: "Вручную", icon: Pencil },
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as typeof activeTab)}
-            className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded-md text-[10px] font-medium transition-all ${
-              activeTab === tab.id 
-                ? "bg-orange-500/20 text-orange-400" 
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <tab.icon className="h-3 w-3" />
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      {/* Tabs and Current Settings */}
+      <div className="grid gap-1.5 lg:grid-cols-3">
+        <div className="lg:col-span-2 space-y-1.5">
+          {/* Tabs */}
+          <div className="flex gap-1 p-0.5 bg-[hsl(15,12%,8%)] rounded-lg">
+            {[
+              { id: "text", label: "AI Анализ", icon: Sparkles },
+              { id: "manual", label: "Вручную", icon: Pencil },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded-md text-[10px] font-medium transition-all ${
+                  activeTab === tab.id 
+                    ? "bg-orange-500/20 text-orange-400" 
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <tab.icon className="h-3 w-3" />
+                {tab.label}
+              </button>
+            ))}
+          </div>
 
       {/* AI Analysis Tab */}
       {activeTab === "text" && (
@@ -264,9 +267,9 @@ export default function FingerprintPage() {
         </Card>
       )}
 
-      {/* Manual Editing Tab - Structured UI */}
-      {activeTab === "manual" && (
-        <div className="grid gap-1.5 lg:grid-cols-2">
+          {/* Manual Editing Tab - Structured UI */}
+          {activeTab === "manual" && (
+            <div className="grid gap-1.5 lg:grid-cols-2">
           {/* Tone Section */}
           <Card>
             <CardHeader className="pb-1 p-1.5">
@@ -275,24 +278,24 @@ export default function FingerprintPage() {
             <CardContent className="space-y-1.5 p-1.5">
               <Slider
                 label="Эмоциональность"
-                value={styleProfile.tone.emotionality}
-                onChange={(v) => setStyleProfile(prev => ({ ...prev, tone: { ...prev.tone, emotionality: v } }))}
+                value={styleProfile.tone?.emotionality ?? 0.5}
+                onChange={(v) => setStyleProfile(prev => ({ ...prev, tone: { ...prev.tone ?? defaultStyleProfile.tone, emotionality: v } }))}
                 min={0}
                 max={1}
                 step={0.1}
               />
               <Slider
                 label="Уверенность"
-                value={styleProfile.tone.assertiveness}
-                onChange={(v) => setStyleProfile(prev => ({ ...prev, tone: { ...prev.tone, assertiveness: v } }))}
+                value={styleProfile.tone?.assertiveness ?? 0.5}
+                onChange={(v) => setStyleProfile(prev => ({ ...prev, tone: { ...prev.tone ?? defaultStyleProfile.tone, assertiveness: v } }))}
                 min={0}
                 max={1}
                 step={0.1}
               />
               <Slider
                 label="Ирония"
-                value={styleProfile.tone.irony}
-                onChange={(v) => setStyleProfile(prev => ({ ...prev, tone: { ...prev.tone, irony: v } }))}
+                value={styleProfile.tone?.irony ?? 0}
+                onChange={(v) => setStyleProfile(prev => ({ ...prev, tone: { ...prev.tone ?? defaultStyleProfile.tone, irony: v } }))}
                 min={0}
                 max={1}
                 step={0.1}
@@ -308,8 +311,8 @@ export default function FingerprintPage() {
             <CardContent className="space-y-1.5 p-1.5">
               <Select
                 label="Длина предложений"
-                value={styleProfile.language.sentenceLength}
-                onChange={(e) => setStyleProfile(prev => ({ ...prev, language: { ...prev.language, sentenceLength: e.target.value as any } }))}
+                value={styleProfile.language?.sentenceLength ?? 'medium'}
+                onChange={(e) => setStyleProfile(prev => ({ ...prev, language: { ...prev.language ?? defaultStyleProfile.language, sentenceLength: e.target.value as any } }))}
                 options={[
                   { value: 'short', label: 'Короткие' },
                   { value: 'medium', label: 'Средние' },
@@ -318,8 +321,8 @@ export default function FingerprintPage() {
               />
               <Slider
                 label="Сленг"
-                value={styleProfile.language.slangLevel}
-                onChange={(v) => setStyleProfile(prev => ({ ...prev, language: { ...prev.language, slangLevel: v } }))}
+                value={styleProfile.language?.slangLevel ?? 0.3}
+                onChange={(v) => setStyleProfile(prev => ({ ...prev, language: { ...prev.language ?? defaultStyleProfile.language, slangLevel: v } }))}
                 min={0}
                 max={1}
                 step={0.1}
@@ -327,14 +330,14 @@ export default function FingerprintPage() {
               <div className="flex items-center justify-between py-0.5">
                 <Label className="text-[9px] text-muted-foreground">Проф. лексика</Label>
                 <Switch
-                  checked={styleProfile.language.professionalLexicon}
-                  onCheckedChange={(v) => setStyleProfile(prev => ({ ...prev, language: { ...prev.language, professionalLexicon: v } }))}
+                  checked={styleProfile.language?.professionalLexicon ?? true}
+                  onCheckedChange={(v) => setStyleProfile(prev => ({ ...prev, language: { ...prev.language ?? defaultStyleProfile.language, professionalLexicon: v } }))}
                 />
               </div>
               <Slider
                 label="Эмодзи"
-                value={styleProfile.language.emojiFrequency}
-                onChange={(v) => setStyleProfile(prev => ({ ...prev, language: { ...prev.language, emojiFrequency: v } }))}
+                value={styleProfile.language?.emojiFrequency ?? 0.2}
+                onChange={(v) => setStyleProfile(prev => ({ ...prev, language: { ...prev.language ?? defaultStyleProfile.language, emojiFrequency: v } }))}
                 min={0}
                 max={1}
                 step={0.1}
@@ -350,8 +353,8 @@ export default function FingerprintPage() {
             <CardContent className="space-y-1.5 p-1.5">
               <Select
                 label="Начало"
-                value={styleProfile.structure.hookType}
-                onChange={(e) => setStyleProfile(prev => ({ ...prev, structure: { ...prev.structure, hookType: e.target.value as any } }))}
+                value={styleProfile.structure?.hookType ?? 'mixed'}
+                onChange={(e) => setStyleProfile(prev => ({ ...prev, structure: { ...prev.structure ?? defaultStyleProfile.structure, hookType: e.target.value as any } }))}
                 options={[
                   { value: 'question', label: 'Вопрос' },
                   { value: 'statement', label: 'Утверждение' },
@@ -361,8 +364,8 @@ export default function FingerprintPage() {
               />
               <Select
                 label="Абзацы"
-                value={styleProfile.structure.paragraphLength}
-                onChange={(e) => setStyleProfile(prev => ({ ...prev, structure: { ...prev.structure, paragraphLength: e.target.value as any } }))}
+                value={styleProfile.structure?.paragraphLength ?? '3-4 sentences'}
+                onChange={(e) => setStyleProfile(prev => ({ ...prev, structure: { ...prev.structure ?? defaultStyleProfile.structure, paragraphLength: e.target.value as any } }))}
                 options={[
                   { value: '1-2 sentences', label: '1-2 предложения' },
                   { value: '3-4 sentences', label: '3-4 предложения' },
@@ -372,14 +375,14 @@ export default function FingerprintPage() {
               <div className="flex items-center justify-between py-0.5">
                 <Label className="text-[9px] text-muted-foreground">Списки</Label>
                 <Switch
-                  checked={styleProfile.structure.useLists}
-                  onCheckedChange={(v) => setStyleProfile(prev => ({ ...prev, structure: { ...prev.structure, useLists: v } }))}
+                  checked={styleProfile.structure?.useLists ?? false}
+                  onCheckedChange={(v) => setStyleProfile(prev => ({ ...prev, structure: { ...prev.structure ?? defaultStyleProfile.structure, useLists: v } }))}
                 />
               </div>
               <Select
                 label="Ритм"
-                value={styleProfile.structure.rhythm}
-                onChange={(e) => setStyleProfile(prev => ({ ...prev, structure: { ...prev.structure, rhythm: e.target.value as any } }))}
+                value={styleProfile.structure?.rhythm ?? 'medium'}
+                onChange={(e) => setStyleProfile(prev => ({ ...prev, structure: { ...prev.structure ?? defaultStyleProfile.structure, rhythm: e.target.value as any } }))}
                 options={[
                   { value: 'fast', label: 'Быстрый' },
                   { value: 'medium', label: 'Умеренный' },
@@ -399,16 +402,16 @@ export default function FingerprintPage() {
                 <Label className="text-[9px] text-muted-foreground">Вопросов</Label>
                 <Input
                   type="number"
-                  value={styleProfile.rhetoric.questionsPerPost}
-                  onChange={(e) => setStyleProfile(prev => ({ ...prev, rhetoric: { ...prev.rhetoric, questionsPerPost: parseInt(e.target.value) || 0 } }))}
+                  value={styleProfile.rhetoric?.questionsPerPost ?? 1}
+                  onChange={(e) => setStyleProfile(prev => ({ ...prev, rhetoric: { ...prev.rhetoric ?? defaultStyleProfile.rhetoric, questionsPerPost: parseInt(e.target.value) || 0 } }))}
                   min={0}
                   className="h-6 text-[10px]"
                 />
               </div>
               <Select
                 label="Метафоры"
-                value={styleProfile.rhetoric.metaphors}
-                onChange={(e) => setStyleProfile(prev => ({ ...prev, rhetoric: { ...prev.rhetoric, metaphors: e.target.value as any } }))}
+                value={styleProfile.rhetoric?.metaphors ?? 'rare'}
+                onChange={(e) => setStyleProfile(prev => ({ ...prev, rhetoric: { ...prev.rhetoric ?? defaultStyleProfile.rhetoric, metaphors: e.target.value as any } }))}
                 options={[
                   { value: 'frequent', label: 'Часто' },
                   { value: 'rare', label: 'Редко' },
@@ -418,14 +421,14 @@ export default function FingerprintPage() {
               <div className="flex items-center justify-between py-0.5">
                 <Label className="text-[9px] text-muted-foreground">Истории</Label>
                 <Switch
-                  checked={styleProfile.rhetoric.storytelling}
-                  onCheckedChange={(v) => setStyleProfile(prev => ({ ...prev, rhetoric: { ...prev.rhetoric, storytelling: v } }))}
+                  checked={styleProfile.rhetoric?.storytelling ?? false}
+                  onCheckedChange={(v) => setStyleProfile(prev => ({ ...prev, rhetoric: { ...prev.rhetoric ?? defaultStyleProfile.rhetoric, storytelling: v } }))}
                 />
               </div>
               <Select
                 label="CTA"
-                value={styleProfile.rhetoric.ctaStyle}
-                onChange={(e) => setStyleProfile(prev => ({ ...prev, rhetoric: { ...prev.rhetoric, ctaStyle: e.target.value as any } }))}
+                value={styleProfile.rhetoric?.ctaStyle ?? 'none'}
+                onChange={(e) => setStyleProfile(prev => ({ ...prev, rhetoric: { ...prev.rhetoric ?? defaultStyleProfile.rhetoric, ctaStyle: e.target.value as any } }))}
                 options={[
                   { value: 'soft', label: 'Мягкий' },
                   { value: 'none', label: 'Нет' },
@@ -456,7 +459,7 @@ export default function FingerprintPage() {
                   }}
                 />
                 <div className="flex flex-wrap gap-0.5 mt-0.5">
-                  {styleProfile.forbidden.phrases.map((phrase, idx) => (
+                  {(styleProfile.forbidden?.phrases ?? []).map((phrase, idx) => (
                     <Badge key={idx} variant="destructive" className="text-[7px] px-0.5 py-0 gap-0.5">
                       {phrase}
                       <button onClick={() => removeArrayItem('forbidden', 'phrases', idx)} className="ml-0.5">
@@ -481,7 +484,7 @@ export default function FingerprintPage() {
                   }}
                 />
                 <div className="flex flex-wrap gap-0.5 mt-0.5">
-                  {styleProfile.forbidden.tones.map((tone, idx) => (
+                  {(styleProfile.forbidden?.tones ?? []).map((tone, idx) => (
                     <Badge key={idx} variant="destructive" className="text-[7px] px-0.5 py-0 gap-0.5">
                       {tone}
                       <button onClick={() => removeArrayItem('forbidden', 'tones', idx)} className="ml-0.5">
@@ -515,7 +518,7 @@ export default function FingerprintPage() {
                   }}
                 />
                 <div className="flex flex-wrap gap-0.5 mt-0.5">
-                  {styleProfile.signature.typicalOpenings.map((opening, idx) => (
+                  {(styleProfile.signature?.typicalOpenings ?? []).map((opening, idx) => (
                     <Badge key={idx} variant="outline" className="text-[7px] px-0.5 py-0 gap-0.5">
                       {opening}
                       <button onClick={() => removeArrayItem('signature', 'typicalOpenings', idx)} className="ml-0.5">
@@ -540,7 +543,7 @@ export default function FingerprintPage() {
                   }}
                 />
                 <div className="flex flex-wrap gap-0.5 mt-0.5">
-                  {styleProfile.signature.typicalClosings.map((closing, idx) => (
+                  {(styleProfile.signature?.typicalClosings ?? []).map((closing, idx) => (
                     <Badge key={idx} variant="outline" className="text-[7px] px-0.5 py-0 gap-0.5">
                       {closing}
                       <button onClick={() => removeArrayItem('signature', 'typicalClosings', idx)} className="ml-0.5">
@@ -552,105 +555,107 @@ export default function FingerprintPage() {
               </div>
             </CardContent>
           </Card>
-        </div>
-      )}
-
-      {/* Current Settings Preview */}
-      {hasFingerprint && (
-        <Card>
-          <CardHeader className="pb-1 p-1.5">
-            <CardTitle className="text-[10px]">Текущие настройки стиля</CardTitle>
-            <CardDescription className="text-[8px]">
-              Параметры, используемые при генерации постов
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-1.5">
-            <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-4 text-[8px]">
-              {/* Tone */}
-              <div className="space-y-0.5 p-1.5 rounded bg-[hsl(15,12%,8%)]">
-                <div className="font-medium text-[9px] mb-1">Тон</div>
-                <div>Эмоц: {styleProfile.tone.emotionality.toFixed(1)}</div>
-                <div>Увер: {styleProfile.tone.assertiveness.toFixed(1)}</div>
-                <div>Ирония: {styleProfile.tone.irony.toFixed(1)}</div>
-              </div>
-              
-              {/* Language */}
-              <div className="space-y-0.5 p-1.5 rounded bg-[hsl(15,12%,8%)]">
-                <div className="font-medium text-[9px] mb-1">Язык</div>
-                <div>Длина: {styleProfile.language.sentenceLength === 'short' ? 'Короткие' : styleProfile.language.sentenceLength === 'long' ? 'Длинные' : 'Средние'}</div>
-                <div>Сленг: {styleProfile.language.slangLevel.toFixed(1)}</div>
-                <div>Проф: {styleProfile.language.professionalLexicon ? 'Да' : 'Нет'}</div>
-                <div>Эмодзи: {styleProfile.language.emojiFrequency.toFixed(1)}</div>
-              </div>
-              
-              {/* Structure */}
-              <div className="space-y-0.5 p-1.5 rounded bg-[hsl(15,12%,8%)]">
-                <div className="font-medium text-[9px] mb-1">Структура</div>
-                <div>Начало: {styleProfile.structure.hookType === 'question' ? 'Вопрос' : styleProfile.structure.hookType === 'provocation' ? 'Провокация' : styleProfile.structure.hookType === 'statement' ? 'Утверждение' : 'Смешанный'}</div>
-                <div>Абзацы: {styleProfile.structure.paragraphLength}</div>
-                <div>Списки: {styleProfile.structure.useLists ? 'Да' : 'Нет'}</div>
-                <div>Ритм: {styleProfile.structure.rhythm === 'fast' ? 'Быстрый' : styleProfile.structure.rhythm === 'slow' ? 'Размеренный' : 'Умеренный'}</div>
-              </div>
-              
-              {/* Rhetoric */}
-              <div className="space-y-0.5 p-1.5 rounded bg-[hsl(15,12%,8%)]">
-                <div className="font-medium text-[9px] mb-1">Риторика</div>
-                <div>Вопросов: {styleProfile.rhetoric.questionsPerPost}</div>
-                <div>Метафоры: {styleProfile.rhetoric.metaphors === 'frequent' ? 'Часто' : styleProfile.rhetoric.metaphors === 'none' ? 'Нет' : 'Редко'}</div>
-                <div>Истории: {styleProfile.rhetoric.storytelling ? 'Да' : 'Нет'}</div>
-                <div>CTA: {styleProfile.rhetoric.ctaStyle === 'direct' ? 'Прямой' : styleProfile.rhetoric.ctaStyle === 'soft' ? 'Мягкий' : 'Нет'}</div>
-              </div>
             </div>
-            
-            {/* Forbidden & Signature */}
-            {(styleProfile.forbidden.phrases.length > 0 || styleProfile.forbidden.tones.length > 0 || 
-              styleProfile.signature.typicalOpenings.length > 0 || styleProfile.signature.typicalClosings.length > 0) && (
-              <div className="grid gap-1.5 sm:grid-cols-2 mt-1.5 pt-1.5 border-t border-white/5">
-                {styleProfile.forbidden.phrases.length > 0 && (
-                  <div className="space-y-0.5">
-                    <div className="font-medium text-[9px] text-red-400">Запрещённые фразы</div>
-                    <div className="flex flex-wrap gap-0.5">
-                      {styleProfile.forbidden.phrases.map((phrase, idx) => (
-                        <Badge key={idx} variant="destructive" className="text-[7px] px-0.5 py-0">{phrase}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {styleProfile.forbidden.tones.length > 0 && (
-                  <div className="space-y-0.5">
-                    <div className="font-medium text-[9px] text-red-400">Запрещённые тона</div>
-                    <div className="flex flex-wrap gap-0.5">
-                      {styleProfile.forbidden.tones.map((tone, idx) => (
-                        <Badge key={idx} variant="destructive" className="text-[7px] px-0.5 py-0">{tone}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {styleProfile.signature.typicalOpenings.length > 0 && (
-                  <div className="space-y-0.5">
-                    <div className="font-medium text-[9px]">Типичные начала</div>
-                    <div className="flex flex-wrap gap-0.5">
-                      {styleProfile.signature.typicalOpenings.map((opening, idx) => (
-                        <Badge key={idx} variant="outline" className="text-[7px] px-0.5 py-0">{opening}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {styleProfile.signature.typicalClosings.length > 0 && (
-                  <div className="space-y-0.5">
-                    <div className="font-medium text-[9px]">Типичные окончания</div>
-                    <div className="flex flex-wrap gap-0.5">
-                      {styleProfile.signature.typicalClosings.map((closing, idx) => (
-                        <Badge key={idx} variant="outline" className="text-[7px] px-0.5 py-0">{closing}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
+          )}
+        </div>
+
+        {/* Current Settings Preview */}
+        {hasFingerprint && (
+          <Card>
+            <CardHeader className="pb-1 p-1.5">
+              <CardTitle className="text-[10px]">Текущие настройки стиля</CardTitle>
+              <CardDescription className="text-[8px]">
+                Параметры, используемые при генерации постов
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-1.5">
+              <div className="grid gap-1.5 grid-cols-2 text-[8px]">
+                {/* Tone */}
+                <div className="space-y-0.5 p-1.5 rounded bg-[hsl(15,12%,8%)]">
+                  <div className="font-medium text-[9px] mb-1">Тон</div>
+                  <div>Эмоц: {(styleProfile.tone?.emotionality ?? 0.5).toFixed(1)}</div>
+                  <div>Увер: {(styleProfile.tone?.assertiveness ?? 0.5).toFixed(1)}</div>
+                  <div>Ирония: {(styleProfile.tone?.irony ?? 0).toFixed(1)}</div>
+                </div>
+                
+                {/* Language */}
+                <div className="space-y-0.5 p-1.5 rounded bg-[hsl(15,12%,8%)]">
+                  <div className="font-medium text-[9px] mb-1">Язык</div>
+                  <div>Длина: {styleProfile.language?.sentenceLength === 'short' ? 'Короткие' : styleProfile.language?.sentenceLength === 'long' ? 'Длинные' : 'Средние'}</div>
+                  <div>Сленг: {(styleProfile.language?.slangLevel ?? 0.3).toFixed(1)}</div>
+                  <div>Проф: {styleProfile.language?.professionalLexicon ? 'Да' : 'Нет'}</div>
+                  <div>Эмодзи: {(styleProfile.language?.emojiFrequency ?? 0.2).toFixed(1)}</div>
+                </div>
+                
+                {/* Structure */}
+                <div className="space-y-0.5 p-1.5 rounded bg-[hsl(15,12%,8%)]">
+                  <div className="font-medium text-[9px] mb-1">Структура</div>
+                  <div>Начало: {styleProfile.structure?.hookType === 'question' ? 'Вопрос' : styleProfile.structure?.hookType === 'provocation' ? 'Провокация' : styleProfile.structure?.hookType === 'statement' ? 'Утверждение' : 'Смешанный'}</div>
+                  <div>Абзацы: {styleProfile.structure?.paragraphLength ?? '3-4 sentences'}</div>
+                  <div>Списки: {styleProfile.structure?.useLists ? 'Да' : 'Нет'}</div>
+                  <div>Ритм: {styleProfile.structure?.rhythm === 'fast' ? 'Быстрый' : styleProfile.structure?.rhythm === 'slow' ? 'Размеренный' : 'Умеренный'}</div>
+                </div>
+                
+                {/* Rhetoric */}
+                <div className="space-y-0.5 p-1.5 rounded bg-[hsl(15,12%,8%)]">
+                  <div className="font-medium text-[9px] mb-1">Риторика</div>
+                  <div>Вопросов: {styleProfile.rhetoric?.questionsPerPost ?? 1}</div>
+                  <div>Метафоры: {styleProfile.rhetoric?.metaphors === 'frequent' ? 'Часто' : styleProfile.rhetoric?.metaphors === 'none' ? 'Нет' : 'Редко'}</div>
+                  <div>Истории: {styleProfile.rhetoric?.storytelling ? 'Да' : 'Нет'}</div>
+                  <div>CTA: {styleProfile.rhetoric?.ctaStyle === 'direct' ? 'Прямой' : styleProfile.rhetoric?.ctaStyle === 'soft' ? 'Мягкий' : 'Нет'}</div>
+                </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+              
+              {/* Forbidden & Signature */}
+              {((styleProfile.forbidden?.phrases?.length ?? 0) > 0 || (styleProfile.forbidden?.tones?.length ?? 0) > 0 || 
+                (styleProfile.signature?.typicalOpenings?.length ?? 0) > 0 || (styleProfile.signature?.typicalClosings?.length ?? 0) > 0) && (
+                <div className="grid gap-1.5 sm:grid-cols-2 mt-1.5 pt-1.5 border-t border-white/5">
+                  {(styleProfile.forbidden?.phrases?.length ?? 0) > 0 && (
+                    <div className="space-y-0.5">
+                      <div className="font-medium text-[9px] text-red-400">Запрещённые фразы</div>
+                      <div className="flex flex-wrap gap-0.5">
+                        {(styleProfile.forbidden?.phrases ?? []).map((phrase, idx) => (
+                          <Badge key={idx} variant="destructive" className="text-[7px] px-0.5 py-0">{phrase}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {(styleProfile.forbidden?.tones?.length ?? 0) > 0 && (
+                    <div className="space-y-0.5">
+                      <div className="font-medium text-[9px] text-red-400">Запрещённые тона</div>
+                      <div className="flex flex-wrap gap-0.5">
+                        {(styleProfile.forbidden?.tones ?? []).map((tone, idx) => (
+                          <Badge key={idx} variant="destructive" className="text-[7px] px-0.5 py-0">{tone}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {(styleProfile.signature?.typicalOpenings?.length ?? 0) > 0 && (
+                    <div className="space-y-0.5">
+                      <div className="font-medium text-[9px]">Типичные начала</div>
+                      <div className="flex flex-wrap gap-0.5">
+                        {(styleProfile.signature?.typicalOpenings ?? []).map((opening, idx) => (
+                          <Badge key={idx} variant="outline" className="text-[7px] px-0.5 py-0">{opening}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {(styleProfile.signature?.typicalClosings?.length ?? 0) > 0 && (
+                    <div className="space-y-0.5">
+                      <div className="font-medium text-[9px]">Типичные окончания</div>
+                      <div className="flex flex-wrap gap-0.5">
+                        {(styleProfile.signature?.typicalClosings ?? []).map((closing, idx) => (
+                          <Badge key={idx} variant="outline" className="text-[7px] px-0.5 py-0">{closing}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }

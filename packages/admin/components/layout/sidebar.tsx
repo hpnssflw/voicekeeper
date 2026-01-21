@@ -135,61 +135,77 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
 
         {/* Navigation */}
         <nav className="flex-1 space-y-0.5 p-2 overflow-y-auto">
-          {navigation.map((item, idx) => {
-            if ("type" in item && item.type === "divider") {
-              return (
-                <div key={idx} className="py-2">
-                  <div className="h-px bg-[hsl(15,12%,10%)]" />
-                  {!collapsed && item.label && (
-                    <p className="mt-2 px-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 font-display">
-                      {item.label}
-                    </p>
-                  )}
-                </div>
-              );
-            }
-
-            const Icon = item.icon;
-            // Special case for Dashboard - only exact match
-            // For other routes, check if pathname starts with href
-            const isActive = item.href === "/dashboard" 
-              ? pathname === "/dashboard"
-              : pathname === item.href || pathname.startsWith(item.href + "/");
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "group flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium transition-all duration-150",
-                  collapsed && "justify-center px-1.5",
-                  isActive 
-                    ? "bg-orange-500/15 text-orange-400" 
-                    : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
-                )}
-                title={collapsed ? item.name : undefined}
-              >
-                <Icon className="h-3.5 w-3.5 shrink-0" />
-                {!collapsed && (
-                  <>
-                    <span className="flex-1">{item.name}</span>
-                    {item.badge && (
-                      <span
-                        className={cn(
-                          "rounded px-1.5 py-0.5 text-[9px] font-semibold",
-                          item.badge === "AI" 
-                            ? "bg-gradient-to-r from-orange-500/20 to-pink-500/20 text-orange-400"
-                            : "bg-amber-500/20 text-amber-400"
-                        )}
-                      >
-                        {item.badge}
-                      </span>
+          {(() => {
+            // Find the most specific (longest) matching route once
+            const allRoutes = navigation
+              .filter((navItem): navItem is Exclude<typeof navigation[number], { type: "divider" }> => 
+                "href" in navItem && !!navItem.href
+              )
+              .map(navItem => navItem.href)
+              .filter(href => {
+                if (href === "/dashboard") {
+                  return pathname === "/dashboard";
+                }
+                return pathname === href || pathname.startsWith(href + "/");
+              })
+              .sort((a, b) => b.length - a.length); // Sort by length, longest first
+            
+            const activeRoute = allRoutes.length > 0 ? allRoutes[0] : null;
+            
+            return navigation.map((item, idx) => {
+              if ("type" in item && item.type === "divider") {
+                return (
+                  <div key={idx} className="py-2">
+                    <div className="h-px bg-[hsl(15,12%,10%)]" />
+                    {!collapsed && item.label && (
+                      <p className="mt-2 px-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 font-display">
+                        {item.label}
+                      </p>
                     )}
-                  </>
-                )}
-              </Link>
-            );
-          })}
+                  </div>
+                );
+              }
+
+              const Icon = item.icon;
+              
+              // Active only if this is the most specific match
+              const isActive = activeRoute === item.href;
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "group flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium transition-all duration-150",
+                    collapsed && "justify-center px-1.5",
+                    isActive 
+                      ? "bg-orange-500/15 text-orange-400" 
+                      : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+                  )}
+                  title={collapsed ? item.name : undefined}
+                >
+                  <Icon className="h-3.5 w-3.5 shrink-0" />
+                  {!collapsed && (
+                    <>
+                      <span className="flex-1">{item.name}</span>
+                      {item.badge && (
+                        <span
+                          className={cn(
+                            "rounded px-1.5 py-0.5 text-[9px] font-semibold",
+                            item.badge === "AI" 
+                              ? "bg-gradient-to-r from-orange-500/20 to-pink-500/20 text-orange-400"
+                              : "bg-amber-500/20 text-amber-400"
+                          )}
+                        >
+                          {item.badge}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </Link>
+              );
+            });
+          })()}
         </nav>
 
         {/* Bottom section */}
