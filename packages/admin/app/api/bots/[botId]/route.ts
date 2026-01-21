@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectMongo } from '@/lib/db/mongo';
 import { BotModel } from '@/lib/db/models/Bot';
+import { PostModel } from '@/lib/db/models/Post';
 
 interface BotDocument {
   _id: string;
@@ -37,6 +38,17 @@ export async function GET(
         { status: 404 }
       );
     }
+
+    // Get real posts count from database (not cached)
+    const postsCount = await PostModel.countDocuments({ 
+      botId: bot._id, 
+      deletedAt: null 
+    });
+    const publishedCount = await PostModel.countDocuments({ 
+      botId: bot._id, 
+      status: 'published',
+      deletedAt: null 
+    });
     
     return NextResponse.json({
       id: bot._id.toString(),
@@ -50,8 +62,8 @@ export async function GET(
         title: bot.channelTitle,
       } : null,
       stats: {
-        postsCount: bot.postsCount || 0,
-        publishedCount: 0,
+        postsCount,
+        publishedCount,
       },
       createdAt: bot.createdAt?.toISOString(),
     });
@@ -108,6 +120,17 @@ export async function PUT(
         { status: 404 }
       );
     }
+
+    // Get real posts count from database
+    const postsCount = await PostModel.countDocuments({ 
+      botId: bot._id, 
+      deletedAt: null 
+    });
+    const publishedCount = await PostModel.countDocuments({ 
+      botId: bot._id, 
+      status: 'published',
+      deletedAt: null 
+    });
     
     return NextResponse.json({
       id: bot._id.toString(),
@@ -121,8 +144,8 @@ export async function PUT(
         title: bot.channelTitle,
       } : null,
       stats: {
-        postsCount: bot.postsCount || 0,
-        publishedCount: 0,
+        postsCount,
+        publishedCount,
       },
     });
   } catch (error) {

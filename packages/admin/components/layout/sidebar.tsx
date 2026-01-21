@@ -1,33 +1,31 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { useAuth } from "@/lib/auth";
-import { useTranslations } from "@/lib/use-translations";
 import { Logo, LogoIcon } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth";
+import { useTranslations } from "@/lib/use-translations";
+import { cn } from "@/lib/utils";
 import {
+  BookOpen,
   Bot,
-  Sparkles,
-  Settings,
-  LayoutDashboard,
-  Radar,
-  FileText,
-  Users,
-  Key,
-  Megaphone,
   ChevronLeft,
   ChevronRight,
   Crown,
-  Zap,
-  X,
+  FileText,
+  Key,
+  LayoutDashboard,
+  Megaphone,
+  Radar,
   Radio,
-  LogOut,
-  User,
-  BookOpen,
+  Settings,
+  Sparkles,
+  Users,
+  X,
+  Zap,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -36,16 +34,15 @@ interface SidebarProps {
 
 export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const t = useTranslations();
   
   const navigation = [
     { name: t("navigation.dashboard"), href: "/dashboard", icon: LayoutDashboard },
     { name: t("navigation.bots"), href: "/dashboard/bots", icon: Bot },
-    { name: t("navigation.channels"), href: "/dashboard/channels", icon: Radio },
     { name: t("navigation.posts"), href: "/dashboard/posts", icon: FileText },
+    { name: t("navigation.channels"), href: "/dashboard/channels", icon: Radio, badge: "Pro" },
     { name: t("navigation.broadcasts"), href: "/dashboard/broadcasts", icon: Megaphone, badge: "Pro" },
     { name: t("navigation.subscribers"), href: "/dashboard/subscribers", icon: Users, badge: "Pro" },
     { type: "divider" as const, label: "AI Tools" },
@@ -59,11 +56,6 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
     { type: "divider" as const, label: t("common.help") || "Help" },
     { name: t("navigation.features"), href: "/dashboard/features", icon: BookOpen },
   ];
-
-  const handleLogout = () => {
-    logout();
-    router.push("/landing");
-  };
 
   useEffect(() => {
     if (mobileOpen && onMobileClose) {
@@ -227,43 +219,6 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                 </Button>
               </Link>
             </div>
-
-            {/* User */}
-            {user && (
-              <div className="rounded-lg bg-[hsl(15,15%,7%)] p-2">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-md text-white text-xs font-semibold bg-gradient-to-br from-orange-500 to-pink-500">
-                    {user.firstName?.charAt(0) || <User className="h-3 w-3" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium truncate">{user.firstName}</p>
-                    <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleLogout}
-                  className="w-full mt-2 text-[10px] gap-1 h-6 text-muted-foreground hover:bg-red-500/10 hover:text-red-400"
-                >
-                  <LogOut className="h-3 w-3" />
-                  {t("common.logout")}
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Collapsed user */}
-        {collapsed && user && (
-          <div className="p-2">
-            <button
-              onClick={handleLogout}
-              className="flex h-7 w-7 mx-auto items-center justify-center rounded-md text-white text-xs font-semibold bg-gradient-to-br from-orange-500 to-pink-500 hover:opacity-80"
-              title="Выйти"
-            >
-              {user.firstName?.charAt(0) || <User className="h-3 w-3" />}
-            </button>
           </div>
         )}
       </aside>

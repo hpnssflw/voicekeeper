@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { StatCard, ListItem, ActionItem, PageHeader, EmptyState } from "@/components/widgets";
+import { ActionItem, EmptyState } from "@/components/widgets";
 import { useAuth } from "@/lib/auth";
 import { useTranslations } from "@/lib/use-translations";
 import {
@@ -40,24 +40,30 @@ export default function DashboardPage() {
   return (
     <div className="space-y-1.5">
       {/* Header */}
-      <PageHeader
-        title={user?.firstName ? t("dashboard.greeting", { name: user.firstName }) : t("dashboard.title")}
-        description={hasData ? t("dashboard.overview") : t("dashboard.startWithBot")}
-        action={
-          <Link href="/dashboard/voicekeeper/generate">
-            <Button variant="gradient" size="sm" className="h-6 text-[9px]">
-              <Sparkles className="h-2.5 w-2.5" />
-              AI
-            </Button>
-          </Link>
-        }
-      />
-
-      {/* Stats */}
-      <div className="flex gap-1 overflow-x-auto pb-1">
-        {stats.map((stat) => (
-          <StatCard key={stat.name} {...stat} />
-        ))}
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <h1 className="text-sm font-semibold">
+            {user?.firstName ? t("dashboard.greeting", { name: user.firstName }) : t("dashboard.title")}
+          </h1>
+          <p className="text-[9px] text-muted-foreground mt-0.5">
+            {hasData ? t("dashboard.overview") : t("dashboard.startWithBot")}
+          </p>
+        </div>
+        {/* Stats */}
+        <div className="flex items-center gap-2">
+          {stats.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <div
+                key={stat.name}
+                className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[hsl(15,12%,8%)]"
+              >
+                <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="text-[11px] font-medium">{stat.value}</span>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Empty State or Content */}

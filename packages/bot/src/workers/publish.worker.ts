@@ -48,7 +48,23 @@ export async function handlePublishJob(data: PublishJob): Promise<void> {
 
   // Determine publish mode: use publishTarget from post, fallback to env
   const publishMode = post.publishTarget || env.PUBLISH_MODE || 'channel';
-  const channelId = env.TELEGRAM_CHANNEL_ID;
+  
+  // Get channelId: prioritize bot's channel from DB, fallback to env (for backward compatibility)
+  let channelId: string | number | null | undefined = null;
+  if (bot?.channelId) {
+    channelId = bot.channelId;
+    console.log(`Using channel from bot DB: ${channelId}`);
+  } else if (bot?.channelUsername) {
+    // Normalize username: ensure it starts with @
+    channelId = bot.channelUsername.startsWith('@') 
+      ? bot.channelUsername 
+      : `@${bot.channelUsername}`;
+    console.log(`Using channel username from bot DB: ${channelId}`);
+  } else if (env.TELEGRAM_CHANNEL_ID) {
+    // Fallback to env for backward compatibility (single-bot mode)
+    channelId = env.TELEGRAM_CHANNEL_ID;
+    console.log(`Using channel from env (fallback): ${channelId}`);
+  }
   
   console.log(`Publish settings: mode=${publishMode} (from post), channelId=${channelId || 'NOT SET'}, botToken=${botToken.substring(0, 10)}...`);
   
@@ -56,12 +72,15 @@ export async function handlePublishJob(data: PublishJob): Promise<void> {
     if (publishMode === 'channel') {
       // Send to channel (requires bot to be admin in channel)
       if (!channelId) {
-        console.warn(`⚠️ TELEGRAM_CHANNEL_ID not set, skipping publish for post ${postId}`);
-        console.warn(`   Set TELEGRAM_CHANNEL_ID=@hf_develop in .env`);
-        return; // Don't throw, just skip silently for MVP
+        console.error(`❌ Channel not configured for bot ${botId}`);
+        console.error(`   Bot channelId: ${bot?.channelId || 'NOT SET'}`);
+        console.error(`   Bot channelUsername: ${bot?.channelUsername || 'NOT SET'}`);
+        console.error(`   Env TELEGRAM_CHANNEL_ID: ${env.TELEGRAM_CHANNEL_ID || 'NOT SET'}`);
+        console.error(`   Configure channel via /api/bots/${botId} (PUT) or /api/channels/track`);
+        throw new Error(`Channel not configured for bot ${botId}. Please set up a channel for this bot first.`);
       }
       
-      console.log(`📨 Sending message to channel: ${channelId}`);
+      console.log(`📨 Sending message to channel: ${channelId} (bot: ${bot?.botUsername || botId})`);
       console.log(`📝 Message preview: ${text.substring(0, 50)}...`);
       
       // Add button to open Mini App if WEBAPP_URL is set and HTTPS
@@ -152,12 +171,16 @@ export async function handlePublishJob(data: PublishJob): Promise<void> {
     const errorMsg = err.response?.description || err.message || 'Unknown error';
     console.error(`✗ Failed to publish post ${postId}:`, errorMsg);
     
-    // Common errors:
+    // Common errors with detailed context:
     if (errorMsg.includes('chat not found') || errorMsg.includes('CHAT_NOT_FOUND')) {
-      console.error(`  → Make sure bot is admin in channel or channel ID is correct`);
+      console.error(`  → Channel not found or bot is not admin in channel`);
+      console.error(`  → Bot: ${bot?.botUsername || botId}, Channel: ${channelId}`);
+      console.error(`  → Make sure bot is added as admin to the channel`);
     }
     if (errorMsg.includes('Forbidden') || errorMsg.includes('bot was blocked')) {
-      console.error(`  → Bot might be blocked or doesn't have permission`);
+      console.error(`  → Bot doesn't have permission to post in channel`);
+      console.error(`  → Bot: ${bot?.botUsername || botId}, Channel: ${channelId}`);
+      console.error(`  → Check bot's admin rights in the channel`);
     }
     
     throw err;

@@ -61,7 +61,7 @@ export function BotPostsList({ posts, isLoading }: BotPostsListProps) {
           </div>
           <div className="flex items-center gap-1.5">
             {getStatusBadge(post.status)}
-          </div>
+          </div>  
         </div>
       ))}
     </div>

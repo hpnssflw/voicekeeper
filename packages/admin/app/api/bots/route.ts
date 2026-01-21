@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectMongo } from '@/lib/db/mongo';
 import { BotModel } from '@/lib/db/models/Bot';
+import { PostModel } from '@/lib/db/models/Post';
 import crypto from 'crypto';
 
 interface BotDocument {
@@ -40,19 +41,30 @@ export async function GET(request: NextRequest) {
     
     const bots = await BotModel.find({ ownerId }).lean() as BotDocument[];
     
+    // Get real posts count for each bot from database
+    const botsWithStats = await Promise.all(
+      bots.map(async (bot) => {
+        const postsCount = await PostModel.countDocuments({ 
+          botId: bot._id, 
+          deletedAt: null 
+        });
+        return {
+          id: bot._id.toString(),
+          username: bot.botUsername,
+          firstName: bot.firstName,
+          telegramId: bot.telegramId,
+          isActive: bot.isActive,
+          channelId: bot.channelId,
+          channelUsername: bot.channelUsername,
+          channelTitle: bot.channelTitle,
+          postsCount,
+          createdAt: bot.createdAt?.toISOString(),
+        };
+      })
+    );
+    
     return NextResponse.json({
-      bots: bots.map(bot => ({
-        id: bot._id.toString(),
-        username: bot.botUsername,
-        firstName: bot.firstName,
-        telegramId: bot.telegramId,
-        isActive: bot.isActive,
-        channelId: bot.channelId,
-        channelUsername: bot.channelUsername,
-        channelTitle: bot.channelTitle,
-        postsCount: bot.postsCount || 0,
-        createdAt: bot.createdAt?.toISOString(),
-      })),
+      bots: botsWithStats,
     });
   } catch (error) {
     console.error('Error fetching bots:', error);
