@@ -18,11 +18,7 @@ export default function LoginPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
-      if (isOnboarded) {
         router.push("/dashboard");
-      } else {
-        router.push("/onboarding");
-      }
     }
   }, [authLoading, isAuthenticated, isOnboarded, router]);
 

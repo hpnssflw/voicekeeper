@@ -66,7 +66,7 @@ export default function LandingPage() {
 
         {/* CTA */}
         <div className="animate-in animate-in-delay-4 flex flex-col sm:flex-row items-center gap-2 w-full max-w-xs sm:max-w-none sm:w-auto">
-          <Link href="/onboarding" className="w-full sm:w-auto">
+          <Link href="/dashboard" className="w-full sm:w-auto">
             <button className="w-full sm:w-auto flex items-center justify-center gap-2 h-10 px-6 text-sm font-medium rounded-lg text-white bg-gradient-to-r from-orange-500 via-rose-500 to-pink-500 shadow-lg shadow-orange-500/30 hover:scale-105 active:scale-[0.98] transition-transform">
               <Sparkles className="h-3.5 w-3.5" />
               Начать
