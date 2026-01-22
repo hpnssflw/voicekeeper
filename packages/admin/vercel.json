@@ -7,7 +7,8 @@
     "NEXT_PUBLIC_DEMO_MODE": "true",
     "NEXT_PUBLIC_APP_URL": "https://voicekeeper.vercel.app",
     "NEXT_PUBLIC_API_BASE": "https://api.voicekeeper.io",
-    "NEXTAUTH_URL": "https://voicekeeper.vercel.app"
+    "NEXTAUTH_URL": "https://voicekeeper.vercel.app",
+    "NEXTAUTH_SECRET": "NTliMmFmM2UtM2QzZS00OGFmLWIwYzMtMDRhNzRjYjE4OGIzY2U2YTNjOWUtNmVkYi00M2VkLTg1ZjktZjg3MDdiYWU2MDMx"
   },
   "headers": [
     {
