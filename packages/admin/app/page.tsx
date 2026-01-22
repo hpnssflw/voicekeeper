@@ -1,33 +1,20 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
-import { DEMO_MODE } from "@/lib/features";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function RootPage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading, isOnboarded } = useAuth();
+  const { isLoading } = useAuth();
 
   useEffect(() => {
     if (!isLoading) {
-      if (DEMO_MODE) {
-        // In demo mode, go directly to landing or dashboard
-        router.push("/landing");
-      } else if (isAuthenticated) {
-        // Authenticated user
-        if (isOnboarded) {
-          router.push("/dashboard");
-        } else {
-          router.push("/onboarding");
-        }
-      } else {
-        // Not authenticated - show landing page
-        router.push("/landing");
-      }
+      // Always redirect to landing page
+      router.push("/landing");
     }
-  }, [isLoading, isAuthenticated, isOnboarded, router]);
+  }, [isLoading, router]);
 
   return (
     <div className="flex h-screen items-center justify-center bg-background">
