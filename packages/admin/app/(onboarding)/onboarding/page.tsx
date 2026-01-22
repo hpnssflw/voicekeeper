@@ -40,7 +40,7 @@ const steps = [
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { isAuthenticated, isOnboarded, completeOnboarding, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, addBot, addChannel, updateUser } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -56,12 +56,12 @@ export default function OnboardingPage() {
     selectedPlan: "free" as "free" | "pro" | "business",
   });
 
-  // Redirect if already authenticated and onboarded
+  // Redirect if already authenticated
   useEffect(() => {
-    if (!authLoading && isAuthenticated && isOnboarded) {
+    if (!authLoading && isAuthenticated) {
       router.push("/dashboard");
     }
-  }, [authLoading, isAuthenticated, isOnboarded, router]);
+  }, [authLoading, isAuthenticated, router]);
 
   // Redirect to login if not authenticated (OAuth only)
   useEffect(() => {
@@ -95,12 +95,27 @@ export default function OnboardingPage() {
   const finishOnboarding = async () => {
     setIsLoading(true);
     try {
-      await completeOnboarding({
-        botToken: formData.botToken,
-        channelUsername: formData.channelUsername,
-        channelForAnalysis: formData.channelForAnalysis,
-        selectedPlan: formData.selectedPlan,
-      });
+      // Add bot if provided
+      if (formData.botToken) {
+        try {
+          await addBot(formData.botToken);
+        } catch (e) {
+          console.log("Bot token validation skipped:", e);
+        }
+      }
+      
+      // Add channel for analysis if provided
+      if (formData.channelForAnalysis) {
+        try {
+          await addChannel(formData.channelForAnalysis);
+        } catch (e) {
+          console.log("Channel already exists:", e);
+        }
+      }
+      
+      // Update user plan
+      await updateUser({ plan: formData.selectedPlan });
+      
       router.push("/dashboard");
     } catch (error) {
       console.error("Onboarding failed:", error);
@@ -117,9 +132,7 @@ export default function OnboardingPage() {
         router.push("/login");
         return;
       }
-      await completeOnboarding({
-        selectedPlan: "free",
-      });
+      await updateUser({ plan: "free" });
       router.push("/dashboard");
     } catch (error) {
       console.error("Skip failed:", error);

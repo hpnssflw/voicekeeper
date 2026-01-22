@@ -15,7 +15,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { isAuthenticated, isLoading, isOnboarded } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -23,11 +23,9 @@ export default function DashboardLayout({
       if (!isAuthenticated) {
         // OAuth only - redirect to login
         router.push("/login");
-      } else if (!isOnboarded) {
-        router.push("/onboarding");
       }
     }
-  }, [isLoading, isAuthenticated, isOnboarded, router]);
+  }, [isLoading, isAuthenticated, router]);
 
   if (isLoading) {
     return (

@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { isAuthenticated, isOnboarded, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [isOAuthLoading, setIsOAuthLoading] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -20,7 +20,7 @@ export default function LoginPage() {
     if (!authLoading && isAuthenticated) {
         router.push("/dashboard");
     }
-  }, [authLoading, isAuthenticated, isOnboarded, router]);
+  }, [authLoading, isAuthenticated, router]);
 
   const handleOAuthLogin = async (provider: "google" | "yandex") => {
     setIsOAuthLoading(provider);

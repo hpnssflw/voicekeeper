@@ -86,18 +86,10 @@ export interface RegisterData {
   telegramUsername?: string;
 }
 
-export interface OnboardingData {
-  botToken?: string;
-  channelUsername?: string;
-  channelForAnalysis?: string;
-  selectedPlan: "free" | "pro" | "business";
-}
-
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  isOnboarded: boolean;
   bots: Bot[];
   channels: Channel[];
   selectedBotId: string | null;
@@ -106,7 +98,6 @@ interface AuthContextType {
   loginWithTelegram: (telegramData: TelegramAuthData) => Promise<void>;
   loginWithOAuth: (provider: "google" | "yandex") => Promise<void>;
   logout: () => void;
-  completeOnboarding: (data: OnboardingData) => Promise<void>;
   updateUser: (data: Partial<User>) => Promise<void>;
   addBot: (token: string) => Promise<Bot>;
   removeBot: (botId: string) => void;
@@ -131,7 +122,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const STORAGE_KEY = "voicekeeper_auth";
 const BOTS_KEY = "voicekeeper_bots";
 const CHANNELS_KEY = "voicekeeper_channels";
-const ONBOARDED_KEY = "voicekeeper_onboarded";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { data: session, status: sessionStatus } = useSession();
@@ -140,7 +130,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isOnboarded, setIsOnboarded] = useState(false);
 
   // Функция для загрузки ботов
   const loadBotsForUser = async (userId: string) => {
@@ -248,7 +237,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 };
                 
                 setUser(user);
-                setIsOnboarded(syncData.isOnboarded || apiUser.isOnboarded || false);
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
                 
                 // Загружаем ботов
@@ -281,9 +269,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 plan: apiUser.plan || parsedUser.plan,
                 generationsUsed: apiUser.generationsUsed || 0,
                 generationsLimit: apiUser.generationsLimit || 3,
-                isOnboarded: apiUser.isOnboarded !== undefined ? apiUser.isOnboarded : parsedUser.isOnboarded,
               });
-              setIsOnboarded(apiUser.isOnboarded || false);
             } catch (error) {
               console.warn("Failed to load user from API, using local data:", error);
             }
@@ -321,13 +307,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           plan: user.plan,
           generationsUsed: user.generationsUsed,
           generationsLimit: user.generationsLimit,
-          isOnboarded: isOnboarded,
         }).catch(error => {
           console.warn("Failed to save user to API:", error);
         });
       }
     }
-  }, [user, isLoading, isOnboarded]);
+  }, [user, isLoading]);
 
   const register = async (data: RegisterData) => {
     setIsLoading(true);
@@ -347,7 +332,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           plan: existingUser.plan || "free",
           generationsUsed: existingUser.generationsUsed || 0,
           generationsLimit: existingUser.generationsLimit || 3,
-          isOnboarded: existingUser.isOnboarded || false,
         });
         
         const user: User = {
@@ -363,7 +347,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
         
         setUser(user);
-        setIsOnboarded(existingUser.isOnboarded);
       } catch {
         // User doesn't exist, create new user in MongoDB via API
         await usersApi.update(userId, {
@@ -373,7 +356,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           plan: "free",
           generationsUsed: 0,
           generationsLimit: 3,
-          isOnboarded: false,
         });
         
         // Create local user object
@@ -390,7 +372,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
 
         setUser(newUser);
-        setIsOnboarded(false); // New user needs onboarding
       }
     } catch (error) {
       console.error("Registration failed:", error);
@@ -421,7 +402,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           createdAt: new Date().toISOString(),
         };
         setUser(user);
-        setIsOnboarded(apiUser.isOnboarded);
       } catch {
         // Create new user if not exists
         await usersApi.update(userId, {
@@ -430,7 +410,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           plan: "free",
           generationsUsed: 0,
           generationsLimit: 3,
-          isOnboarded: false,
         });
         
         const newUser: User = {
@@ -444,7 +423,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
         
         setUser(newUser);
-        setIsOnboarded(false);
       }
     } catch (error) {
       console.error("Login failed:", error);
@@ -477,7 +455,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           createdAt: new Date().toISOString(),
         };
         setUser(user);
-        setIsOnboarded(apiUser.isOnboarded);
       } catch {
         // Create new user
         await usersApi.update(userId, {
@@ -487,7 +464,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           plan: "free",
           generationsUsed: 0,
           generationsLimit: 3,
-          isOnboarded: false,
         });
         
         const newUser: User = {
@@ -505,7 +481,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
 
         setUser(newUser);
-        setIsOnboarded(false);
       }
     } catch (error) {
       console.error("Telegram login failed:", error);
@@ -525,54 +500,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setBots([]);
     setChannels([]);
     setSelectedBotId(null);
-    setIsOnboarded(false);
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(BOTS_KEY);
     localStorage.removeItem(CHANNELS_KEY);
-    localStorage.removeItem(ONBOARDED_KEY);
-  };
-
-  const completeOnboarding = async (data: OnboardingData) => {
-    try {
-      // Add bot if provided
-      if (data.botToken) {
-        try {
-          await addBot(data.botToken);
-        } catch (e) {
-          // Ignore bot validation errors during onboarding
-          console.log("Bot token validation skipped:", e);
-        }
-      }
-      
-      // Add channel for analysis if provided
-      if (data.channelForAnalysis) {
-        try {
-          await addChannel(data.channelForAnalysis);
-        } catch (e) {
-          console.log("Channel already exists:", e);
-        }
-      }
-      
-      // Update user plan locally first (for immediate UI update)
-      if (user) {
-        setUser({ ...user, plan: data.selectedPlan });
-      }
-      
-      setIsOnboarded(true);
-      
-      // Update user onboarding status in API (non-blocking)
-      if (user) {
-        try {
-          await usersApi.update(user.id, { isOnboarded: true });
-        } catch (error) {
-          // Don't block onboarding if API is unavailable
-          console.warn("Failed to update user onboarding status in API:", error);
-        }
-      }
-    } catch (error) {
-      console.error("Onboarding completion failed:", error);
-      throw error;
-    }
   };
 
   const updateUser = async (data: Partial<User>) => {
@@ -588,13 +518,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         generationsUsed: data.generationsUsed,
         generationsLimit: data.generationsLimit,
       };
-      
-      // Add isOnboarded if it's being updated
-      if ('isOnboarded' in data && data.isOnboarded !== undefined) {
-        updateData.isOnboarded = data.isOnboarded;
-      } else if (isOnboarded !== undefined) {
-        updateData.isOnboarded = isOnboarded;
-      }
       
       await usersApi.update(user.id, updateData);
       
@@ -785,7 +708,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         isLoading,
         isAuthenticated: !!user,
-        isOnboarded,
         bots,
         channels,
         selectedBotId,
@@ -794,7 +716,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loginWithTelegram,
         loginWithOAuth,
         logout,
-        completeOnboarding,
         updateUser,
         addBot,
         removeBot,
