@@ -7,12 +7,10 @@
   "scripts": {
     "dev:bot": "npm run dev -w packages/bot",
     "dev:admin": "npm run dev -w packages/admin",
-    "dev:webapp": "npm run dev -w packages/webapp",
     "build:bot": "npm run build -w packages/bot",
     "build:admin": "npm run build -w packages/admin",
-    "build:webapp": "npm run build -w packages/webapp",
-    "infra:up": "cd infra && docker-compose -f docker-compose.dev.yml up -d",
-    "infra:down": "cd infra && docker-compose -f docker-compose.dev.yml down",
-    "infra:logs": "cd infra && docker-compose -f docker-compose.dev.yml logs -f"
+    "infra:up": "cd infra && docker-compose up -d mongodb redis",
+    "infra:down": "cd infra && docker-compose down",
+    "infra:logs": "cd infra && docker-compose logs -f"
   }
 }

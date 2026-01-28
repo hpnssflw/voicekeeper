@@ -152,7 +152,7 @@ botsRouter.get('/:botId', async (req, res, next) => {
           try {
             const chat = await telegraf.telegram.getChat(bot.channelId);
             const membersCount = 'type' in chat && chat.type !== 'private' 
-              ? await telegraf.telegram.getChatMemberCount(bot.channelId)
+              ? await telegraf.telegram.getChatMembersCount(bot.channelId)
               : 0;
             
             channelInfo = {
@@ -331,7 +331,7 @@ botsRouter.get('/:botId/channel', async (req, res, next) => {
     
     try {
       const chat = await telegraf.telegram.getChat(bot.channelId);
-      const membersCount = await telegraf.telegram.getChatMemberCount(bot.channelId);
+      const membersCount = await telegraf.telegram.getChatMembersCount(bot.channelId);
       
       // Get recent messages (bot needs to be admin with message access)
       // Note: Bots can't read channel history directly via Bot API

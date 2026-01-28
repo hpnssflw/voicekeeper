@@ -76,19 +76,12 @@ export interface GenerationResult {
 let settingsCache: UserSettingsResponse | null = null;
 let settingsCacheUserId: string | null = null;
 
-// Get user ID from auth context (will be passed or use hook)
-function getUserId(): string | null {
-  if (typeof window === "undefined") return null;
-  // Try to get from localStorage - use the same key as auth.tsx
-  const userStr = localStorage.getItem("voicekeeper_auth");
-  if (userStr) {
-    try {
-      const user = JSON.parse(userStr);
-      return user.id || user.userId || null;
-    } catch {
-      return null;
-    }
-  }
+// Get user ID - должен передаваться из компонента через useAuth
+// localStorage больше не используется
+function getUserId(userId?: string | null): string | null {
+  // Если userId передан явно - используем его
+  if (userId) return userId;
+  // Иначе возвращаем null (userId должен передаваться из компонента)
   return null;
 }
 
@@ -96,11 +89,11 @@ function getUserId(): string | null {
 const apiKeyCache: { [key: string]: string | null } = {};
 
 // Get/Set API keys from MongoDB via API
-export async function getApiKey(provider: "gemini" | "openai"): Promise<string | null> {
-  const userId = getUserId();
-  if (!userId) return null;
+export async function getApiKey(provider: "gemini" | "openai", userId?: string | null): Promise<string | null> {
+  const resolvedUserId = getUserId(userId);
+  if (!resolvedUserId) return null;
   
-  const cacheKey = `${userId}_${provider}`;
+  const cacheKey = `${resolvedUserId}_${provider}`;
   
   // Return from cache if available
   if (apiKeyCache[cacheKey] !== undefined) {
@@ -109,7 +102,7 @@ export async function getApiKey(provider: "gemini" | "openai"): Promise<string |
   
   try {
     // Get API key from backend
-    const response = await usersApi.hasApiKey(userId, provider);
+    const response = await usersApi.hasApiKey(resolvedUserId, provider);
     
     apiKeyCache[cacheKey] = response.key || null;
     return response.key || null;
@@ -119,16 +112,16 @@ export async function getApiKey(provider: "gemini" | "openai"): Promise<string |
   }
 }
 
-export async function setApiKey(provider: "gemini" | "openai", key: string): Promise<void> {
-  const userId = getUserId();
-  if (!userId) throw new Error("User ID not found");
+export async function setApiKey(provider: "gemini" | "openai", key: string, userId?: string | null): Promise<void> {
+  const resolvedUserId = getUserId(userId);
+  if (!resolvedUserId) throw new Error("User ID not found");
   
   try {
-    await usersApi.updateSettings(userId, {
+    await usersApi.updateSettings(resolvedUserId, {
       [provider === "gemini" ? "geminiApiKey" : "openaiApiKey"]: key || null,
     });
     // Update cache
-    const cacheKey = `${userId}_${provider}`;
+    const cacheKey = `${resolvedUserId}_${provider}`;
     apiKeyCache[cacheKey] = key || null;
     // Clear settings cache
     settingsCache = null;
@@ -137,24 +130,24 @@ export async function setApiKey(provider: "gemini" | "openai", key: string): Pro
   }
 }
 
-export async function getAiProvider(): Promise<"gemini" | "openai"> {
-  const userId = getUserId();
-  if (!userId) return "gemini";
+export async function getAiProvider(userId?: string | null): Promise<"gemini" | "openai"> {
+  const resolvedUserId = getUserId(userId);
+  if (!resolvedUserId) return "gemini";
   
   try {
-    const settings = await usersApi.getSettings(userId);
+    const settings = await usersApi.getSettings(resolvedUserId);
     return settings.aiProvider || "gemini";
   } catch {
     return "gemini";
   }
 }
 
-export async function setAiProvider(provider: "gemini" | "openai"): Promise<void> {
-  const userId = getUserId();
-  if (!userId) throw new Error("User ID not found");
+export async function setAiProvider(provider: "gemini" | "openai", userId?: string | null): Promise<void> {
+  const resolvedUserId = getUserId(userId);
+  if (!resolvedUserId) throw new Error("User ID not found");
   
   try {
-    await usersApi.updateSettings(userId, { aiProvider: provider });
+    await usersApi.updateSettings(resolvedUserId, { aiProvider: provider });
     // Clear cache
     settingsCache = null;
   } catch (error) {
@@ -163,24 +156,24 @@ export async function setAiProvider(provider: "gemini" | "openai"): Promise<void
 }
 
 // Get/Set fingerprint from MongoDB via API
-export async function getFingerprint(): Promise<StyleProfile | null> {
-  const userId = getUserId();
-  if (!userId) return null;
+export async function getFingerprint(userId?: string | null): Promise<StyleProfile | null> {
+  const resolvedUserId = getUserId(userId);
+  if (!resolvedUserId) return null;
   
   try {
-    const settings = await usersApi.getSettings(userId);
+    const settings = await usersApi.getSettings(resolvedUserId);
     return settings.fingerprint || null;
   } catch {
     return null;
   }
 }
 
-export async function setFingerprint(profile: StyleProfile): Promise<void> {
-  const userId = getUserId();
-  if (!userId) throw new Error("User ID not found");
+export async function setFingerprint(profile: StyleProfile, userId?: string | null): Promise<void> {
+  const resolvedUserId = getUserId(userId);
+  if (!resolvedUserId) throw new Error("User ID not found");
   
   try {
-    await usersApi.updateSettings(userId, { fingerprint: profile });
+    await usersApi.updateSettings(resolvedUserId, { fingerprint: profile });
     // Clear cache
     settingsCache = null;
   } catch (error) {
@@ -263,8 +256,8 @@ async function callGemini(prompt: string, apiKey: string): Promise<string> {
  * Уровень 3: Анализ корпуса (AI-assisted)
  * Многоэтапный анализ вместо простого промпта
  */
-export async function analyzeStyle(text: string): Promise<StyleProfile> {
-  const apiKey = await getApiKey("gemini");
+export async function analyzeStyle(text: string, userId?: string | null): Promise<StyleProfile> {
+  const apiKey = await getApiKey("gemini", userId);
   if (!apiKey) {
     throw new Error("API ключ Gemini не настроен. Перейдите в Настройки → API ключи.");
   }
@@ -392,8 +385,8 @@ ${text}
  * Уровень 5: Генерация через "Style Compiler"
  * VoiceFingerprint → Style Instructions → Prompt
  */
-export async function generatePost(params: GenerationParams): Promise<GenerationResult> {
-  const apiKey = await getApiKey("gemini");
+export async function generatePost(params: GenerationParams, userId?: string | null): Promise<GenerationResult> {
+  const apiKey = await getApiKey("gemini", userId);
   if (!apiKey) {
     throw new Error("API ключ Gemini не настроен. Перейдите в Настройки → API ключи.");
   }

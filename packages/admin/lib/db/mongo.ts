@@ -17,7 +17,10 @@ export async function connectMongo(): Promise<typeof mongoose> {
   const mongoUri = process.env.MONGO_URI || process.env.NEXT_PUBLIC_MONGO_URI;
   
   if (!mongoUri) {
-    throw new Error('MONGO_URI is not configured. Please set MONGO_URI environment variable in .env.local file. See .env.example for reference.');
+    // Не выбрасываем ошибку, а возвращаем null или пустой объект
+    // Это позволит приложению работать без MongoDB
+    console.warn('MONGO_URI is not configured. MongoDB operations will be disabled.');
+    throw new Error('MONGO_URI_NOT_CONFIGURED');
   }
   
   // Создаем promise для подключения

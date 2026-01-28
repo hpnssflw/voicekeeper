@@ -96,8 +96,9 @@ interface AuthContextType {
   register: (data: RegisterData) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   loginWithTelegram: (telegramData: TelegramAuthData) => Promise<void>;
-  loginWithOAuth: (provider: "google" | "yandex") => Promise<void>;
-  logout: () => void;
+  loginWithOAuth: (provider: "google") => Promise<void>;
+  logout: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
   updateUser: (data: Partial<User>) => Promise<void>;
   addBot: (token: string) => Promise<Bot>;
   removeBot: (botId: string) => void;
@@ -119,9 +120,10 @@ interface TelegramAuthData {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const STORAGE_KEY = "voicekeeper_auth";
-const BOTS_KEY = "voicekeeper_bots";
-const CHANNELS_KEY = "voicekeeper_channels";
+// Константы больше не используются (localStorage удален)
+// const STORAGE_KEY = "voicekeeper_auth";
+// const BOTS_KEY = "voicekeeper_bots";
+// const CHANNELS_KEY = "voicekeeper_channels";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { data: session, status: sessionStatus } = useSession();
@@ -131,36 +133,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Функция для загрузки ботов
+  // Функция для загрузки ботов (только из API, без localStorage)
   const loadBotsForUser = async (userId: string) => {
     try {
       const botsResponse = await botsApi.list(userId);
       
-      // Load tokens from localStorage as fallback (for session persistence)
-      const storedBots = localStorage.getItem(BOTS_KEY);
-      const tokensMap: Record<string, string> = storedBots 
-        ? JSON.parse(storedBots).reduce((acc: Record<string, string>, bot: Bot) => {
-            if (bot.token) acc[bot.id] = bot.token;
-            return acc;
-          }, {})
-        : {};
-      
       const apiBots: Bot[] = await Promise.all(
         botsResponse.bots.map(async (b) => {
-          // Try to get token from localStorage first
-          let token = tokensMap[b.id] || "";
-          
-          // If no token in localStorage, try to get from API (only for owner)
-          if (!token) {
-            try {
-              const tokenResponse = await fetch(`/api/bots/${b.id}/token?ownerId=${userId}`);
-              if (tokenResponse.ok) {
-                const tokenData = await tokenResponse.json();
-                token = tokenData.key || "";
-              }
-            } catch (e) {
-              // Token not available, continue without it
+          // Получаем токен из API (только для владельца)
+          let token = "";
+          try {
+            const tokenResponse = await fetch(`/api/bots/${b.id}/token?ownerId=${userId}`);
+            if (tokenResponse.ok) {
+              const tokenData = await tokenResponse.json();
+              token = tokenData.key || "";
             }
+          } catch (e) {
+            // Token not available, continue without it
           }
           
           return {
@@ -181,39 +170,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       setBots(apiBots);
       
-      // Update localStorage with tokens (for session persistence)
-      if (apiBots.some(b => b.token)) {
-        localStorage.setItem(BOTS_KEY, JSON.stringify(apiBots));
-      }
-      
       if (apiBots.length > 0 && !selectedBotId) {
         setSelectedBotId(apiBots[0].id);
       }
     } catch (error) {
       console.warn("Failed to load bots from API:", error);
-      // Fallback to localStorage
-      const storedBots = localStorage.getItem(BOTS_KEY);
-      if (storedBots) {
-        const parsedBots = JSON.parse(storedBots);
-        setBots(parsedBots);
-        if (parsedBots.length > 0 && !selectedBotId) {
-          setSelectedBotId(parsedBots[0].id);
-        }
-      }
+      // Если не удалось загрузить - просто очищаем список ботов
+      setBots([]);
     }
   };
 
-  // Load persisted auth state from API (with localStorage fallback for demo)
+  // Load auth state only from OAuth session (no localStorage)
   useEffect(() => {
     const loadAuth = async () => {
       try {
-        // Если есть OAuth сессия, синхронизируем её
+        // Только если есть OAuth сессия - загружаем пользователя
         if (sessionStatus === "authenticated" && session?.user) {
           const oauthUser = session.user;
           const userId = (oauthUser as any).id || `oauth-${oauthUser.email?.replace(/[^a-zA-Z0-9]/g, "-")}`;
           
+          // Создаем пользователя из OAuth данных (независимо от MongoDB)
+          const userFromOAuth: User = {
+            id: userId,
+            email: oauthUser.email || "",
+            firstName: oauthUser.name?.split(" ")[0] || oauthUser.email?.split("@")[0] || "User",
+            lastName: oauthUser.name?.split(" ").slice(1).join(" ") || "",
+            photoUrl: oauthUser.image || undefined,
+            plan: "free",
+            generationsUsed: 0,
+            generationsLimit: 3,
+            createdAt: new Date().toISOString(),
+          };
+          
+          // Устанавливаем пользователя сразу (не блокируем на MongoDB)
+          setUser(userFromOAuth);
+          setIsLoading(false);
+          
+          // Пытаемся синхронизировать с MongoDB в фоне (не блокируем)
           try {
-            // Синхронизируем с нашей системой
             const syncResponse = await fetch("/api/auth/sync", {
               method: "POST",
             });
@@ -221,7 +215,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (syncResponse.ok) {
               const syncData = await syncResponse.json();
               
-              // Загружаем данные пользователя
+              // Если синхронизация успешна, обновляем данные пользователя
+              if (syncData.synced && syncData.user) {
+                const updatedUser: User = {
+                  ...userFromOAuth,
+                  plan: syncData.user.plan || "free",
+                  generationsUsed: syncData.user.generationsUsed || 0,
+                  generationsLimit: syncData.user.generationsLimit || 3,
+                };
+                setUser(updatedUser);
+              }
+              
+              // Пытаемся загрузить данные из MongoDB (опционально)
               try {
                 const apiUser = await usersApi.get(userId);
                 const user: User = {
@@ -230,56 +235,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   firstName: apiUser.firstName || oauthUser.name?.split(" ")[0] || "",
                   lastName: apiUser.lastName || oauthUser.name?.split(" ").slice(1).join(" ") || "",
                   photoUrl: apiUser.photoUrl || oauthUser.image || undefined,
-                  plan: apiUser.plan,
-                  generationsUsed: apiUser.generationsUsed,
-                  generationsLimit: apiUser.generationsLimit,
+                  plan: apiUser.plan || "free",
+                  generationsUsed: apiUser.generationsUsed || 0,
+                  generationsLimit: apiUser.generationsLimit || 3,
                   createdAt: new Date().toISOString(),
                 };
                 
                 setUser(user);
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
                 
                 // Загружаем ботов
                 await loadBotsForUser(userId);
               } catch (error) {
-                console.warn("Failed to load user from API:", error);
+                // MongoDB недоступна - используем данные из OAuth
+                console.warn("MongoDB unavailable, using OAuth data:", error);
+                // Пытаемся загрузить ботов
+                try {
+                  await loadBotsForUser(userId);
+                } catch (botError) {
+                  console.warn("Failed to load bots:", botError);
+                }
               }
             }
           } catch (error) {
-            console.warn("Failed to sync OAuth session:", error);
-          } finally {
-            setIsLoading(false);
+            // Синхронизация не удалась - продолжаем с OAuth данными
+            console.warn("Failed to sync OAuth session (non-blocking):", error);
           }
           return;
         }
 
-        // Если нет OAuth сессии, загружаем из localStorage
+        // Если нет OAuth сессии - пользователь не залогинен
         if (sessionStatus === "unauthenticated") {
-          const storedUser = localStorage.getItem(STORAGE_KEY);
-        
-          if (storedUser) {
-            const parsedUser = JSON.parse(storedUser);
-            setUser(parsedUser);
-            
-            // Load user data from API if available
-            try {
-              const apiUser = await usersApi.get(parsedUser.id);
-              setUser({
-                ...parsedUser,
-                plan: apiUser.plan || parsedUser.plan,
-                generationsUsed: apiUser.generationsUsed || 0,
-                generationsLimit: apiUser.generationsLimit || 3,
-              });
-            } catch (error) {
-              console.warn("Failed to load user from API, using local data:", error);
-            }
-            
-            // Load bots
-            await loadBotsForUser(parsedUser.id);
-          }
+          setUser(null);
+          setBots([]);
+          setChannels([]);
+          setIsLoading(false);
         }
       } catch (error) {
         console.error("Failed to load auth state:", error);
+        setUser(null);
+        setIsLoading(false);
       } finally {
         if (sessionStatus !== "loading") {
           setIsLoading(false);
@@ -292,12 +286,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [sessionStatus, session]);
 
-  // Persist user to API (keep localStorage only for demo/auth persistence)
+  // Persist user to MongoDB via API (no localStorage)
   useEffect(() => {
     if (!isLoading && user) {
-      // Save to localStorage for auth persistence (demo mode)
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-      
       // Save to MongoDB via API
       if (user.id) {
         usersApi.update(user.id, {
@@ -490,19 +481,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const loginWithOAuth = async (provider: "google" | "yandex") => {
+  const loginWithOAuth = async (provider: "google") => {
     // Перенаправляем на страницу авторизации NextAuth
     window.location.href = `/api/auth/signin/${provider}`;
   };
 
-  const logout = () => {
+  const logout = async () => {
+    // Очищаем локальное состояние
     setUser(null);
     setBots([]);
     setChannels([]);
     setSelectedBotId(null);
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(BOTS_KEY);
-    localStorage.removeItem(CHANNELS_KEY);
+    
+    // Выходим из OAuth сессии NextAuth
+    try {
+      const { signOut } = await import("next-auth/react");
+      await signOut({ redirect: true, callbackUrl: "/login" });
+    } catch (error) {
+      console.warn("Failed to sign out from OAuth:", error);
+      // Даже если signOut не сработал, очищаем состояние
+      setUser(null);
+      setBots([]);
+      setChannels([]);
+    }
+  };
+
+  const deleteAccount = async () => {
+    if (!user) return;
+    
+    try {
+      // Удаляем профиль из MongoDB
+      await usersApi.delete(user.id);
+      
+      // Очищаем локальные данные и выходим из OAuth (logout уже делает signOut)
+      await logout();
+    } catch (error) {
+      console.error("Failed to delete account:", error);
+      // Даже если удаление из MongoDB не удалось, очищаем локальные данные и выходим
+      await logout();
+      throw error;
+    }
   };
 
   const updateUser = async (data: Partial<User>) => {
@@ -575,10 +593,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSelectedBotId(newBot.id);
       }
 
-      // Save token to localStorage for session persistence (MVP only)
-      // In production, tokens should be retrieved securely from API when needed
-      const currentBots = [...bots, newBot];
-      localStorage.setItem(BOTS_KEY, JSON.stringify(currentBots));
+      // Токен сохраняется только в состоянии (без localStorage)
 
       return newBot;
     } catch (error: any) {
@@ -716,6 +731,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loginWithTelegram,
         loginWithOAuth,
         logout,
+        deleteAccount,
         updateUser,
         addBot,
         removeBot,

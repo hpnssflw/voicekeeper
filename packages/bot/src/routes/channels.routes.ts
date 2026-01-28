@@ -43,7 +43,7 @@ channelsRouter.post('/info', async (req, res, next) => {
       // Try to get member count
       let membersCount = 0;
       try {
-        membersCount = await telegraf.telegram.getChatMemberCount(normalizedId);
+        membersCount = await telegraf.telegram.getChatMembersCount(normalizedId);
       } catch (e) {
         // May fail if bot doesn't have enough permissions
       }

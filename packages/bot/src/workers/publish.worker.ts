@@ -83,19 +83,17 @@ export async function handlePublishJob(data: PublishJob): Promise<void> {
       console.log(`📨 Sending message to channel: ${channelId} (bot: ${bot?.botUsername || botId})`);
       console.log(`📝 Message preview: ${text.substring(0, 50)}...`);
       
-      // Add button to open Mini App if WEBAPP_URL is set and HTTPS
-      const webAppUrl = env.WEBAPP_URL;
-      const hasWebAppButton = webAppUrl && webAppUrl.startsWith('https://');
+      // Add button to open Admin Panel if ADMIN_URL is set and HTTPS
+      const adminUrl = process.env.ADMIN_URL;
+      const hasAdminButton = adminUrl && adminUrl.startsWith('https://');
       
       let replyMarkup: any = undefined;
-      if (hasWebAppButton) {
-        // Try Web App button - if it fails, Telegram will return error and we'll handle it
-        // Note: Domain must be registered via BotFather /setdomain command
+      if (hasAdminButton) {
+        // Use URL button for admin panel (not WebApp button, as it's not a Telegram Mini App)
         replyMarkup = Markup.inlineKeyboard([
-          [Markup.button.webApp('📱 Открыть Mini App', webAppUrl)]
+          [Markup.button.url('📱 Открыть админку', adminUrl)]
         ]).reply_markup;
-        console.log(`🔗 Adding Web App button: ${webAppUrl}`);
-        console.log(`ℹ️ Note: Domain must be registered via BotFather: /setdomain`);
+        console.log(`🔗 Adding Admin Panel button: ${adminUrl}`);
       }
       
       try {
@@ -104,24 +102,10 @@ export async function handlePublishJob(data: PublishJob): Promise<void> {
           reply_markup: replyMarkup,
         });
       } catch (sendErr: any) {
-        // If Web App button fails (BUTTON_TYPE_INVALID), fallback to URL button
-        if (hasWebAppButton && sendErr.message?.includes('BUTTON_TYPE_INVALID')) {
-          console.warn(`⚠️ Web App button not supported, falling back to URL button`);
-          replyMarkup = Markup.inlineKeyboard([
-            [Markup.button.url('📱 Открыть Mini App', webAppUrl)]
-          ]).reply_markup;
-          
-          await telegrafBot.telegram.sendMessage(channelId, text, {
-            parse_mode: 'Markdown',
-            reply_markup: replyMarkup,
-          });
-          console.log(`✅ Post published with URL button (opens in browser)`);
-          return; // Exit early since we already sent
-        }
-        throw sendErr; // Re-throw if it's a different error
+        throw sendErr;
       }
       
-      console.log(`✅ Post ${postId} published to channel ${channelId}${hasWebAppButton ? ' with Web App button' : ''}`);
+      console.log(`✅ Post ${postId} published to channel ${channelId}${hasAdminButton ? ' with Admin Panel button' : ''}`);
     } else if (publishMode === 'subscribers') {
       // Send to all bot subscribers (broadcast)
       const subscribersRepo = new SubscribersRepository();

@@ -1,5 +1,7 @@
-version: '3.9'
 services:
+  # ============================================
+  # Infrastructure Services
+  # ============================================
   mongodb:
     image: mongo:6.0
     container_name: mongodb
@@ -8,6 +10,11 @@ services:
     volumes:
       - mongodb_data:/data/db
     restart: unless-stopped
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
@@ -15,75 +22,111 @@ services:
     ports:
       - "6379:6379"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # ============================================
+  # Application Services
+  # ============================================
   bot:
     build: ../packages/bot
     container_name: bot
     depends_on:
-      - mongodb
-      - redis
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - ../packages/bot/.env
+      - ../packages/bot/.env.local
     environment:
       - NODE_ENV=production
       - MONGO_URI=mongodb://mongodb:27017/app
       - REDIS_URL=redis://redis:6379
-      - PORT=8080
-      # AI Configuration (set in .env)
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - AI_PROVIDER=${AI_PROVIDER:-gemini}
-      # Telegram
-      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-      - TELEGRAM_CHANNEL_ID=${TELEGRAM_CHANNEL_ID}
-      - WEBAPP_URL=${WEBAPP_URL}
-      # Browserless for parsing
-      - BROWSERLESS_URL=ws://chromium:3000
+      - PORT=4000
     ports:
-      - "8080:8080"
+      - "4000:4000"
     command: ["node", "dist/index.js"]
     restart: unless-stopped
-
-  webapp:
-    build: ../packages/webapp
-    container_name: webapp
-    environment:
-      - NEXT_PUBLIC_API_BASE=http://bot:8080
-    ports:
-      - "3000:3000"
-    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - backend
+      - mtproto
+      - full
 
   admin:
     build: ../packages/admin
     container_name: admin
+    depends_on:
+      bot:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    env_file:
+      - ../packages/admin/.env.local
+      - ../packages/admin/.env
     environment:
-      - NEXT_PUBLIC_API_BASE=http://bot:8080
+      - NEXT_PUBLIC_API_BASE=http://bot:4000/api
+      - MONGO_URI=mongodb://mongodb:27017/app
     ports:
       - "3001:3001"
     restart: unless-stopped
-
-  chromium:
-    image: browserless/chrome:latest
-    container_name: chromium
-    environment:
-      - MAX_CONCURRENT_SESSIONS=5
-      - TIMEOUT=60000
-      - CONNECTION_TIMEOUT=60000
-    ports:
-      - "3333:3000"
-    restart: unless-stopped
+    profiles:
+      - mtproto
+      - full
 
   nginx:
     image: nginx:alpine
     container_name: nginx
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:80"
+      - "8443:443"
     volumes:
       - ./nginx:/etc/nginx/conf.d
     depends_on:
-      - webapp
       - admin
       - bot
     restart: unless-stopped
+    profiles:
+      - full
+
+  # ============================================
+  # Development Tools (optional)
+  # ============================================
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+    profiles:
+      - tools
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis-commander
+    ports:
+      - "8082:8081"
+    environment:
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
+    restart: unless-stopped
+    profiles:
+      - tools
 
 volumes:
   mongodb_data:

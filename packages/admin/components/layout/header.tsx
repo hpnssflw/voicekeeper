@@ -92,9 +92,9 @@ export function Header({ onMenuClick }: HeaderProps) {
                       {t("common.profile")}
                     </Link>
                     <button
-                      onClick={() => {
+                      onClick={async () => {
                         setShowUserMenu(false);
-                        logout();
+                        await logout();
                       }}
                       className="flex w-full items-center gap-1.5 rounded px-1.5 py-1 text-[10px] text-red-400 hover:bg-red-500/10 transition-colors"
                     >

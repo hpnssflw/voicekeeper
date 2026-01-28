@@ -34,16 +34,17 @@ export default function VoiceKeeperPage() {
 
   // Check for saved fingerprint
   useEffect(() => {
+    if (!user?.id) return;
     const loadFingerprint = async () => {
       try {
-        const fingerprint = await getFingerprint();
+        const fingerprint = await getFingerprint(user.id);
         setHasFingerprint(!!fingerprint);
       } catch (error) {
         console.error("Failed to load fingerprint:", error);
       }
     };
     loadFingerprint();
-  }, []);
+  }, [user?.id]);
 
   const handleAnalyze = () => {
     underDev.showModal(

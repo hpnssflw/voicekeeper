@@ -21,12 +21,29 @@ import {
   Building,
   MapPin,
   Link as LinkIcon,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 
 export default function ProfilePage() {
-  const { user, updateUser, isLoading } = useAuth();
+  const { user, updateUser, deleteAccount, isLoading } = useAuth();
+  const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const [formData, setFormData] = useState({
     firstName: "",
@@ -328,6 +345,76 @@ export default function ProfilePage() {
           )}
         </Button>
       </div>
+
+      {/* Danger Zone */}
+      <Card className="glass-panel-glow border-destructive/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 font-display text-destructive">
+            <AlertTriangle className="h-5 w-5" />
+            Опасная зона
+          </CardTitle>
+          <CardDescription>
+            Необратимые действия с вашим аккаунтом
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button 
+                variant="destructive" 
+                className="gap-2"
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )}
+                Удалить аккаунт
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Вы уверены?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Это действие нельзя отменить. Это навсегда удалит ваш аккаунт и все связанные данные из нашей базы данных.
+                  <br /><br />
+                  <strong>Внимание:</strong> Если вы вошли через Google, вам также нужно будет выйти из сессии OAuth.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Отмена</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={async () => {
+                    setIsDeleting(true);
+                    try {
+                      await deleteAccount();
+                      // Если есть OAuth сессия, выходим
+                      await signOut({ redirect: true, callbackUrl: "/login" });
+                    } catch (error) {
+                      console.error("Failed to delete account:", error);
+                      // Всё равно перенаправляем на страницу входа
+                      router.push("/login");
+                    } finally {
+                      setIsDeleting(false);
+                    }
+                  }}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Удаление...
+                    </>
+                  ) : (
+                    "Да, удалить аккаунт"
+                  )}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </CardContent>
+      </Card>
     </div>
   );
 }

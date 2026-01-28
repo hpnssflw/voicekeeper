@@ -70,7 +70,6 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
-    YandexProvider as any,
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
@@ -97,15 +96,27 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // После успешного OAuth входа перенаправляем на страницу синхронизации
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
-      if (new URL(url).origin === baseUrl) return url;
+      // После успешного OAuth входа перенаправляем на dashboard
+      // Если url начинается с /, это относительный путь - используем его
+      if (url.startsWith("/")) {
+        // Если это /login или /api/auth, редиректим на dashboard
+        if (url === "/login" || url.startsWith("/api/auth")) {
+          return `${baseUrl}/dashboard`;
+        }
+        return `${baseUrl}${url}`;
+      }
+      // Если это абсолютный URL с тем же origin - используем его
+      if (url.startsWith(baseUrl)) {
+        return url;
+      }
+      // По умолчанию редиректим на dashboard
       return `${baseUrl}/dashboard`;
     },
   },
-  pages: {
-    signIn: "/login",
-  },
+  // Убираем pages.signIn, чтобы NextAuth не редиректил на /login после успешного OAuth
+  // pages: {
+  //   signIn: "/login",
+  // },
   secret: (() => {
     const secret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
     if (!secret) {

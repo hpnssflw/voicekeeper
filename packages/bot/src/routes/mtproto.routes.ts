@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { mtprotoService } from '../services/mtproto.service';
 import { ParsedChannelModel, ParsedPostModel } from '../models/ParsedChannel';
 import { TelegramSessionModel } from '../models/TelegramSession';
+import { mtprotoService } from '../services/mtproto.service';
 
 export const mtprotoRouter = Router();
 
@@ -78,7 +78,10 @@ mtprotoRouter.post('/auth/start', async (req, res, next) => {
     return res.json({
       success: true,
       phoneCodeHash: result.phoneCodeHash,
-      message: 'Code sent to your Telegram app',
+      phoneCodeType: result.phoneCodeType,
+      message: result.phoneCodeType === 'auth.SentCodeTypeApp'
+        ? 'Code sent to your Telegram app. Check notifications in Telegram app on the device where this phone number is authorized.'
+        : 'Code sent',
     });
   } catch (error: any) {
     if (error.message?.includes('not configured')) {
@@ -264,6 +267,45 @@ mtprotoRouter.delete('/channels/:channelId', async (req, res, next) => {
     return res.json({ success: true, message: 'Channel and posts deleted' });
   } catch (error) {
     next(error);
+  }
+});
+
+/**
+ * Post message to channel
+ * POST /api/mtproto/channels/post
+ * Body: { ownerId: string, channelUsername: string, message: string, parseMode?: string, silent?: boolean, scheduleDate?: string }
+ */
+mtprotoRouter.post('/channels/post', async (req, res, next) => {
+  try {
+    const { ownerId, channelUsername, message, parseMode, silent, scheduleDate } = req.body;
+    
+    if (!ownerId || !channelUsername || !message) {
+      return res.status(400).json({ error: 'ownerId, channelUsername, and message are required' });
+    }
+
+    const result = await mtprotoService.postToChannel(ownerId, channelUsername, message, {
+      parseMode,
+      silent,
+      scheduleDate: scheduleDate ? new Date(scheduleDate) : undefined,
+    });
+    
+    if (!result.success) {
+      return res.status(400).json({ error: result.error || 'Failed to post message' });
+    }
+    
+    return res.json({
+      success: true,
+      messageId: result.messageId,
+      message: 'Message posted successfully',
+    });
+  } catch (error: any) {
+    if (error.message?.includes('No active session')) {
+      return res.status(401).json({ error: 'NOT_AUTHENTICATED', message: error.message });
+    }
+    if (error.message?.includes('permission')) {
+      return res.status(403).json({ error: 'PERMISSION_DENIED', message: error.message });
+    }
+    return res.status(400).json({ error: error.message || 'Failed to post message' });
   }
 });
 

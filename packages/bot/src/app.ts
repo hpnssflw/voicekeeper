@@ -6,10 +6,10 @@ import { router } from './routes';
 export function createApp(_container?: Container) {
   const app = express();
   
-  // CORS for webapp (localhost in dev, actual domain in prod)
+  // CORS for admin panel (localhost in dev, actual domain in prod)
   app.use((req, res, next) => {
     const origin = req.headers.origin;
-    if (origin && (origin.includes('localhost:3000') || origin.includes('trycloudflare.com'))) {
+    if (origin && (origin.includes('localhost:3001') || origin.includes('localhost:3000') || origin.includes('trycloudflare.com'))) {
       res.setHeader('Access-Control-Allow-Origin', origin);
     }
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');

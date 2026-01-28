@@ -1,121 +1,169 @@
-# Docker Infrastructure
+# Docker Compose для Telegram Voronka
 
-Директория содержит конфигурации Docker Compose для запуска всех компонентов системы.
+## Быстрый старт
 
-## 📁 Файлы
+### 1. Настройте переменные окружения
 
-- `docker-compose.yml` - Основная конфигурация (все сервисы)
-- `docker-compose.minimal.yml` - Только MongoDB + Redis
-- `docker-compose.backend.yml` - Backend (MongoDB + Redis + Bot + Chromium)
-- `docker-compose.dev.yml` - Override для разработки
-- `nginx/` - Конфигурации Nginx
-- `.env` - Переменные окружения (создайте из `.env.example`)
+Создайте файл `.env` в директории `infra/`:
 
-## 🚀 Быстрый старт
+```env
+# MTProto (обязательно для парсинга и постинга в каналы)
+TELEGRAM_API_ID=your_api_id
+TELEGRAM_API_HASH=your_api_hash
 
-```bash
-# 1. Создайте .env файл
-cp .env.example .env
-# Отредактируйте .env и укажите ваши токены
+# NextAuth
+NEXTAUTH_URL=http://localhost:3001
+NEXTAUTH_SECRET=your_secret_here
 
-# 2. Запустите все сервисы
-docker compose up -d
-
-# 3. Проверьте статус
-docker compose ps
-
-# 4. Просмотрите логи
-docker compose logs -f
+# Опционально
+TELEGRAM_BOT_TOKEN=your_bot_token
+GEMINI_API_KEY=your_gemini_key
+OPENAI_API_KEY=your_openai_key
 ```
 
-## 📖 Документация
+**Важно**: Получите `TELEGRAM_API_ID` и `TELEGRAM_API_HASH` на https://my.telegram.org/apps
 
-- **Полное руководство:** [docs/DOCKER_GUIDE.md](../docs/DOCKER_GUIDE.md)
-- **Быстрая шпаргалка:** [DOCKER_QUICKSTART.md](./DOCKER_QUICKSTART.md)
+### 2. Запустите сервисы
 
-## 🔧 Полезные команды
+Используйте **profiles** для выбора нужных сервисов:
 
 ```bash
-# Запуск отдельных сервисов
-docker compose up -d mongodb redis
-docker compose up -d bot
+cd infra
 
-# Логи
-docker compose logs -f bot
+# Все сервисы (production-like)
+docker-compose --profile full up -d
 
-# Пересборка
-docker compose build bot
-docker compose up -d bot
+# Только MTProto (MongoDB + Redis + Bot + Admin)
+docker-compose --profile mtproto up -d
 
-# Остановка
-docker compose down
+# Только Backend (MongoDB + Redis + Bot + Chromium)
+docker-compose --profile backend up -d
+
+# Только инфраструктура (MongoDB + Redis) - для локальной разработки
+docker-compose up -d mongodb redis
+
+# С инструментами разработки (Mongo Express + Redis Commander)
+docker-compose --profile tools up -d mongodb redis
 ```
 
-## 🌐 Порты
+## Профили (Profiles)
+
+| Профиль | Сервисы | Назначение |
+|---------|---------|------------|
+| **full** | Все сервисы + nginx | Production-like окружение |
+| **mtproto** | MongoDB + Redis + Bot + Admin | Только MTProto функциональность |
+| **backend** | MongoDB + Redis + Bot + Chromium | Backend API |
+| **tools** | Mongo Express + Redis Commander | Инструменты для разработки |
+| *(без профиля)* | MongoDB + Redis | Только инфраструктура |
+
+## Примеры использования
+
+### Локальная разработка
+
+```bash
+# Запустить только инфраструктуру
+docker-compose up -d mongodb redis
+
+# Сервисы запускать локально через npm
+cd ../packages/bot && npm run dev
+cd ../packages/admin && npm run dev
+```
+
+### MTProto функциональность
+
+```bash
+# Запустить MTProto сервисы
+docker-compose --profile mtproto up -d
+
+# Открыть Admin: http://localhost:3001
+```
+
+### Полное окружение
+
+```bash
+# Все сервисы
+docker-compose --profile full up -d
+
+# С инструментами разработки
+docker-compose --profile full --profile tools up -d
+```
+
+## Логи
+
+```bash
+# Все логи
+docker-compose logs -f
+
+# Конкретный сервис
+docker-compose logs -f bot
+docker-compose logs -f admin
+```
+
+## Пересборка после изменений
+
+```bash
+# Пересобрать конкретный сервис
+docker-compose build bot
+docker-compose --profile mtproto up -d bot
+
+# Пересобрать все
+docker-compose build
+docker-compose --profile full up -d
+```
+
+## Остановка
+
+```bash
+# Остановить все
+docker-compose down
+
+# Остановить с удалением volumes (⚠️ удалит данные)
+docker-compose down -v
+```
+
+## Порты
 
 | Сервис | Порт | URL |
 |--------|------|-----|
 | MongoDB | 27017 | `mongodb://localhost:27017` |
 | Redis | 6379 | `redis://localhost:6379` |
-| Bot API | 8080 | `http://localhost:8080` |
-| Webapp | 3000 | `http://localhost:3000` |
+| Bot API | 4000 | `http://localhost:4000` |
 | Admin | 3001 | `http://localhost:3001` |
 | Chromium | 3333 | `ws://localhost:3333` |
 | Nginx | 80, 443 | `http://localhost` |
+| Mongo Express | 8081 | `http://localhost:8081` |
+| Redis Commander | 8082 | `http://localhost:8082` |
 
-## ⚙️ Переменные окружения
+## Troubleshooting
 
-Создайте `.env` файл с обязательными переменными:
-
-```env
-# Telegram
-TELEGRAM_BOT_TOKEN=your_bot_token
-
-# AI (выберите один)
-GEMINI_API_KEY=your_key
-# ИЛИ
-OPENAI_API_KEY=your_key
-AI_PROVIDER=gemini  # или openai
-
-# URLs (опционально)
-WEBAPP_URL=http://localhost:3000
-```
-
-## 📝 Примеры использования
-
-### Только инфраструктура для локальной разработки
+### Bot сервис не запускается
 
 ```bash
-docker compose -f docker-compose.minimal.yml up -d
+# Проверьте логи
+docker-compose logs bot
+
+# Проверьте переменные окружения
+docker-compose config | grep TELEGRAM_API
 ```
 
-Затем запустите `bot`, `webapp`, `admin` локально через `npm run dev`.
-
-### Backend в Docker, Frontend локально
+### Admin не может подключиться к Bot
 
 ```bash
-docker compose -f docker-compose.backend.yml up -d
+# Проверьте, что Bot запущен
+docker-compose ps bot
+
+# Проверьте переменную NEXT_PUBLIC_API_BASE
+docker-compose exec admin env | grep NEXT_PUBLIC_API_BASE
 ```
 
-### Полная конфигурация для тестирования
+### Коды не приходят в Telegram
 
-```bash
-docker compose up -d
-```
+1. Убедитесь, что `TELEGRAM_API_ID` и `TELEGRAM_API_HASH` установлены
+2. Проверьте логи Bot сервиса: `docker-compose logs -f bot`
+3. Убедитесь, что Bot сервис работает как постоянный процесс
 
-## 🐛 Troubleshooting
+## Дополнительная документация
 
-См. раздел [Troubleshooting](../docs/DOCKER_GUIDE.md#troubleshooting) в полной документации.
-
-**Быстрая проверка:**
-```bash
-# Статус всех контейнеров
-docker compose ps
-
-# Логи проблемного сервиса
-docker compose logs bot | grep -i error
-
-# Перезапуск
-docker compose restart bot
-```
-
+- [DOCKER_QUICKSTART.md](./DOCKER_QUICKSTART.md) - Быстрые команды
+- [../packages/admin/MTPROTO_DOCKER.md](../packages/admin/MTPROTO_DOCKER.md) - Подробная инструкция по MTProto в Docker
+- [../packages/admin/MTPROTO_SETUP.md](../packages/admin/MTPROTO_SETUP.md) - Настройка MTProto

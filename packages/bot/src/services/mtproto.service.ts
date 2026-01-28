@@ -1,8 +1,8 @@
-import { TelegramClient, Api } from 'telegram';
+import { Api, TelegramClient } from 'telegram';
 import { StringSession } from 'telegram/sessions';
 import { env } from '../config/env';
-import { TelegramSessionModel } from '../models/TelegramSession';
 import { ParsedChannelModel, ParsedPostModel } from '../models/ParsedChannel';
+import { TelegramSessionModel } from '../models/TelegramSession';
 
 /**
  * MTProto Service using gramjs
@@ -74,7 +74,7 @@ export class MTProtoService {
   /**
    * Start authentication process (sends code to phone)
    */
-  async startAuth(ownerId: string, phoneNumber: string): Promise<{ phoneCodeHash: string }> {
+  async startAuth(ownerId: string, phoneNumber: string): Promise<{ phoneCodeHash: string; phoneCodeType?: string }> {
     if (!this.isConfigured()) {
       throw new Error('MTProto not configured: set TELEGRAM_API_ID and TELEGRAM_API_HASH');
     }
@@ -98,7 +98,16 @@ export class MTProtoService {
     // Store temporary client
     this.clients.set(`temp_${ownerId}`, client);
 
-    return { phoneCodeHash: result.phoneCodeHash };
+    // Handle different result types
+    if (result instanceof Api.auth.SentCode) {
+      return { 
+        phoneCodeHash: result.phoneCodeHash,
+        phoneCodeType: result.type?.className,
+      };
+    } else {
+      // SentCodeSuccess case - already authenticated
+      throw new Error('Already authenticated');
+    }
   }
 
   /**
@@ -135,7 +144,8 @@ export class MTProtoService {
           }
 
           const passwordInfo = await client.invoke(new Api.account.GetPassword());
-          const passwordSRP = await client.computeCheck(passwordInfo, password);
+          // Compute password check - using type assertion as method name may vary by version
+          const passwordSRP = await (client as any).checkPassword(passwordInfo, password);
           
           result = await client.invoke(
             new Api.auth.CheckPassword({
@@ -254,7 +264,7 @@ export class MTProtoService {
     const messages = await client.getMessages(entity, {
       limit,
       offsetId,
-      minDate: minDate ? Math.floor(minDate.getTime() / 1000) : undefined,
+      offsetDate: minDate ? Math.floor(minDate.getTime() / 1000) : undefined,
     });
 
     const posts = messages.map((msg: any) => {
@@ -319,6 +329,61 @@ export class MTProtoService {
       hasMore: messages.length === limit,
       lastMessageId: posts[posts.length - 1]?.messageId,
     };
+  }
+
+  /**
+   * Post message to channel
+   */
+  async postToChannel(
+    ownerId: string,
+    channelUsername: string,
+    message: string,
+    options?: {
+      parseMode?: 'html' | 'markdown';
+      silent?: boolean;
+      scheduleDate?: Date;
+    }
+  ): Promise<{ success: boolean; messageId?: number; error?: string }> {
+    const client = await this.getClient(ownerId);
+    if (!client) {
+      throw new Error('No active session. Please authenticate first.');
+    }
+
+    try {
+      // Get channel entity
+      const entity = await client.getEntity(channelUsername);
+      
+      // Post message
+      const result = await client.sendMessage(entity, {
+        message,
+        parseMode: options?.parseMode === 'html' ? 'html' : undefined,
+        silent: options?.silent,
+        schedule: options?.scheduleDate ? Math.floor(options.scheduleDate.getTime() / 1000) : undefined,
+      });
+
+      return {
+        success: true,
+        messageId: result.id,
+      };
+    } catch (err: any) {
+      console.error('Post error:', err);
+      const errorMessage = err.errorMessage || err.message || 'Failed to post message';
+      
+      // Check for common permission errors
+      if (errorMessage.includes('CHAT_WRITE_FORBIDDEN') || 
+          errorMessage.includes('not enough rights') ||
+          errorMessage.includes('permission')) {
+        return {
+          success: false,
+          error: 'You do not have permission to post in this channel. Make sure you are an admin with post rights.',
+        };
+      }
+      
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
   }
 
   /**

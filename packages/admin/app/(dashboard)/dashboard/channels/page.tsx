@@ -1,39 +1,35 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/toaster";
+import { channelsApi, mtprotoApi, type ChannelAnalytics, type ChannelInfoResponse, type ParsedPost } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { channelsApi, mtprotoApi, type ChannelInfoResponse, type ParsedPost, type ChannelAnalytics } from "@/lib/api";
 import {
-  Radio,
-  Plus,
-  Trash2,
-  ExternalLink,
-  Users,
-  Clock,
-  RefreshCw,
-  Loader2,
-  TrendingUp,
-  FileText,
-  Info,
-  CheckCircle2,
-  XCircle,
-  Bot,
-  Phone,
-  Key,
-  LogOut,
-  Eye,
-  BarChart3,
-  Hash,
   Calendar,
-  Zap,
+  CheckCircle2,
+  Clock,
+  ExternalLink,
+  Eye,
+  FileText,
+  Hash,
+  Key,
+  Loader2,
+  LogOut,
+  Phone,
+  Plus,
+  Radio,
+  RefreshCw,
+  Trash2,
+  TrendingUp,
+  Users,
+  Zap
 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface ChannelDetails extends ChannelInfoResponse {
   isLoading?: boolean;
@@ -64,6 +60,14 @@ export default function ChannelsPage() {
   const [parsedPosts, setParsedPosts] = useState<Record<string, ParsedPost[]>>({});
   const [channelAnalytics, setChannelAnalytics] = useState<Record<number, ChannelAnalytics>>({});
   const [expandedChannel, setExpandedChannel] = useState<string | null>(null);
+  
+  // Posting state
+  const [postingChannel, setPostingChannel] = useState<string | null>(null);
+  const [showPostForm, setShowPostForm] = useState<string | null>(null);
+  const [postMessage, setPostMessage] = useState("");
+  const [postParseMode, setPostParseMode] = useState<'html' | 'markdown' | undefined>(undefined);
+  const [postSilent, setPostSilent] = useState(false);
+  const [isPosting, setIsPosting] = useState(false);
 
   const selectedBot = bots.find(b => b.id === selectedBotId);
 
@@ -127,9 +131,28 @@ export default function ChannelsPage() {
       const result = await mtprotoApi.startAuth(user!.id, phoneNumber);
       setPhoneCodeHash(result.phoneCodeHash);
       setAuthStep('code');
-      toast({ title: "Код отправлен", description: "Проверьте Telegram", variant: "success" });
+      
+      // Show appropriate message based on code type
+      const codeMessage = result.phoneCodeType === 'auth.SentCodeTypeApp'
+        ? 'Код отправлен в Telegram. Проверьте уведомления в приложении Telegram на устройстве, где авторизован этот номер.'
+        : result.phoneCodeType === 'auth.CodeTypeSms'
+        ? 'Код отправлен в SMS на ваш номер телефона'
+        : result.phoneCodeType === 'auth.CodeTypeCall'
+        ? 'Код будет отправлен в виде звонка на ваш номер'
+        : 'Код отправлен. Проверьте приложение Telegram или SMS сообщения.';
+      
+      toast({ 
+        title: "Код отправлен", 
+        description: codeMessage,
+        variant: "success" 
+      });
     } catch (error: any) {
-      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+      console.error('Auth start error:', error);
+      toast({ 
+        title: "Ошибка", 
+        description: error.message || "Не удалось отправить код. Проверьте номер телефона и попробуйте снова.",
+        variant: "destructive" 
+      });
     } finally {
       setAuthLoading(false);
     }
@@ -247,6 +270,49 @@ export default function ChannelsPage() {
     }
   };
 
+  const handlePostToChannel = async (channelUsername: string) => {
+    if (!mtprotoSession.authenticated) {
+      toast({ title: "Ошибка", description: "Сначала авторизуйтесь через MTProto", variant: "destructive" });
+      return;
+    }
+
+    if (!postMessage.trim()) {
+      toast({ title: "Ошибка", description: "Введите текст сообщения", variant: "destructive" });
+      return;
+    }
+
+    setIsPosting(true);
+    try {
+      const result = await mtprotoApi.postToChannel({
+        ownerId: user!.id,
+        channelUsername,
+        message: postMessage,
+        parseMode: postParseMode,
+        silent: postSilent,
+      });
+      
+      if (result.success) {
+        toast({ 
+          title: "Сообщение отправлено", 
+          description: `ID сообщения: ${result.messageId}`,
+          variant: "success" 
+        });
+        setPostMessage("");
+        setShowPostForm(null);
+        setPostParseMode(undefined);
+        setPostSilent(false);
+      }
+    } catch (error: any) {
+      toast({ 
+        title: "Ошибка отправки", 
+        description: error.message || "Не удалось отправить сообщение",
+        variant: "destructive" 
+      });
+    } finally {
+      setIsPosting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -349,6 +415,10 @@ export default function ChannelsPage() {
                     onChange={(e) => setPhoneCode(e.target.value)}
                     maxLength={6}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Код придет в виде уведомления в приложение Telegram на устройстве, где авторизован этот номер телефона. 
+                    Проверьте уведомления в приложении Telegram.
+                  </p>
                 </div>
                 <div className="flex gap-2">
                   <Button onClick={handleCompleteAuth} disabled={authLoading}>
@@ -500,6 +570,16 @@ export default function ChannelsPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => setShowPostForm(channel.username)}
+                        disabled={!mtprotoSession.authenticated}
+                        className="gap-1"
+                      >
+                        <FileText className="h-4 w-4" />
+                        Опубликовать
+                      </Button>
+                      <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleParseChannel(channel.username)}
@@ -545,6 +625,77 @@ export default function ChannelsPage() {
                       <span>{channel.lastParsed ? "Недавно" : "Не парсился"}</span>
                     </div>
                   </div>
+
+                  {/* Post Form Modal */}
+                  {showPostForm === channel.username && (
+                    <Card className="bg-primary/5 shadow-[0_0_0_1px_hsl(var(--primary)/0.2)]">
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <FileText className="h-5 w-5" />
+                          Опубликовать в канал
+                        </CardTitle>
+                        <CardDescription>
+                          Отправьте сообщение в канал через MTProto
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="post-message">Текст сообщения</Label>
+                          <textarea
+                            id="post-message"
+                            className="w-full min-h-[120px] px-3 py-2 text-sm rounded-md border border-input bg-background resize-none"
+                            placeholder="Введите текст сообщения..."
+                            value={postMessage}
+                            onChange={(e) => setPostMessage(e.target.value)}
+                            disabled={isPosting}
+                          />
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              id="post-silent"
+                              checked={postSilent}
+                              onCheckedChange={setPostSilent}
+                              disabled={isPosting}
+                            />
+                            <Label htmlFor="post-silent" className="text-sm">
+                              Тихая отправка (без уведомлений)
+                            </Label>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => handlePostToChannel(channel.username)}
+                            disabled={isPosting || !postMessage.trim()}
+                            className="gap-2"
+                          >
+                            {isPosting ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Отправка...
+                              </>
+                            ) : (
+                              <>
+                                <FileText className="h-4 w-4" />
+                                Опубликовать
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            onClick={() => {
+                              setShowPostForm(null);
+                              setPostMessage("");
+                              setPostSilent(false);
+                            }}
+                            disabled={isPosting}
+                          >
+                            Отмена
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
 
                   {/* Parsed Posts Preview */}
                   {posts.length > 0 && (

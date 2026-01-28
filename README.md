@@ -8,7 +8,6 @@
 telegram-voronka/
 ├── packages/
 │   ├── bot/         # Express API + Telegram Bot + Workers
-│   ├── webapp/      # Next.js Mini App для Telegram
 │   └── admin/       # Next.js Admin Panel
 ├── infra/           # Docker конфигурации и скрипты
 └── docs/            # Документация
@@ -37,7 +36,7 @@ npm install
 
 # Запуск инфраструктуры (MongoDB + Redis)
 cd infra
-docker compose -f docker-compose.dev.yml up -d
+docker compose up -d mongodb redis
 
 # Запуск bot (терминал 1)
 cd packages/bot
@@ -72,10 +71,10 @@ docker compose up -d
 
 ### Vercel (Frontend)
 
-**Webapp** и **Admin** деплоятся отдельно на Vercel:
+**Admin** деплоится на Vercel:
 
-1. Создайте два проекта в Vercel
-2. Укажите Root Directory: `packages/webapp` и `packages/admin`
+1. Создайте проект в Vercel
+2. Укажите Root Directory: `packages/admin`
 3. Настройте переменные окружения
 
 Подробнее: [DEPLOYMENT_VERCEL.md](docs/DEPLOYMENT_VERCEL.md)
@@ -94,7 +93,7 @@ docker compose up -d
 ### Гибридный деплой (Рекомендуется)
 
 - **VPS:** Bot API, MongoDB, Redis, Chromium
-- **Vercel:** Webapp, Admin Panel
+- **Vercel:** Admin Panel
 
 ## 🛠️ Технологии
 
@@ -117,7 +116,6 @@ docker compose up -d
 ### Структура пакетов
 
 - `packages/bot/` — Express сервер, Telegram Bot, Workers
-- `packages/webapp/` — Next.js Mini App для Telegram
 - `packages/admin/` — Next.js Admin Panel с полным функционалом
 
 ### Скрипты

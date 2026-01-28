@@ -59,18 +59,19 @@ export default function GeneratePage() {
 
   // Load API key and fingerprint status
   useEffect(() => {
+    if (!user?.id) return;
     const loadData = async () => {
       try {
-        const apiKey = await getApiKey("gemini");
+        const apiKey = await getApiKey("gemini", user.id);
         setHasApiKey(!!apiKey);
-        const fingerprint = await getFingerprint();
+        const fingerprint = await getFingerprint(user.id);
         setFingerprintState(fingerprint);
       } catch (error) {
         console.error("Failed to load API key/fingerprint:", error);
       }
     };
     loadData();
-  }, []);
+  }, [user?.id]);
 
   const handleGenerate = async () => {
     if (!topic.trim()) {
@@ -99,7 +100,7 @@ export default function GeneratePage() {
         includeCta,
         customInstructions,
         fingerprint: fingerprint || undefined,
-      });
+      }, user?.id);
 
       setResult(generated);
       setSelectedVersion(0);

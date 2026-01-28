@@ -1,4 +1,5 @@
-import { getRedis } from '../infra/redis';
+import { ConnectionOptions } from 'bullmq';
+import { env } from '../config/env';
 import { createQueue, Worker } from './index';
 
 export type PublishJob = {
@@ -7,6 +8,29 @@ export type PublishJob = {
 };
 
 export const publish = createQueue<PublishJob>('publish');
+
+// Extract connection options from Redis URL to avoid type incompatibility
+function getConnectionOptions(): ConnectionOptions {
+  const url = new URL(env.REDIS_URL);
+  const options: ConnectionOptions = {
+    host: url.hostname,
+    port: parseInt(url.port || '6379'),
+    maxRetriesPerRequest: null,
+  };
+  
+  if (url.password) {
+    options.password = url.password;
+  }
+  
+  if (url.pathname && url.pathname.length > 1) {
+    const db = parseInt(url.pathname.slice(1));
+    if (!isNaN(db)) {
+      options.db = db;
+    }
+  }
+  
+  return options;
+}
 
 export function createPublishWorker(handler: (data: PublishJob) => Promise<void>) {
   const worker = new Worker<PublishJob>(
@@ -20,7 +44,7 @@ export function createPublishWorker(handler: (data: PublishJob) => Promise<void>
       }
     },
     {
-      connection: getRedis(),
+      connection: getConnectionOptions(),
       concurrency: 1, // Process one job at a time
     }
   );

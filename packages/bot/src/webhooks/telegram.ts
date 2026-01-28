@@ -45,27 +45,29 @@ function configureBot(bot: Telegraf<Context>) {
       '',
       '<b>Что внутри</b>:\n',
       '• Express Telegram Bot (вебхуки, рассылки, события)\n',
-      '• Next.js Mini App (управление постами/ботами/аналитикой)\n',
+      '• Next.js Admin Panel (управление постами/ботами/аналитикой)\n',
       '• MongoDB + Redis + BullMQ (хранилище, кеш, очереди)\n',
       '',
       `Создатель: <a href="${env.CREATOR_LINK}">${env.CREATOR_LINK}</a>`
     ].join('\n');
 
-    const webAppUrl = env.WEBAPP_URL || 'http://localhost:3000/mini';
-    const isHttps = webAppUrl.startsWith('https://');
-    const kb = isHttps
+    // WebApp functionality moved to admin package
+    // Use ADMIN_URL if you want to link to admin panel
+    const adminUrl = process.env.ADMIN_URL;
+    const isHttps = adminUrl?.startsWith('https://') || false;
+    const kb = isHttps && adminUrl
       ? Markup.inlineKeyboard([
-          [Markup.button.webApp('Открыть Mini App', webAppUrl)],
+          [Markup.button.url('📱 Открыть админку', adminUrl)],
         ])
       : Markup.inlineKeyboard([]);
 
     if (hasImage) {
       await ctx.replyWithPhoto(
         { source: fs.createReadStream(imagePath) },
-        { caption: isHttps ? caption : `${caption}\n\n(Установите HTTPS WEBAPP_URL для кнопки Mini App)`, parse_mode: 'HTML', reply_markup: kb.reply_markup }
+        { caption: caption, parse_mode: 'HTML', reply_markup: kb.reply_markup }
       );
     } else {
-      await ctx.reply(isHttps ? caption : `${caption}\n\n(Установите HTTPS WEBAPP_URL для кнопки Mini App)`, { parse_mode: 'HTML', reply_markup: kb.reply_markup });
+      await ctx.reply(caption, { parse_mode: 'HTML', reply_markup: kb.reply_markup });
     }
   });
 

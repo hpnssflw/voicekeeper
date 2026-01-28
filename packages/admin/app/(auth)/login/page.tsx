@@ -22,8 +22,9 @@ export default function LoginPage() {
     }
   }, [authLoading, isAuthenticated, router]);
 
-  const handleOAuthLogin = async (provider: "google" | "yandex") => {
+  const handleOAuthLogin = async (provider: "google") => {
     setIsOAuthLoading(provider);
+    setErrors({});
     try {
       await signIn(provider, {
         callbackUrl: "/dashboard",
@@ -31,7 +32,7 @@ export default function LoginPage() {
       });
     } catch (error) {
       console.error(`OAuth login failed for ${provider}:`, error);
-      setErrors({ email: `Ошибка входа через ${provider === "google" ? "Google" : "Яндекс"}` });
+      setErrors({ email: `Ошибка входа через Google` });
       setIsOAuthLoading(null);
     }
   };
@@ -111,22 +112,6 @@ export default function LoginPage() {
               Войти через Google
             </Button>
 
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full gap-2"
-              onClick={() => handleOAuthLogin("yandex")}
-              disabled={isOAuthLoading !== null}
-            >
-              {isOAuthLoading === "yandex" ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 16.894c-1.302 0-2.376-.436-3.23-1.302l-1.302-1.302c-.436-.436-.872-.654-1.302-.654-.436 0-.872.218-1.302.654l-1.302 1.302c-.854.866-1.928 1.302-3.23 1.302s-2.376-.436-3.23-1.302c-.866-.854-1.302-1.928-1.302-3.23s.436-2.376 1.302-3.23c.854-.866 1.928-1.302 3.23-1.302s2.376.436 3.23 1.302l1.302 1.302c.436.436.872.654 1.302.654.436 0 .872-.218 1.302-.654l1.302-1.302c.854-.866 1.928-1.302 3.23-1.302s2.376.436 3.23 1.302c.866.854 1.302 1.928 1.302 3.23s-.436 2.376-1.302 3.23c-.854.866-1.928 1.302-3.23 1.302z"/>
-                </svg>
-              )}
-              Войти через Яндекс
-            </Button>
           </div>
 
           {errors.email && (

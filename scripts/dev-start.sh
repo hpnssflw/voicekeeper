@@ -21,7 +21,7 @@ cd "$SCRIPT_DIR/../infra"
 # Start infrastructure
 echo ""
 echo "📦 Starting MongoDB and Redis..."
-docker-compose -f docker-compose.dev.yml up -d
+docker-compose up -d mongodb redis
 
 # Wait for services
 echo "⏳ Waiting for services to be ready..."
@@ -52,13 +52,10 @@ echo ""
 echo "   Terminal 2 (Admin Panel):"
 echo "   cd packages/admin && npm run dev"
 echo ""
-echo "   Terminal 3 (Webapp - optional):"
-echo "   cd packages/webapp && npm run dev"
 echo ""
 echo "🌐 URLs:"
 echo "   Admin Panel:  http://localhost:3001"
-echo "   Bot API:      http://localhost:8080"
-echo "   Webapp:       http://localhost:3000"
+echo "   Bot API:      http://localhost:4000"
 echo ""
 echo "📖 Full documentation: DEVELOPMENT.md"
 

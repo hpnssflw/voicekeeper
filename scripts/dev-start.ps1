@@ -16,7 +16,7 @@ try {
 # Start infrastructure
 Write-Host "`n📦 Starting MongoDB and Redis..." -ForegroundColor Yellow
 Set-Location -Path "$PSScriptRoot\..\infra"
-docker-compose -f docker-compose.dev.yml up -d
+docker-compose up -d mongodb redis
 
 # Wait for services
 Write-Host "⏳ Waiting for services to be ready..." -ForegroundColor Yellow
@@ -49,13 +49,10 @@ Write-Host ""
 Write-Host "   Terminal 2 (Admin Panel):" -ForegroundColor Yellow
 Write-Host "   cd packages/admin; npm run dev" -ForegroundColor Gray
 Write-Host ""
-Write-Host "   Terminal 3 (Webapp - optional):" -ForegroundColor Yellow
-Write-Host "   cd packages/webapp; npm run dev" -ForegroundColor Gray
 Write-Host ""
 Write-Host "🌐 URLs:" -ForegroundColor Cyan
 Write-Host "   Admin Panel:  http://localhost:3001" -ForegroundColor White
-Write-Host "   Bot API:      http://localhost:8080" -ForegroundColor White
-Write-Host "   Webapp:       http://localhost:3000" -ForegroundColor White
+Write-Host "   Bot API:      http://localhost:4000" -ForegroundColor White
 Write-Host ""
 Write-Host "📖 Full documentation: DEVELOPMENT.md" -ForegroundColor Cyan
 

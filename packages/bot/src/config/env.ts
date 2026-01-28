@@ -12,7 +12,7 @@ type Env = {
   TELEGRAM_BOT_TOKEN?: string; // single-bot mode token (optional)
   ENABLE_POLLING: boolean;
   CREATOR_LINK: string;
-  WEBAPP_URL?: string;
+  ADMIN_URL?: string; // Admin panel URL (replaces WEBAPP_URL)
   CLOUDFLARED_PATH?: string;
   TELEGRAM_CHANNEL_ID?: string; // Channel ID, @username, or URL (https://t.me/channel) for publishing posts
   PUBLISH_MODE?: 'channel' | 'subscribers'; // How to publish: 'channel' or 'subscribers'
@@ -39,7 +39,7 @@ export const env: Env = {
   TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
   ENABLE_POLLING: String(process.env.ENABLE_POLLING || '').toLowerCase() === 'true',
   CREATOR_LINK: process.env.CREATOR_LINK || 'https://github.com/hpnssflw',
-  WEBAPP_URL: process.env.WEBAPP_URL,
+  ADMIN_URL: process.env.ADMIN_URL,
   CLOUDFLARED_PATH: process.env.CLOUDFLARED_PATH,
   // Support both TELEGRAM_CHANNEL_ID and TELEGRAM_CHANNEL_LINK
   // Extract username from URL if provided (e.g., https://t.me/hf_develop -> @hf_develop)

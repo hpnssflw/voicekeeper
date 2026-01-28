@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/toaster";
 import { getApiKey, setApiKey, getAiProvider, setAiProvider, testApiKey } from "@/lib/ai";
+import { useAuth } from "@/lib/auth";
 import {
   Eye,
   EyeOff,
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 
 export default function ApiKeysPage() {
+  const { user } = useAuth();
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
   const [isTesting, setIsTesting] = useState<Record<string, boolean>>({});
   const [provider, setProvider] = useState<"gemini" | "openai">("gemini");
@@ -30,11 +32,12 @@ export default function ApiKeysPage() {
 
   // Load saved keys on mount
   useEffect(() => {
+    if (!user?.id) return;
     const loadData = async () => {
       try {
-        const geminiKey = await getApiKey("gemini");
-        const openaiKey = await getApiKey("openai");
-        const currentProvider = await getAiProvider();
+        const geminiKey = await getApiKey("gemini", user.id);
+        const openaiKey = await getApiKey("openai", user.id);
+        const currentProvider = await getAiProvider(user.id);
         setKeys({
           geminiKey: geminiKey || "",
           openaiKey: openaiKey || "",
@@ -45,12 +48,13 @@ export default function ApiKeysPage() {
       }
     };
     loadData();
-  }, []);
+  }, [user?.id]);
 
   const handleSave = async (keyType: "gemini" | "openai") => {
+    if (!user?.id) return;
     const key = keyType === "gemini" ? keys.geminiKey : keys.openaiKey;
     try {
-      await setApiKey(keyType, key);
+      await setApiKey(keyType, key, user.id);
       toast({ title: "Ключ сохранён", variant: "success" });
     } catch (error) {
       toast({ 
@@ -62,9 +66,10 @@ export default function ApiKeysPage() {
   };
 
   const handleProviderChange = async (newProvider: "gemini" | "openai") => {
+    if (!user?.id) return;
     try {
       setProvider(newProvider);
-      await setAiProvider(newProvider);
+      await setAiProvider(newProvider, user.id);
       toast({ title: "Провайдер изменён", variant: "success" });
     } catch (error) {
       toast({ 

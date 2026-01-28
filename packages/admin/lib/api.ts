@@ -5,6 +5,18 @@ export const API_BASE = '/api';
 // Bot API base for operations that still need bot API (bots, posts, channels, etc.)
 const BOT_API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:4000/api';
 
+// Get the base URL for server-side requests
+function getServerBaseUrl(): string {
+  // In server context, we need a full URL
+  if (typeof window === 'undefined') {
+    // Use NEXT_PUBLIC_APP_URL if available, otherwise construct from NEXTAUTH_URL
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'http://localhost:3001';
+    return appUrl;
+  }
+  // In client context, relative paths work fine
+  return '';
+}
+
 interface ApiResponse<T> {
   data?: T;
   error?: {
@@ -36,6 +48,14 @@ class ApiClient {
       throw new Error('API base URL is not configured. Please set NEXT_PUBLIC_API_BASE environment variable.');
     }
 
+    // Build the full URL
+    // On server, we need absolute URL; on client, relative paths work
+    const isServer = typeof window === 'undefined';
+    const serverBase = isServer ? getServerBaseUrl() : '';
+    const fullUrl = isServer 
+      ? `${serverBase}${this.baseUrl}${path}`
+      : `${this.baseUrl}${path}`;
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
@@ -45,7 +65,7 @@ class ApiClient {
     }
 
     try {
-      const res = await fetch(`${this.baseUrl}${path}`, {
+      const res = await fetch(fullUrl, {
         method,
         headers,
         body: body ? JSON.stringify(body) : undefined,
@@ -373,7 +393,7 @@ export const mtprotoApi = {
   /**
    * Start authentication - sends code to phone
    */
-  startAuth: (ownerId: string, phoneNumber: string): Promise<{ success: boolean; phoneCodeHash: string; message: string }> => {
+  startAuth: (ownerId: string, phoneNumber: string): Promise<{ success: boolean; phoneCodeHash: string; phoneCodeType?: string; message: string }> => {
     return api.post('/mtproto/auth/start', { ownerId, phoneNumber });
   },
 
@@ -454,6 +474,20 @@ export const mtprotoApi = {
    */
   getChannelAnalytics: (ownerId: string, channelId: number): Promise<ChannelAnalytics> => {
     return api.get(`/mtproto/channels/${channelId}/analytics?ownerId=${ownerId}`);
+  },
+
+  /**
+   * Post message to channel via MTProto
+   */
+  postToChannel: (data: {
+    ownerId: string;
+    channelUsername: string;
+    message: string;
+    parseMode?: 'html' | 'markdown';
+    silent?: boolean;
+    scheduleDate?: string;
+  }): Promise<{ success: boolean; messageId?: number; message?: string }> => {
+    return api.post('/mtproto/channels/post', data);
   },
 };
 
@@ -579,5 +613,13 @@ export const usersApi = {
    */
   hasApiKey: (userId: string, provider: 'gemini' | 'openai'): Promise<{ hasKey: boolean; key: string | null }> => {
     return api.get(`/users/${userId}/api-key?provider=${provider}`);
+  },
+
+  /**
+   * Delete user profile
+   * Uses Next.js API route: /api/users/[userId]
+   */
+  delete: (userId: string): Promise<{ success: boolean; message: string; userId: string }> => {
+    return api.delete(`/users/${userId}`);
   },
 };

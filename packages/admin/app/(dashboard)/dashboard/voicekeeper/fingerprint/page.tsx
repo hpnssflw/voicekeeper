@@ -10,6 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/toaster";
 import { analyzeStyle, getApiKey, getFingerprint, setFingerprint, type StyleProfile } from "@/lib/ai";
+import { useAuth } from "@/lib/auth";
 import {
   ArrowLeft,
   Fingerprint,
@@ -53,6 +54,7 @@ function migrateLegacyProfile(legacy: any): StyleProfile {
 }
 
 export default function FingerprintPage() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"text" | "manual">("text");
   const [textToAnalyze, setTextToAnalyze] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -63,29 +65,30 @@ export default function FingerprintPage() {
 
   // Load saved fingerprint and check API key
   useEffect(() => {
+    if (!user?.id) return;
     const loadData = async () => {
       try {
-        const saved = await getFingerprint();
+        const saved = await getFingerprint(user.id);
         if (saved) {
           // Миграция legacy профилей
           if (isLegacyProfile(saved)) {
             const migrated = migrateLegacyProfile(saved);
             setStyleProfile(migrated);
             // Сохраняем мигрированный профиль
-            await setFingerprint(migrated);
+            await setFingerprint(migrated, user.id);
           } else {
             setStyleProfile(saved);
           }
           setHasFingerprint(true);
         }
-        const apiKey = await getApiKey("gemini");
+        const apiKey = await getApiKey("gemini", user.id);
         setHasApiKey(!!apiKey);
       } catch (error) {
         console.error("Failed to load fingerprint/API key:", error);
       }
     };
     loadData();
-  }, []);
+  }, [user?.id]);
 
   const handleAnalyzeText = async () => {
     if (!textToAnalyze.trim() || textToAnalyze.length < 100) {
@@ -105,9 +108,13 @@ export default function FingerprintPage() {
     setIsAnalyzing(true);
     
     try {
-      const profile = await analyzeStyle(textToAnalyze);
+      if (!user?.id) {
+        toast({ title: "Ошибка", description: "Пользователь не найден", variant: "destructive" });
+        return;
+      }
+      const profile = await analyzeStyle(textToAnalyze, user.id);
       setStyleProfile(profile);
-      await setFingerprint(profile);
+      await setFingerprint(profile, user.id);
       setHasFingerprint(true);
       toast({ title: "Стиль проанализирован!", variant: "success" });
     } catch (error) {
@@ -123,7 +130,11 @@ export default function FingerprintPage() {
 
   const handleSave = async () => {
     try {
-      await setFingerprint(styleProfile);
+      if (!user?.id) {
+        toast({ title: "Ошибка", description: "Пользователь не найден", variant: "destructive" });
+        return;
+      }
+      await setFingerprint(styleProfile, user.id);
       setHasFingerprint(true);
       toast({ title: "Профиль сохранён", variant: "success" });
     } catch (error) {
