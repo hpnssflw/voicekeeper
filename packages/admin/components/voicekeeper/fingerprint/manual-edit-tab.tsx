@@ -4,7 +4,7 @@ import { StructureSection } from "./manual-edit/structure-section";
 import { RhetoricSection } from "./manual-edit/rhetoric-section";
 import { ForbiddenSection } from "./manual-edit/forbidden-section";
 import { SignatureSection } from "./manual-edit/signature-section";
-import type { StyleProfile } from "@/lib/ai";
+import type { StyleProfile } from "@/features/voicekeeper/fingerprint";
 
 interface ManualEditTabProps {
   profile: StyleProfile;
@@ -32,8 +32,8 @@ export function ManualEditTab({ profile, onProfileChange }: ManualEditTabProps) 
     onProfileChange({
       ...profile,
       forbidden: {
-        ...profile.forbidden,
         phrases: [...(profile.forbidden?.phrases ?? []), phrase],
+        tones: profile.forbidden?.tones ?? [],
       },
     });
   };
@@ -42,8 +42,8 @@ export function ManualEditTab({ profile, onProfileChange }: ManualEditTabProps) 
     onProfileChange({
       ...profile,
       forbidden: {
-        ...profile.forbidden,
         phrases: (profile.forbidden?.phrases ?? []).filter((_, i) => i !== index),
+        tones: profile.forbidden?.tones ?? [],
       },
     });
   };
@@ -52,7 +52,7 @@ export function ManualEditTab({ profile, onProfileChange }: ManualEditTabProps) 
     onProfileChange({
       ...profile,
       forbidden: {
-        ...profile.forbidden,
+        phrases: profile.forbidden?.phrases ?? [],
         tones: [...(profile.forbidden?.tones ?? []), tone],
       },
     });
@@ -62,7 +62,7 @@ export function ManualEditTab({ profile, onProfileChange }: ManualEditTabProps) 
     onProfileChange({
       ...profile,
       forbidden: {
-        ...profile.forbidden,
+        phrases: profile.forbidden?.phrases ?? [],
         tones: (profile.forbidden?.tones ?? []).filter((_, i) => i !== index),
       },
     });
@@ -72,8 +72,8 @@ export function ManualEditTab({ profile, onProfileChange }: ManualEditTabProps) 
     onProfileChange({
       ...profile,
       signature: {
-        ...profile.signature,
         typicalOpenings: [...(profile.signature?.typicalOpenings ?? []), opening],
+        typicalClosings: profile.signature?.typicalClosings ?? [],
       },
     });
   };
@@ -82,8 +82,8 @@ export function ManualEditTab({ profile, onProfileChange }: ManualEditTabProps) 
     onProfileChange({
       ...profile,
       signature: {
-        ...profile.signature,
         typicalOpenings: (profile.signature?.typicalOpenings ?? []).filter((_, i) => i !== index),
+        typicalClosings: profile.signature?.typicalClosings ?? [],
       },
     });
   };
@@ -92,7 +92,7 @@ export function ManualEditTab({ profile, onProfileChange }: ManualEditTabProps) 
     onProfileChange({
       ...profile,
       signature: {
-        ...profile.signature,
+        typicalOpenings: profile.signature?.typicalOpenings ?? [],
         typicalClosings: [...(profile.signature?.typicalClosings ?? []), closing],
       },
     });
@@ -102,7 +102,7 @@ export function ManualEditTab({ profile, onProfileChange }: ManualEditTabProps) 
     onProfileChange({
       ...profile,
       signature: {
-        ...profile.signature,
+        typicalOpenings: profile.signature?.typicalOpenings ?? [],
         typicalClosings: (profile.signature?.typicalClosings ?? []).filter((_, i) => i !== index),
       },
     });

@@ -1,8 +1,7 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/auth";
+import { Card, CardContent, Button } from "@/ui";
+import { useAuth } from "@/features/auth";
 import Link from "next/link";
 import {
   Users,

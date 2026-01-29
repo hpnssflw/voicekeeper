@@ -1,11 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { toast } from "@/components/ui/toaster";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Input, Label, toast } from "@/ui";
 import { Loader2, Zap } from "lucide-react";
 
 interface AddBotFormProps {

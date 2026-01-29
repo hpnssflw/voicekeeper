@@ -1,15 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PageHeader, EmptyState, ListItem } from "@/components/widgets";
-import { useFeature } from "@/lib/features";
-import { useAuth } from "@/lib/auth";
-import { postsApi, type Post } from "@/lib/api";
+import { Card, CardContent, Button, Input, Badge, Tabs, TabsList, TabsTrigger, PageHeader, EmptyState, ListItem } from "@/ui";
+import { useFeature } from "@/shared/lib/features";
+import { useAuth } from "@/features/auth";
+import { postsApi, type Post } from "@/shared/api";
 import Link from "next/link";
 import {
   FileText,
@@ -27,7 +22,7 @@ import {
   Trash2,
   Clock,
 } from "lucide-react";
-import { toast } from "@/components/ui/toaster";
+import { toast } from "@/ui";
 
 export default function PostsPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -120,7 +115,7 @@ export default function PostsPage() {
       <PageHeader
         title="Посты"
         description="Управление контентом всех ваших каналов"
-        action={
+        rightContent={
           <div className="flex gap-1">
             <Link href="/dashboard/voicekeeper/generate">
               <Button variant="outline" size="sm" className="h-6 text-[9px] gap-1">

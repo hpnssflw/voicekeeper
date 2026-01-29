@@ -1,9 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
-import type { StyleProfile } from "@/lib/ai";
+import { Card, CardContent, CardHeader, CardTitle, Label, Select, Slider, Switch } from "@/ui";
+import type { StyleProfile } from "@/features/voicekeeper/fingerprint";
 
 interface LanguageSectionProps {
   profile: StyleProfile;
@@ -20,7 +16,12 @@ export function LanguageSection({ profile, onChange }: LanguageSectionProps) {
         <Select
           label="Длина предложений"
           value={profile.language?.sentenceLength ?? 'medium'}
-          onChange={(e) => onChange({ ...(profile.language ?? {}), sentenceLength: e.target.value as any })}
+          onChange={(e) => onChange({
+            sentenceLength: e.target.value as "short" | "medium" | "long",
+            slangLevel: profile.language?.slangLevel ?? 0.3,
+            professionalLexicon: profile.language?.professionalLexicon ?? true,
+            emojiFrequency: profile.language?.emojiFrequency ?? 0.2,
+          })}
           options={[
             { value: 'short', label: 'Короткие' },
             { value: 'medium', label: 'Средние' },
@@ -30,7 +31,12 @@ export function LanguageSection({ profile, onChange }: LanguageSectionProps) {
         <Slider
           label="Сленг"
           value={profile.language?.slangLevel ?? 0.3}
-          onChange={(v) => onChange({ ...(profile.language ?? {}), slangLevel: v })}
+          onChange={(v) => onChange({
+            sentenceLength: profile.language?.sentenceLength ?? 'medium',
+            slangLevel: v,
+            professionalLexicon: profile.language?.professionalLexicon ?? true,
+            emojiFrequency: profile.language?.emojiFrequency ?? 0.2,
+          })}
           min={0}
           max={1}
           step={0.1}
@@ -39,13 +45,23 @@ export function LanguageSection({ profile, onChange }: LanguageSectionProps) {
           <Label className="text-[9px] text-muted-foreground">Проф. лексика</Label>
           <Switch
             checked={profile.language?.professionalLexicon ?? true}
-            onCheckedChange={(v) => onChange({ ...(profile.language ?? {}), professionalLexicon: v })}
+            onCheckedChange={(v) => onChange({
+              sentenceLength: profile.language?.sentenceLength ?? 'medium',
+              slangLevel: profile.language?.slangLevel ?? 0.3,
+              professionalLexicon: v,
+              emojiFrequency: profile.language?.emojiFrequency ?? 0.2,
+            })}
           />
         </div>
         <Slider
           label="Эмодзи"
           value={profile.language?.emojiFrequency ?? 0.2}
-          onChange={(v) => onChange({ ...(profile.language ?? {}), emojiFrequency: v })}
+          onChange={(v) => onChange({
+            sentenceLength: profile.language?.sentenceLength ?? 'medium',
+            slangLevel: profile.language?.slangLevel ?? 0.3,
+            professionalLexicon: profile.language?.professionalLexicon ?? true,
+            emojiFrequency: v,
+          })}
           min={0}
           max={1}
           step={0.1}

@@ -1,10 +1,9 @@
 "use client";
 
 import { LoginModal } from "@/components/auth/login-modal";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useAuth } from "@/lib/auth";
-import { useTranslations } from "@/lib/use-translations";
+import { Button, Input } from "@/ui";
+import { useAuth } from "@/features/auth";
+import { useTranslations } from "@/shared/lib/i18n";
 import { Command, LogOut, Menu, Search, User } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";

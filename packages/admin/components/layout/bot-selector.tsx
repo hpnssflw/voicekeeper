@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { Bot, ChevronDown, Plus, Check } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useAuth } from "@/lib/auth";
+import { cn } from "@/shared/lib/utils";
+import { useAuth } from "@/features/auth";
 import { useRouter } from "next/navigation";
 
 export function BotSelector() {

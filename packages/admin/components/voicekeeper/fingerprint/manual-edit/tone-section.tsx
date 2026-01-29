@@ -1,6 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Slider } from "@/components/ui/slider";
-import type { StyleProfile } from "@/lib/ai";
+import { Card, CardContent, CardHeader, CardTitle, Slider } from "@/ui";
+import type { StyleProfile } from "@/features/voicekeeper/fingerprint";
 
 interface ToneSectionProps {
   profile: StyleProfile;
@@ -17,7 +16,11 @@ export function ToneSection({ profile, onChange }: ToneSectionProps) {
         <Slider
           label="Эмоциональность"
           value={profile.tone?.emotionality ?? 0.5}
-          onChange={(v) => onChange({ ...(profile.tone ?? {}), emotionality: v })}
+          onChange={(v) => onChange({
+            emotionality: v,
+            assertiveness: profile.tone?.assertiveness ?? 0.5,
+            irony: profile.tone?.irony ?? 0,
+          })}
           min={0}
           max={1}
           step={0.1}
@@ -25,7 +28,11 @@ export function ToneSection({ profile, onChange }: ToneSectionProps) {
         <Slider
           label="Уверенность"
           value={profile.tone?.assertiveness ?? 0.5}
-          onChange={(v) => onChange({ ...(profile.tone ?? {}), assertiveness: v })}
+          onChange={(v) => onChange({
+            emotionality: profile.tone?.emotionality ?? 0.5,
+            assertiveness: v,
+            irony: profile.tone?.irony ?? 0,
+          })}
           min={0}
           max={1}
           step={0.1}
@@ -33,7 +40,11 @@ export function ToneSection({ profile, onChange }: ToneSectionProps) {
         <Slider
           label="Ирония"
           value={profile.tone?.irony ?? 0}
-          onChange={(v) => onChange({ ...(profile.tone ?? {}), irony: v })}
+          onChange={(v) => onChange({
+            emotionality: profile.tone?.emotionality ?? 0.5,
+            assertiveness: profile.tone?.assertiveness ?? 0.5,
+            irony: v,
+          })}
           min={0}
           max={1}
           step={0.1}

@@ -1,9 +1,6 @@
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Badge, Card, CardContent, CardHeader, CardTitle, Input, Label } from "@/ui";
 import { X } from "lucide-react";
-import type { StyleProfile } from "@/lib/ai";
+import type { StyleProfile } from "@/features/voicekeeper/fingerprint";
 
 interface ForbiddenSectionProps {
   profile: StyleProfile;

@@ -1,8 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import type { StyleProfile } from "@/lib/ai";
+import { Card, CardContent, CardHeader, CardTitle, Label, Select, Switch } from "@/ui";
+import type { StyleProfile } from "@/features/voicekeeper/fingerprint";
 
 interface StructureSectionProps {
   profile: StyleProfile;
@@ -19,7 +16,12 @@ export function StructureSection({ profile, onChange }: StructureSectionProps) {
         <Select
           label="Начало"
           value={profile.structure?.hookType ?? 'mixed'}
-          onChange={(e) => onChange({ ...(profile.structure ?? {}), hookType: e.target.value as any })}
+          onChange={(e) => onChange({
+            hookType: e.target.value as "question" | "statement" | "provocation" | "mixed",
+            paragraphLength: profile.structure?.paragraphLength ?? '3-4 sentences',
+            useLists: profile.structure?.useLists ?? false,
+            rhythm: profile.structure?.rhythm ?? 'medium',
+          })}
           options={[
             { value: 'question', label: 'Вопрос' },
             { value: 'statement', label: 'Утверждение' },
@@ -30,7 +32,12 @@ export function StructureSection({ profile, onChange }: StructureSectionProps) {
         <Select
           label="Абзацы"
           value={profile.structure?.paragraphLength ?? '3-4 sentences'}
-          onChange={(e) => onChange({ ...(profile.structure ?? {}), paragraphLength: e.target.value as any })}
+          onChange={(e) => onChange({
+            hookType: profile.structure?.hookType ?? 'mixed',
+            paragraphLength: e.target.value as "1-2 sentences" | "3-4 sentences" | "5+ sentences",
+            useLists: profile.structure?.useLists ?? false,
+            rhythm: profile.structure?.rhythm ?? 'medium',
+          })}
           options={[
             { value: '1-2 sentences', label: '1-2 предложения' },
             { value: '3-4 sentences', label: '3-4 предложения' },
@@ -41,13 +48,23 @@ export function StructureSection({ profile, onChange }: StructureSectionProps) {
           <Label className="text-[9px] text-muted-foreground">Списки</Label>
           <Switch
             checked={profile.structure?.useLists ?? false}
-            onCheckedChange={(v) => onChange({ ...(profile.structure ?? {}), useLists: v })}
+            onCheckedChange={(v) => onChange({
+              hookType: profile.structure?.hookType ?? 'mixed',
+              paragraphLength: profile.structure?.paragraphLength ?? '3-4 sentences',
+              useLists: v,
+              rhythm: profile.structure?.rhythm ?? 'medium',
+            })}
           />
         </div>
         <Select
           label="Ритм"
           value={profile.structure?.rhythm ?? 'medium'}
-          onChange={(e) => onChange({ ...(profile.structure ?? {}), rhythm: e.target.value as any })}
+          onChange={(e) => onChange({
+            hookType: profile.structure?.hookType ?? 'mixed',
+            paragraphLength: profile.structure?.paragraphLength ?? '3-4 sentences',
+            useLists: profile.structure?.useLists ?? false,
+            rhythm: e.target.value as "fast" | "medium" | "slow",
+          })}
           options={[
             { value: 'fast', label: 'Быстрый' },
             { value: 'medium', label: 'Умеренный' },

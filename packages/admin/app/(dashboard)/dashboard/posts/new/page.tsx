@@ -1,13 +1,8 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { toast } from "@/components/ui/toaster";
-import { botsApi, postsApi } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, toast } from "@/ui";
+import { botsApi, postsApi } from "@/shared/api";
+import { useAuth } from "@/features/auth";
 import {
   ArrowLeft,
   Bold,

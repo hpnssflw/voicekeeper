@@ -1,10 +1,9 @@
 "use client";
 
 import { MessageSquare, Calendar, Clock, CheckCircle2, FileText } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Badge, Button } from "@/ui";
 import { Loader2 } from "lucide-react";
-import type { Post } from "@/lib/api";
+import type { Post } from "@/shared/api";
 
 interface BotPostsListProps {
   posts: Post[];

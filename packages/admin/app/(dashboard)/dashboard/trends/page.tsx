@@ -1,13 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { toast } from "@/components/ui/toaster";
-import { useAuth } from "@/lib/auth";
-import { UnderDevelopmentModal, useUnderDevelopment } from "@/components/ui/under-development-modal";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Input, Label, toast, UnderDevelopmentModal, useUnderDevelopment } from "@/ui";
+import { useAuth } from "@/features/auth";
 import {
   Radar,
   Plus,

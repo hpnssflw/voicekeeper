@@ -1,9 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import type { StyleProfile } from "@/lib/ai";
+import { Card, CardContent, CardHeader, CardTitle, Input, Label, Select, Switch } from "@/ui";
+import type { StyleProfile } from "@/features/voicekeeper/fingerprint";
 
 interface RhetoricSectionProps {
   profile: StyleProfile;
@@ -22,7 +18,12 @@ export function RhetoricSection({ profile, onChange }: RhetoricSectionProps) {
           <Input
             type="number"
             value={profile.rhetoric?.questionsPerPost ?? 1}
-            onChange={(e) => onChange({ ...(profile.rhetoric ?? {}), questionsPerPost: parseInt(e.target.value) || 0 })}
+            onChange={(e) => onChange({
+              questionsPerPost: parseInt(e.target.value) || 0,
+              metaphors: profile.rhetoric?.metaphors ?? 'rare',
+              storytelling: profile.rhetoric?.storytelling ?? false,
+              ctaStyle: profile.rhetoric?.ctaStyle ?? 'none',
+            })}
             min={0}
             className="h-6 text-[10px]"
           />
@@ -30,7 +31,12 @@ export function RhetoricSection({ profile, onChange }: RhetoricSectionProps) {
         <Select
           label="Метафоры"
           value={profile.rhetoric?.metaphors ?? 'rare'}
-          onChange={(e) => onChange({ ...(profile.rhetoric ?? {}), metaphors: e.target.value as any })}
+          onChange={(e) => onChange({
+            questionsPerPost: profile.rhetoric?.questionsPerPost ?? 1,
+            metaphors: e.target.value as "frequent" | "rare" | "none",
+            storytelling: profile.rhetoric?.storytelling ?? false,
+            ctaStyle: profile.rhetoric?.ctaStyle ?? 'none',
+          })}
           options={[
             { value: 'frequent', label: 'Часто' },
             { value: 'rare', label: 'Редко' },
@@ -41,13 +47,23 @@ export function RhetoricSection({ profile, onChange }: RhetoricSectionProps) {
           <Label className="text-[9px] text-muted-foreground">Истории</Label>
           <Switch
             checked={profile.rhetoric?.storytelling ?? false}
-            onCheckedChange={(v) => onChange({ ...(profile.rhetoric ?? {}), storytelling: v })}
+            onCheckedChange={(v) => onChange({
+              questionsPerPost: profile.rhetoric?.questionsPerPost ?? 1,
+              metaphors: profile.rhetoric?.metaphors ?? 'rare',
+              storytelling: v,
+              ctaStyle: profile.rhetoric?.ctaStyle ?? 'none',
+            })}
           />
         </div>
         <Select
           label="CTA"
           value={profile.rhetoric?.ctaStyle ?? 'none'}
-          onChange={(e) => onChange({ ...(profile.rhetoric ?? {}), ctaStyle: e.target.value as any })}
+          onChange={(e) => onChange({
+            questionsPerPost: profile.rhetoric?.questionsPerPost ?? 1,
+            metaphors: profile.rhetoric?.metaphors ?? 'rare',
+            storytelling: profile.rhetoric?.storytelling ?? false,
+            ctaStyle: e.target.value as "soft" | "none" | "direct",
+          })}
           options={[
             { value: 'soft', label: 'Мягкий' },
             { value: 'none', label: 'Нет' },

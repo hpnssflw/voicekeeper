@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button, Card, CardContent } from "@/ui";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { X, Loader2 } from "lucide-react";

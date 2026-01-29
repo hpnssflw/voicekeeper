@@ -1,11 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "@/components/ui/toaster";
-import { DEMO_MODE } from "@/lib/features";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badge, toast } from "@/ui";
+import { DEMO_MODE } from "@/shared/lib/features";
 import {
   Crown,
   Check,

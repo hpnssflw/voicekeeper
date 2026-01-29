@@ -1,6 +1,6 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
+import { Card } from "@/ui";
 import { Plus } from "lucide-react";
 
 interface EmptyBotStateProps {

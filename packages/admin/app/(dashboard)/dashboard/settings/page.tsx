@@ -1,12 +1,8 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { PageHeader } from "@/components/widgets";
-import { useAuth } from "@/lib/auth";
-import { useUnderDevelopment } from "@/components/ui/under-development-modal";
-import { useTranslations } from "@/lib/use-translations";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badge, PageHeader, useUnderDevelopment } from "@/ui";
+import { useAuth } from "@/features/auth";
+import { useTranslations } from "@/shared/lib/i18n";
 import Link from "next/link";
 import {
   Key,

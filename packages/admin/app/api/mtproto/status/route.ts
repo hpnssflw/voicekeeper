@@ -1,4 +1,4 @@
-import { getBotApiBase } from '@/lib/api-base';
+import { getBotApiBase } from '@/shared/api';
 import { NextResponse } from 'next/server';
 
 export async function GET() {

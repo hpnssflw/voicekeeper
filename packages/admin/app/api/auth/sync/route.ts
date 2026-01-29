@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-config";
-import { usersApi } from "@/lib/api";
+import { usersApi } from "@/shared/api";
 
 /**
  * API endpoint для синхронизации OAuth сессии с нашей системой пользователей

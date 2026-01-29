@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
-import { DemoBadge } from "@/components/ui/demo-badge";
-import { useAuth } from "@/lib/auth";
-import { DEMO_MODE } from "@/lib/features";
+import { DemoBadge } from "@/ui";
+import { useAuth } from "@/features/auth";
+import { DEMO_MODE } from "@/shared/lib/features";
 import { Loader2 } from "lucide-react";
 
 export default function DashboardLayout({

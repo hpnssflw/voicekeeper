@@ -1,13 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Label, Input, Button, toast } from "@/ui";
 import { CheckCircle2, Eye, EyeOff, Copy, Loader2, Check } from "lucide-react";
-import { toast } from "@/components/ui/toaster";
 import { BotPostsList } from "./BotPostsList";
-import type { Post } from "@/lib/api";
+import type { Post } from "@/shared/api";
 
 interface BotDetails {
   id: string;

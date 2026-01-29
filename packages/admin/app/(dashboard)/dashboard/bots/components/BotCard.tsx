@@ -1,13 +1,10 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badge, Switch } from "@/ui";
 import { Bot, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
 import { BotStats } from "./BotStats";
 import { BotExpandedDetails } from "./BotExpandedDetails";
-import type { Post } from "@/lib/api";
+import type { Post } from "@/shared/api";
 
 interface BotData {
   id: string;

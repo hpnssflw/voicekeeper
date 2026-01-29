@@ -1,6 +1,5 @@
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import type { StyleProfile } from "@/lib/ai";
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui";
+import type { StyleProfile } from "@/features/voicekeeper/fingerprint";
 
 interface SettingsPreviewProps {
   profile: StyleProfile;

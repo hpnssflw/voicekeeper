@@ -1,7 +1,7 @@
 "use client";
 
 import { Users, FileText } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/ui";
 import { Trash2 } from "lucide-react";
 
 interface BotStatsProps {

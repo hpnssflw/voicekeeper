@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getBotApiBase } from '@/lib/api-base';
+import { getBotApiBase } from '@/shared/api';
 
 export async function DELETE(
   request: Request,

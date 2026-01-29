@@ -1,14 +1,8 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { toast } from "@/components/ui/toaster";
-import { channelsApi, mtprotoApi, type ChannelAnalytics, type ChannelInfoResponse, type ParsedPost } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
+import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Switch, toast, PageHeader } from "@/ui";
+import { channelsApi, mtprotoApi, type ChannelAnalytics, type ChannelInfoResponse, type ParsedPost } from "@/shared/api";
+import { useAuth } from "@/features/auth";
 import {
   Calendar,
   CheckCircle2,
@@ -316,18 +310,16 @@ export default function ChannelsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight font-display">Парсинг каналов</h1>
-          <p className="text-muted-foreground">
-            Анализируйте контент каналов с помощью MTProto API
-          </p>
-        </div>
-        <Button onClick={() => setIsAddingChannel(true)} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Добавить канал
-        </Button>
-      </div>
+      <PageHeader
+        title="Парсинг каналов"
+        description="Анализируйте контент каналов с помощью MTProto API"
+        rightContent={
+          <Button onClick={() => setIsAddingChannel(true)} className="gap-1 h-6 text-[9px]">
+            <Plus className="h-2.5 w-2.5" />
+            Добавить канал
+          </Button>
+        }
+      />
 
       {/* MTProto Status Card */}
       <Card className={mtprotoConfigured ? "bg-emerald-500/10 border-emerald-500/20" : "bg-amber-500/10 border-amber-500/20"}>

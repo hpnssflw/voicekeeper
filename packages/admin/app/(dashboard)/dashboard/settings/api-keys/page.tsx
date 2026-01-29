@@ -1,13 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "@/components/ui/toaster";
-import { getApiKey, setApiKey, getAiProvider, setAiProvider, testApiKey } from "@/lib/ai";
-import { useAuth } from "@/lib/auth";
+import { Card, CardContent, Button, Input, Badge, toast } from "@/ui";
+import { getApiKey, setApiKey, getAiProvider, setAiProvider, testApiKey } from "@/features/voicekeeper/fingerprint";
+import { useAuth } from "@/features/auth";
 import {
   Eye,
   EyeOff,

@@ -1,10 +1,10 @@
 "use client";
 
 import { Logo, LogoIcon } from "@/components/brand/logo";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/auth";
-import { useTranslations } from "@/lib/use-translations";
-import { cn } from "@/lib/utils";
+import { Button } from "@/ui";
+import { useAuth } from "@/features/auth";
+import { useTranslations } from "@/shared/lib/i18n";
+import { cn } from "@/shared/lib/utils";
 import {
   BookOpen,
   Bot,

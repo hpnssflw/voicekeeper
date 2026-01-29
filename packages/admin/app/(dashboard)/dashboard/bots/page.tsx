@@ -1,9 +1,8 @@
 "use client";
 
-import { toast } from "@/components/ui/toaster";
-import { PageHeader } from "@/components/widgets";
-import { botsApi, postsApi, type Post } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
+import { toast, PageHeader } from "@/ui";
+import { botsApi, postsApi, type Post } from "@/shared/api";
+import { useAuth } from "@/features/auth";
 import { useEffect, useState } from "react";
 import { AddBotForm, BotCard, EmptyBotState } from "./components";
 

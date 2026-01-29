@@ -1,5 +1,4 @@
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import { Badge, Card } from "@/ui";
 import { Fingerprint } from "lucide-react";
 
 export function FingerprintStatus() {

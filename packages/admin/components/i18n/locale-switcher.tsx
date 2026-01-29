@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { locales, type Locale } from "@/i18n";
-import { getLocale, setLocale as setLocaleCookie } from "@/lib/locale-client";
+import { locales, type Locale } from "@/shared/lib/i18n";
+import { getLocale, setLocale as setLocaleCookie } from "@/shared/lib/i18n/client";
 
 export function LocaleSwitcher() {
   const router = useRouter();

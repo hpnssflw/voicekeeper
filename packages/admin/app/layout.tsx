@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Comfortaa, Rubik, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from "@/lib/auth";
+import { Toaster } from "@/ui";
+import { AuthProvider } from "@/features/auth";
 import { SessionProvider } from "@/components/providers/session-provider";
 
 const comfortaa = Comfortaa({

@@ -6,8 +6,13 @@
     "dev": "cross-env NEXT_PRIVATE_SKIP_TURBO=1 next dev -p 3001",
     "dev:turbo": "next dev --turbo -p 3001",
     "build": "next build",
+    "build:check": "npm run type-check && npm run build",
+    "type-check": "tsc --noEmit --pretty",
+    "type-check:watch": "tsc --noEmit --watch",
     "start": "next start -p 3001",
-    "lint": "eslint",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "check": "npm run type-check && npm run lint",
     "clear-db": "tsx scripts/clear-db.ts"
   },
   "dependencies": {
@@ -45,8 +50,8 @@
     "@types/react-dom": "^19",
     "cross-env": "^7.0.3",
     "dotenv": "^16.4.5",
-    "eslint": "^9",
-    "eslint-config-next": "16.1.0",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "15.1.6",
     "tailwindcss": "^4",
     "tsx": "^4.7.0",
     "typescript": "^5"
