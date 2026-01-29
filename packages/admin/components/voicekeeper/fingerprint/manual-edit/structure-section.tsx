@@ -1,0 +1,61 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import type { StyleProfile } from "@/lib/ai";
+
+interface StructureSectionProps {
+  profile: StyleProfile;
+  onChange: (structure: StyleProfile["structure"]) => void;
+}
+
+export function StructureSection({ profile, onChange }: StructureSectionProps) {
+  return (
+    <Card>
+      <CardHeader className="pb-1 p-1.5">
+        <CardTitle className="text-[10px]">Структура</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-1.5 p-1.5">
+        <Select
+          label="Начало"
+          value={profile.structure?.hookType ?? 'mixed'}
+          onChange={(e) => onChange({ ...(profile.structure ?? {}), hookType: e.target.value as any })}
+          options={[
+            { value: 'question', label: 'Вопрос' },
+            { value: 'statement', label: 'Утверждение' },
+            { value: 'provocation', label: 'Провокация' },
+            { value: 'mixed', label: 'Смешанный' },
+          ]}
+        />
+        <Select
+          label="Абзацы"
+          value={profile.structure?.paragraphLength ?? '3-4 sentences'}
+          onChange={(e) => onChange({ ...(profile.structure ?? {}), paragraphLength: e.target.value as any })}
+          options={[
+            { value: '1-2 sentences', label: '1-2 предложения' },
+            { value: '3-4 sentences', label: '3-4 предложения' },
+            { value: '5+ sentences', label: '5+ предложений' },
+          ]}
+        />
+        <div className="flex items-center justify-between py-0.5">
+          <Label className="text-[9px] text-muted-foreground">Списки</Label>
+          <Switch
+            checked={profile.structure?.useLists ?? false}
+            onCheckedChange={(v) => onChange({ ...(profile.structure ?? {}), useLists: v })}
+          />
+        </div>
+        <Select
+          label="Ритм"
+          value={profile.structure?.rhythm ?? 'medium'}
+          onChange={(e) => onChange({ ...(profile.structure ?? {}), rhythm: e.target.value as any })}
+          options={[
+            { value: 'fast', label: 'Быстрый' },
+            { value: 'medium', label: 'Умеренный' },
+            { value: 'slow', label: 'Размеренный' },
+          ]}
+        />
+      </CardContent>
+    </Card>
+  );
+}
+
